@@ -175,10 +175,12 @@ async function bundle() {
 $('#fc-download').onclick = async () => { note('Packing…'); try { await saveFile(await bundle(), fileName() + '.html'); } catch (e) { note('Could not pack: ' + e.message); } };
 $('#fc-export').onclick = async () => {
   if (exporting) return;
-  if (!navigator.mediaDevices?.getDisplayMedia) return note('Export works from the downloaded page opened in Chrome.');
+  // inside the claude.ai frame tab capture is refused: hand over the page instead, the same button records once it is open in a browser
+  const sandboxed = !!window.claude?.use || !navigator.mediaDevices?.getDisplayMedia;
+  if (sandboxed) { note('Saving the page. Open it in Chrome and press Export there.'); try { await saveFile(await bundle(), fileName() + '.html'); } catch (e) { note('Could not save: ' + e.message); } return; }
   let stream;
   try { stream = await navigator.mediaDevices.getDisplayMedia({ video: { displaySurface: 'browser', frameRate: 30 }, audio: false, preferCurrentTab: true, selfBrowserSurface: 'include', surfaceSwitching: 'exclude', monitorTypeSurfaces: 'exclude' }); }
-  catch (e) { return note('Export works from the downloaded page opened in Chrome. Pick this tab when asked.'); }
+  catch (e) { return note('Pick this tab when Chrome asks, then press Export again.'); }
   const c = PRESET[canvasName], [W, H] = c || (frame === 'none' ? SIZE : [SIZE[0] * 2, SIZE[1] * 2]);
   const video = document.createElement('video'); video.srcObject = stream; video.muted = true; video.playsInline = true; await video.play();
   const out = document.createElement('canvas'); out.width = W; out.height = H; const ctx = out.getContext('2d');
