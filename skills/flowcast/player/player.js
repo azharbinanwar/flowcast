@@ -7,6 +7,7 @@ const pre = window.__flowcast || {};
 for (const k of ['mode', 'theme', 'captions']) if (pre[k]) document.documentElement.dataset[k] = pre[k];
 if (!pre.captions && $('#flowcast').dataset.captions === 'off') document.documentElement.dataset.captions = 'off';
 const host = $('#flowcast');
+const SOURCE = document.documentElement.outerHTML;   // the page before the player builds its chrome, for Download page
 for (const k of ['frame', 'canvas', 'phone', 'captionsAt']) if (pre[k]) host.dataset[k] = pre[k];
 const mode = document.documentElement.dataset.mode || 'preview';
 const frame = host.dataset.frame || 'phone';
@@ -31,7 +32,8 @@ host.innerHTML = `
   <select id="phone-pick"><option value="center">Device centre</option><option value="left">Device left</option><option value="right">Device right</option></select>
   <span class="fc-slot-toggles">${Object.keys(slots).map(k => `<button data-slot="${k}" class="${slots[k] ? 'on' : ''}">${k}</button>`).join('')}</span>
   <span class="fc-tag">${{ phone: 'Phone · 390×844', browser: 'Browser · 1280×800', none: SIZE[1] ? `Canvas · ${SIZE[0]}×${SIZE[1]}` : 'In-app' }[frame]}</span>
-  <span class="fc-tag">Total <b id="fc-total">${(total / 1000).toFixed(1)}s</b></span></div>
+  <span class="fc-tag">Total <b id="fc-total">${(total / 1000).toFixed(1)}s</b></span>
+  <button id="fc-export">Export video</button><button id="fc-download">Download page</button><span class="fc-note" id="fc-note"></span></div>
 <div class="fc-cwrap" id="fc-cwrap"><div class="fc-canvas" id="fc-canvas">
   <div class="fc-slots fc-top" id="fc-top">
     <div class="fc-slot" data-slot="logo" id="fc-slot-logo"></div>
@@ -79,13 +81,13 @@ function render() {
   $('#fc-dots').innerHTML = beats.map((_, k) => `<div class="fc-dot${k === i ? ' on' : ''}" data-k="${k}"><i></i></div>`).join('');
 }
 function go(n) {
-  i = Math.max(0, Math.min(beats.length - 1, n)); run++; elapsed = 0; paused = false; $('#fc-pause').textContent = 'Pause';
+  window.flowcastDone = false; i = Math.max(0, Math.min(beats.length - 1, n)); run++; elapsed = 0; paused = false; $('#fc-pause').textContent = 'Pause';
   s.cls('#fc-end', 'show', false); s.finger(false); apply(i); render(); scene[i](s); tick(run);
 }
 function finish(mine) {
-  if (!endCard) { if (mode === 'embed') go(0); else window.flowcastDone = true; return; }
+  if (!endCard) { if (mode === 'embed' && !exporting) go(0); else window.flowcastDone = true; return; }
   s.cls('#fc-end', 'show');
-  setTimeout(() => { if (mine !== run) return; if (mode === 'embed' || mode === 'preview') go(0); else window.flowcastDone = true; }, T.endCard);
+  setTimeout(() => { if (mine !== run) return; if ((mode === 'embed' || mode === 'preview') && !exporting) go(0); else window.flowcastDone = true; }, T.endCard);
 }
 function tick(mine) {
   cancelAnimationFrame(raf); startAt = performance.now() - elapsed;
@@ -153,5 +155,42 @@ function layout() {
   cvEl.style.transform = `scale(${K})`; wrap.style.width = cw * K + 'px'; wrap.style.height = ch * K + 'px';
 }
 addEventListener('resize', layout); layout();
+
+// ---- Download page: this intro as one self-contained file. Export video: capture this tab, cropped to the canvas, saved as mp4 or webm ----
+let exporting = false;
+const note = (t) => { $('#fc-note').textContent = t; };
+const fileName = () => (document.title || 'intro').replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
+async function saveFile(data, filename) {
+  const dl = window.claude?.use ? await claude.use('downloads') : null;
+  if (dl) { try { await dl.save({ filename, data }); note('Saved.'); } catch (e) { note(e.code === 'declined' ? '' : 'Could not save: ' + (e.message || e.code)); } return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(data instanceof Blob ? data : new Blob([data])); a.download = filename; a.click(); note('Saved.');
+}
+async function bundle() {
+  const [css, js] = await Promise.all(['player.css', 'player.js'].map(f => fetch(f).then(r => r.text())));
+  return '<!doctype html>\n' + SOURCE
+    .replace(/<link[^>]*href="player\.css"[^>]*>/, () => `<style>${css}</style>`)
+    .replace(/<script[^>]*src="player\.js"[^>]*><\/script>/, () => `<script>${js.replace(/<\/script/g, '<\\/script')}</script>`)
+    .replace(/ data-(mode|theme|captions)="[^"]*"/g, '');
+}
+$('#fc-download').onclick = async () => { note('Packing…'); try { await saveFile(await bundle(), fileName() + '.html'); } catch (e) { note('Could not pack: ' + e.message); } };
+$('#fc-export').onclick = async () => {
+  if (exporting) return;
+  if (!navigator.mediaDevices?.getDisplayMedia) return note('Export works from the downloaded page opened in Chrome.');
+  let stream;
+  try { stream = await navigator.mediaDevices.getDisplayMedia({ video: { displaySurface: 'browser', frameRate: 30 }, audio: false, preferCurrentTab: true, selfBrowserSurface: 'include', surfaceSwitching: 'exclude', monitorTypeSurfaces: 'exclude' }); }
+  catch (e) { return note('Export works from the downloaded page opened in Chrome. Pick this tab when asked.'); }
+  const c = PRESET[canvasName], [W, H] = c || (frame === 'none' ? SIZE : [SIZE[0] * 2, SIZE[1] * 2]);
+  const video = document.createElement('video'); video.srcObject = stream; video.muted = true; video.playsInline = true; await video.play();
+  const out = document.createElement('canvas'); out.width = W; out.height = H; const ctx = out.getContext('2d');
+  const mime = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].find(m => MediaRecorder.isTypeSupported(m));
+  const rec = new MediaRecorder(out.captureStream(30), { mimeType: mime, videoBitsPerSecond: 8e6 }); const chunks = []; rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+  let raf; const draw = () => { const r = $('#fc-canvas').getBoundingClientRect(), kx = video.videoWidth / innerWidth, ky = video.videoHeight / innerHeight; ctx.drawImage(video, r.left * kx, r.top * ky, r.width * kx, r.height * ky, 0, 0, W, H); raf = requestAnimationFrame(draw); };
+  exporting = true; note(`Recording ${W}×${H}… keep this tab in front.`); rec.start(250); draw(); go(0);
+  await new Promise(res => { const t = setInterval(() => { if (window.flowcastDone) { clearInterval(t); res(); } }, 100); });
+  await new Promise(r => setTimeout(r, 300)); const stopped = new Promise(r => { rec.onstop = r; }); rec.stop(); await stopped;
+  cancelAnimationFrame(raf); stream.getTracks().forEach(t => t.stop()); exporting = false;
+  const ext = mime.includes('mp4') ? 'mp4' : 'webm';
+  await saveFile(new Blob(chunks, { type: mime }), `${fileName()}-${W}x${H}.${ext}`); go(0);
+};
 window.flowcast = { total, go, beats, layout, canvas: () => PRESET[canvasName] };
 go(0);

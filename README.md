@@ -22,7 +22,7 @@ claude.ai: upload the `skills/flowcast` folder as a skill.
 
 You get the beats and a playable preview. Switch canvas, theme and captions in the preview's toolbar, then ask for what you want: video, GIF, image, post, carousel, web embed, in-app.
 
-GIF and video need Node:
+Video with no install: press **Download page** on the preview, open the file in Chrome, press **Export video**. For ffmpeg-grade output and GIFs, the Node recorder:
 
 ```bash
 npm install && npx playwright install chromium

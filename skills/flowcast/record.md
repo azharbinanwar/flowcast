@@ -1,5 +1,13 @@
 # Recording to video or GIF
 
+## From the page, no install
+
+The preview has two buttons. **Download page** hands the viewer this intro as one self-contained HTML file (inside the artifact it uses the downloads capability, so publish with `capabilities: {downloads: true}`). **Export video** captures the browser tab, cropped to the canvas at the preset size, and saves an MP4 (WebM where the browser lacks MP4). It needs a normal browser tab: open the downloaded file in Chrome, pick the preset in the toolbar, press Export, choose this tab when asked, wait for the run to finish. Inside the artifact the button explains that, since the sandbox refuses tab capture.
+
+Quality follows the window: the canvas is captured at the size it is shown, then scaled to the preset, so a bigger window gives a sharper file. For ffmpeg-grade output and batch runs, use the recorder below.
+
+## With Node, pixel-perfect
+
 Needs Node, Playwright's Chromium and ffmpeg. Check, install only what is missing:
 
 ```bash

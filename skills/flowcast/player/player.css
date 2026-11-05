@@ -6,6 +6,8 @@ body{margin:0;background:var(--bg);color:var(--on);font-family:var(--font);font-
 .fc-tools{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;font-size:12.5px;color:var(--muted)}
 .fc-tools .fc-tag{background:var(--card);border:1px solid var(--border);border-radius:999px;padding:6px 10px}
 .fc-tools b{color:var(--on);font-weight:700;font-variant-numeric:tabular-nums}
+.fc-note{font-size:12px;color:var(--accent);font-weight:600}
+[data-mode=record] .fc-note{display:none}
 .fc-tools button,.fc-bar button{font:inherit;border-radius:999px;padding:8px 14px;background:var(--card);color:var(--on);border:1px solid var(--border);cursor:pointer}
 .fc-tools button:focus-visible,.fc-bar button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .fc-tools button.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
