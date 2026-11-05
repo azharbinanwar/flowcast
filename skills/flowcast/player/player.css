@@ -1,0 +1,101 @@
+/* flowcast player. The intro's own <style> overrides these tokens. */
+:root{--accent:#2f7d5b;--on-accent:#fff;--bg:#eef0ee;--screen:#fff;--card:#f3f4f2;--on:#1b1b1b;--muted:#6b6f6a;--border:rgba(0,0,0,.1);--bezel:#1b1b1f;--font:-apple-system,system-ui,sans-serif}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--on);font-family:var(--font);font-size:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px;box-sizing:border-box}
+#flowcast{max-width:100%;margin:0 auto;display:grid;gap:12px;justify-items:center}
+.fc-tools{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;font-size:12.5px;color:var(--muted)}
+.fc-tools .fc-tag{background:var(--card);border:1px solid var(--border);border-radius:999px;padding:6px 10px}
+.fc-tools b{color:var(--on);font-weight:700;font-variant-numeric:tabular-nums}
+.fc-tools button,.fc-bar button{font:inherit;border-radius:999px;padding:8px 14px;background:var(--card);color:var(--on);border:1px solid var(--border);cursor:pointer}
+.fc-tools button:focus-visible,.fc-bar button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fc-tools button.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.fc-bar{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
+.fc-dots{display:flex;gap:6px;justify-content:center}
+.fc-dot{width:8px;height:8px;border-radius:4px;background:var(--card);border:1px solid var(--border);overflow:hidden;transition:width .3s;cursor:pointer}
+.fc-dot.on{width:24px}.fc-dot i{display:block;height:100%;width:0;background:var(--accent)}
+
+/* canvas: the exported picture. The phone and the slots live on it. */
+.fc-tools select{font:inherit;border-radius:999px;padding:8px 12px;background:var(--card);color:var(--on);border:1px solid var(--border)}
+.fc-tools .fc-slot-toggles{display:inline-flex;gap:4px}.fc-tools [hidden]{display:none}.fc-tools .fc-slot-toggles button{padding:6px 10px;font-size:12px;text-transform:capitalize}
+.fc-cwrap{position:relative}
+.fc-canvas{transform-origin:top left;display:grid;gap:40px;padding:72px;box-sizing:border-box;align-content:center;justify-content:center;justify-items:center;font-family:var(--font)}
+.fc-canvas[data-preset=story]{padding:96px 72px}
+.fc-canvas[data-preset=none]{padding:0;gap:0;background:transparent;color:inherit}
+.fc-canvas[data-layout=column]{grid-template-areas:"top" "phone" "around" "bottom";grid-template-columns:minmax(0,1fr)}
+.fc-canvas[data-layout=row]{grid-template-areas:"top phone" "around phone" "bottom phone";grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto auto;align-items:center;column-gap:64px}
+.fc-canvas[data-layout=row][data-phone=left]{grid-template-areas:"phone top" "phone around" "phone bottom";grid-template-columns:auto minmax(0,1fr)}
+.fc-around{grid-area:around;min-width:0;justify-self:center}
+.fc-canvas[data-around=yes] .fc-slots h1{font-size:44px}.fc-canvas[data-around=yes] .fc-slots p{font-size:22px}.fc-canvas[data-around=yes] .fc-slots .fc-cta{font-size:22px;padding:14px 28px}.fc-canvas[data-around=yes] .fc-slots{gap:14px}
+.fc-canvas[data-around=no] .fc-around{display:none}
+/* no canvas, but a scene that lives around the device too: phone and the around part side by side */
+.fc-canvas[data-preset=none][data-around=yes]{display:grid;grid-template-areas:"phone around";grid-template-columns:auto minmax(0,1fr);gap:32px;align-items:center;padding:0}
+.fc-canvas[data-preset=none][data-around=yes][data-phone=right]{grid-template-areas:"around phone";grid-template-columns:minmax(0,1fr) auto}
+.fc-canvas[data-preset=none] .fc-top,.fc-canvas[data-preset=none] .fc-bottom{display:none}
+.fc-canvas[data-layout=row] .fc-top{align-self:end}.fc-canvas[data-layout=row] .fc-bottom{align-self:start}
+.fc-canvas[data-layout=row][data-around=yes] .fc-top,.fc-canvas[data-layout=row][data-around=yes] .fc-bottom{align-self:center}
+.fc-canvas[data-layout=row] .fc-slots{justify-items:start;text-align:left}
+.fc-canvas[data-bg=tint]{background:color-mix(in srgb,var(--accent) 10%,var(--bg))}
+.fc-canvas[data-bg=accent]{background:var(--accent);color:var(--on-accent)}
+.fc-canvas[data-bg=bg]{background:var(--bg)}
+.fc-canvas[data-preset=none]{background:transparent}
+.fc-top{grid-area:top}.fc-bottom{grid-area:bottom}.fc-phone{grid-area:phone;display:grid;gap:16px;justify-items:center}
+.fc-slots{display:grid;gap:22px;justify-items:center;text-align:center;max-width:900px;min-width:0}
+.fc-slots:empty,.fc-slots:not(:has(:not([hidden]))){display:none}
+.fc-slots .fc-slot{margin:0;min-width:0}
+.fc-slots .fc-logo{width:120px;height:auto;color:var(--accent)}.fc-canvas[data-bg=accent] .fc-slots .fc-logo{color:var(--on-accent)}
+.fc-slots h1{font-size:64px;line-height:1.08;font-weight:700;letter-spacing:-1px;text-wrap:balance}
+.fc-canvas[data-preset=story] .fc-slots h1{font-size:72px}
+.fc-canvas[data-layout=column]:not([data-preset=story]) .fc-slots h1{font-size:48px}
+.fc-canvas[data-layout=column]:not([data-preset=story]) .fc-slots p{font-size:24px}
+.fc-canvas[data-layout=column]:not([data-preset=story]) .fc-slots .fc-cta{font-size:22px;padding:14px 28px}
+.fc-canvas[data-layout=column]:not([data-preset=story]) .fc-slots .fc-logo{width:80px}
+.fc-canvas[data-layout=column]:not([data-preset=story]) .fc-slots{gap:14px}
+.fc-slots p{font-size:30px;line-height:1.35;color:var(--muted)}.fc-canvas[data-bg=accent] .fc-slots p{color:var(--on-accent);opacity:.9}
+.fc-slots .fc-cta{display:inline-block;font-size:28px;font-weight:700;padding:18px 36px;border-radius:999px;background:var(--accent);color:var(--on-accent)}
+.fc-canvas[data-bg=accent] .fc-slots .fc-cta{background:var(--on-accent);color:var(--accent)}
+.fc-slots .fc-tags{font-size:24px;color:var(--muted);opacity:.85}
+.fc-slots [contenteditable]:focus{outline:2px dashed var(--accent);outline-offset:6px}
+
+/* frames */
+.fc-fit{position:relative}
+.fc-frame{transform-origin:top left;background:var(--bezel);box-shadow:0 20px 60px rgba(0,0,0,.25);box-sizing:border-box}
+.fc-frame.fc-phone{width:390px;height:844px;border-radius:48px;padding:12px}
+.fc-frame.fc-phone .fc-screen{border-radius:38px}
+.fc-frame.fc-browser{width:1280px;height:800px;border-radius:12px;padding:38px 0 0;position:relative}
+.fc-frame.fc-browser::before{content:'';position:absolute;top:13px;left:14px;width:12px;height:12px;border-radius:50%;background:#ff5f57;box-shadow:20px 0 0 #febc2e,40px 0 0 #28c840}
+.fc-frame.fc-browser .fc-url{position:absolute;top:9px;left:90px;right:90px;height:20px;border-radius:6px;background:rgba(255,255,255,.12);color:#cfd3d8;font-size:11px;line-height:20px;text-align:center;font-family:var(--font)}
+.fc-frame.fc-none{width:420px;height:auto;background:transparent;box-shadow:none;padding:0}
+.fc-frame.fc-none .fc-screen{border-radius:0;border:0}
+.fc-screen{width:100%;height:100%;background:var(--screen);overflow:hidden;position:relative;display:flex;flex-direction:column}
+.fc-status{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-size:13px;font-weight:700;background:var(--card);flex:none}
+.fc-status i{display:inline-block;width:18px;height:9px;border:1.5px solid var(--on);border-radius:3px;position:relative;vertical-align:middle}
+.fc-status i::after{content:'';position:absolute;inset:1.5px;right:4px;background:var(--on);border-radius:1px}
+.fc-stage{flex:1;position:relative;min-height:0;display:flex;flex-direction:column}
+.fc-caption{padding:14px 22px 22px;text-align:center;min-height:68px;background:var(--screen);flex:none}
+.fc-caption h2{margin:0 0 6px;font-size:16px;font-weight:700;text-wrap:balance}
+.fc-caption p{margin:0;color:var(--muted);font-size:13px}
+:root[data-captions=off] .fc-caption{display:none}
+.fc-caption.fc-below{background:transparent;max-width:390px;padding:4px 16px 0}
+.fc-caption.fc-below h2{font-size:20px}.fc-caption.fc-below p{font-size:15px}
+
+/* reveal: an element that is not on screen yet takes no space, so a chat pins to the bottom and a list grows the way it really does */
+.fc-in{interpolate-size:allow-keywords;overflow:hidden;transition:height .35s ease,opacity .3s ease .1s,padding .35s ease,margin .35s ease,transform .3s ease .1s}
+.fc-in:not(.show){height:0;opacity:0;padding-block:0;margin-block:0;transform:translateY(6px);border-width:0}
+.fc-in.show{height:auto}
+
+/* the actor */
+.fc-finger{position:absolute;z-index:9;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:var(--accent);opacity:0;transform:scale(1);transition:opacity .25s,transform .15s,left .35s,top .35s;pointer-events:none}
+.fc-finger.show{opacity:.4}.fc-finger.press{transform:scale(.75);opacity:.7}
+
+/* end card */
+.fc-end{position:absolute;inset:0;z-index:10;background:var(--accent);color:var(--on-accent);display:grid;place-content:center;text-align:center;gap:8px;opacity:0;visibility:hidden;transition:opacity .6s}
+.fc-end.show{opacity:1;visibility:visible}
+.fc-end .fc-logo{width:96px;height:auto;margin:0 auto 6px;color:var(--on-accent)}
+.fc-end b{font-size:34px;font-weight:700;letter-spacing:-.5px}.fc-end p{margin:0;font-size:15px;opacity:.9}
+
+/* what each mode shows */
+[data-mode=intro] .fc-tools,[data-mode=embed] .fc-tools,[data-mode=record] .fc-tools,
+[data-mode=embed] .fc-dots,[data-mode=record] .fc-dots,[data-mode=record] .fc-bar,
+[data-mode=embed] #fc-prev,[data-mode=embed] #fc-next,[data-mode=embed] #fc-skip{display:none}
+[data-mode=record] .fc-frame{box-shadow:none}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}
