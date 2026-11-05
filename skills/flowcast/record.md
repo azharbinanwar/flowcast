@@ -8,11 +8,10 @@ Quality follows the window: the canvas is captured at the size it is shown, then
 
 ## With Node, pixel-perfect
 
-Needs Node, Playwright's Chromium and ffmpeg. Check, install only what is missing:
+Headless Chromium draws the intro and ffmpeg encodes it, the same way Remotion and HyperFrames render. Everything comes from npm; nothing else to install. Once, in the skill's folder (the base directory given when the skill is invoked):
 
 ```bash
-which ffmpeg || brew install ffmpeg          # or: npm i ffmpeg-static, then use node_modules/ffmpeg-static/ffmpeg
-npx playwright --version >/dev/null 2>&1 || (npm i playwright && npx playwright install chromium)
+npm install          # Playwright, its Chromium, and ffmpeg
 ```
 
 Record what the preview shows. Only when the user has not set them, use these defaults and say them:
@@ -20,26 +19,17 @@ Record what the preview shows. Only when the user has not set them, use these de
 - **Theme:** light, dark, or both (two files).
 - **Captions:** off (default for video), or on with the user's words. `below` the frame for a floating-phone post.
 
-Record. The page runs in record mode: no controls, plays once, ends on the end card.
-
 ```bash
-node scripts/record.mjs intro.html out.webm --canvas square --phone right --theme dark --captions off
-# or a bare frame at any size: --width 1080 --height 1920
+node <skill>/scripts/record.mjs intro.html out.webm --canvas square --phone right --theme dark --captions off
+node <skill>/scripts/convert.mjs out.webm out.mp4            # MP4 for LinkedIn, Instagram, App Store
+node <skill>/scripts/convert.mjs out.webm out.gif --width 720  # GIF, 15 fps, clean palette
+# a bare frame at any size: --width 1080 --height 1920
 ```
 
-Convert:
+The intro file needs `player.css` and `player.js` next to it: copy or symlink them from `<skill>/player/`.
 
-```bash
-# MP4 for LinkedIn, Instagram, App Store
-ffmpeg -y -i out.webm -c:v libx264 -pix_fmt yuv420p -movflags +faststart out.mp4
+Launch intro, WhatsApp style: add a first beat where the app's logo scales in on an empty screen and a last beat that fades to one line. Narration or music: `ffmpeg -i out.mp4 -i voice.mp3 -shortest -c:v copy out2.mp4` with the ffmpeg at `node -p "require('ffmpeg-static')"`.
 
-# GIF, two passes for a clean palette, 15 fps, 720 wide
-ffmpeg -y -i out.webm -vf "fps=15,scale=720:-1:flags=lanczos,palettegen" palette.png
-ffmpeg -y -i out.webm -i palette.png -lavfi "fps=15,scale=720:-1:flags=lanczos[x];[x][1:v]paletteuse" out.gif
-```
-
-Launch intro, WhatsApp style: add a first beat where the app's logo scales in on an empty screen and a last beat that fades to one line. Narration or music: `ffmpeg -i out.mp4 -i voice.mp3 -shortest -c:v copy out2.mp4`.
-
-Without Node: the user still gets the preview, the beats, the still, the carousel and the text post. Say that GIF and video need Node, and that the artifact can be screen-recorded.
+Without Node (claude.ai): the user still gets the preview, the beats, the still, the carousel, the text post, and the Download page button. Say that MP4 and GIF need Claude Code.
 
 Tell the user the file path. Never post it anywhere.

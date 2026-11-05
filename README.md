@@ -4,35 +4,35 @@ A Claude skill that turns a feature or a story into something people watch: an i
 
 ## Install
 
-Claude Code:
-
 ```bash
-git clone https://github.com/azharbinanwar/flowcast
-ln -s "$PWD/flowcast/skills/flowcast" ~/.claude/skills/flowcast
+npx skills add azharbinanwar/flowcast
 ```
 
-claude.ai: upload the `skills/flowcast` folder as a skill.
+Works in Claude Code and any Agent Skills-compatible agent. For claude.ai, upload the `skills/flowcast` folder as a skill.
 
 ## Use
 
 ```
-/flowcast prayer alarm                         # a feature in the project you are in
-/flowcast <paste a story>                       # no project needed
+/flowcast prayer alarm            # a feature in the project you are in
+/flowcast <paste a story>          # no project needed
 ```
 
 You get the beats and a playable preview. Switch canvas, theme and captions in the preview's toolbar, then ask for what you want: video, GIF, image, post, carousel, web embed, in-app.
 
-Video with no install: press **Download page** on the preview, open the file in Chrome, press **Export video**. For ffmpeg-grade output and GIFs, the Node recorder:
+## Video
+
+Pixel-perfect MP4 and GIF come from headless Chromium and ffmpeg, both installed by npm. Once, in the skill folder:
 
 ```bash
-npm install && npx playwright install chromium
-brew install ffmpeg
+npm install
 ```
+
+Then ask for the video and Claude records it. No brew, no ffmpeg on your PATH. In claude.ai, where there is no Node, the preview has a Download page button; open the file in Chrome and press Export for a quick tab-capture video.
 
 ## Layout
 
 - `skills/flowcast/SKILL.md` — how Claude thinks: who it is for, designing the scene from the story, beats, defaults, outputs.
 - `skills/flowcast/stage.md` — the intro file contract on the shared player.
-- `skills/flowcast/player/` — the shared player: frames, canvas presets, modes, toolbar.
-- `skills/flowcast/scripts/` — contact sheet and recorder.
+- `skills/flowcast/player/` — the shared player: frames, canvas presets, modes, toolbar, download and export.
+- `skills/flowcast/scripts/` — contact sheet, recorder, converter.
 - `skills/flowcast/record.md` — recording and converting.

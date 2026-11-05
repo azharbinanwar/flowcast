@@ -1,0 +1,16 @@
+{
+  "name": "flowcast-skill",
+  "private": true,
+  "type": "module",
+  "description": "Video toolchain for the flowcast skill: headless Chromium and ffmpeg, installed once with npm install.",
+  "scripts": {
+    "postinstall": "playwright install chromium",
+    "record": "node scripts/record.mjs",
+    "convert": "node scripts/convert.mjs",
+    "sheet": "node scripts/sheet.mjs"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.2.0",
+    "playwright": "^1.64.1"
+  }
+}
