@@ -66,9 +66,9 @@ From a project: its color tokens for light and dark, its font, its radius, its r
 | Beats, plan, storyboard | The beat list only. No stage. |
 | Preview, intro, animation | The intro file as an artifact. |
 | Text post | The beats as a caption for the platform, hook first, hashtags, first comment. No stage. |
-| Image, still | One beat frozen from the sheet, or a designed graphic, at the canvas size. |
-| Carousel | One beat per page, hook on page one, end card last. PDF for LinkedIn. |
-| GIF, video, reel, launch intro | The intro recorded. See `record.md`. Launch intro: logo scales in first, one line last. |
+| Image, still, frames | One PNG per beat plus the end card at the canvas size, with `scripts/frames.mjs`. One of them, or all. |
+| Carousel, slides | The frames as a PDF, one beat per page, end card last, with `scripts/frames.mjs --pdf`. LinkedIn document posts. |
+| GIF, video, reel, launch intro | The intro recorded with `scripts/record.mjs`, converted with `scripts/convert.mjs`. See `record.md`. Launch intro: logo scales in first, one line last. |
 | Web embed | The intro file plus the player files, mode `embed`, and the one-line iframe snippet. Place it in the site only if asked. |
 | In-app | The approved stage rewritten in the app's own stack and real components, same beats. Only when asked. |
 | Anything else | Make it from the same beats. Do not refuse a format because it is not here. |
