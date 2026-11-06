@@ -41,7 +41,7 @@ host.innerHTML = `
   <span class="fc-slot-toggles">${Object.keys(slots).map(k => `<button data-slot="${k}" class="${slots[k] ? 'on' : ''}">${k}</button>`).join('')}</span>
   <span class="fc-tag">${{ phone: 'Phone · 390×844', browser: 'Browser · 1280×800', none: SIZE[1] ? `Canvas · ${SIZE[0]}×${SIZE[1]}` : 'In-app' }[frame]}</span>
   <span class="fc-tag">Total <b id="fc-total">${(total / 1000).toFixed(1)}s</b></span>
-  <select id="fc-export" hidden><option value="">Export…</option><option value="mp4">MP4 video</option><option value="gif">GIF</option><option value="frames">PNG frames</option><option value="slides">PDF slides</option></select><span class="fc-tag" id="fc-status" hidden></span><button id="fc-saved" hidden>Open folder</button>
+  <select id="fc-export" hidden><option value="">Export…</option><option value="mp4">MP4 video</option><option value="gif">GIF</option><option value="frames">PNG frames</option><option value="slides">PDF slides</option></select><span class="fc-tag" id="fc-status" hidden></span><button id="fc-saved" hidden></button>
 </div>
 <div class="fc-cwrap" id="fc-cwrap"><div class="fc-canvas" id="fc-canvas">
   <div class="fc-slots fc-top" id="fc-top">
@@ -187,7 +187,7 @@ if (STUDIO) {
     const status = $('#fc-status'), saved = $('#fc-saved');
     pick.disabled = true; status.hidden = false; saved.hidden = true; status.textContent = `Exporting ${label}…`; lastFile = '';
     try { const r = await fetch('/export', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(q) }).then(r => r.json());
-      if (r.ok) { lastFile = r.file; status.textContent = `Saved · ${r.file.split('/').pop()}`; saved.hidden = false; } else status.textContent = `Failed: ${r.error}`; }
+      if (r.ok) { lastFile = r.file; status.hidden = true; saved.textContent = `Saved · ${r.file.split('/').pop()} ↗`; saved.hidden = false; } else status.textContent = `Failed: ${r.error}`; }
     catch (err) { status.textContent = 'Failed: ' + err.message; }
     pick.disabled = false;
   };
