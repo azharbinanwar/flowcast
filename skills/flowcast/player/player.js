@@ -344,9 +344,16 @@ if (STUDIO) {
   const icon = document.createElement('link'); icon.rel = 'icon'; icon.type = 'image/svg+xml';
   icon.href = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg>');
   document.querySelectorAll('link[rel~="icon"]').forEach(l => l.remove()); document.head.append(icon);
-  const brand = document.createElement('a'); brand.className = 'fc-brand'; brand.href = '/'; brand.title = 'History';
-  brand.dataset.label = 'History'; brand.innerHTML = '<svg viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg><b>Flowcast</b>';
-  document.body.prepend(brand);
+  // where you are: Flowcast, which is home and lists every intro, then the project, then this intro's name
+  if (mode === 'preview') {
+    const crumbs = document.createElement('nav'); crumbs.className = 'fc-crumbs'; crumbs.ariaLabel = 'Breadcrumb';
+    crumbs.innerHTML = '<a href="/" title="All intros"><svg viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg><b>Flowcast</b></a><span class="fc-sep" aria-hidden="true">/</span><a class="fc-proj" href="/"></a><span class="fc-sep" aria-hidden="true">/</span><span class="fc-here" aria-current="page"></span>';
+    // the project this intro belongs to links to its group on the History page
+    const projectSlug = location.pathname.split('/').filter(Boolean)[0], projLink = crumbs.querySelector('.fc-proj');
+    if (pre.project && projectSlug) { projLink.textContent = pre.project; projLink.href = `/#p-${projectSlug}`; } else { projLink.nextElementSibling.remove(); projLink.remove(); }
+    crumbs.querySelector('.fc-here').textContent = document.title;
+    document.body.prepend(crumbs);
+  }
   $('#fc-export-sec').hidden = false;
   $('#fc-saved').onclick = () => { if (lastFile) fetch('open', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ file: lastFile }) }); };
   const pick = $('#fc-export');

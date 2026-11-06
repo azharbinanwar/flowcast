@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Projects: one list of your projects in `~/.flowcast/projects.json`, one studio for all of them; each intro opens at `/<project>/<intro>/` and older links redirect. Making an intro in a new project adds it to the running studio.
+- History: grouped by project, with the size, running time and exported formats on each card, a live preview on hover, and search and sort across every project.
+- Breadcrumb in the studio: `Flowcast / project / intro`, replacing the logo and History pill.
 - Studio drawer: every option in a panel on the right with sections that open and close, an icon each, and a reset in each header that shows only when something changed.
 - Timing: a speed for the whole intro and seconds per beat; a beat's animation speeds up or slows down to fit its time. Saved, and used by every export.
 - Colours: every colour token, light and dark side by side, grouped by product or part through the intro's `palette`; reset per colour, group or all. Saved and exported.

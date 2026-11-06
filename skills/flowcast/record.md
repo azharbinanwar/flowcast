@@ -3,7 +3,7 @@
 ## The studio
 
 ```bash
-node <skill>/scripts/studio.mjs flowcast --port 7788   # History at /, each intro at /<feature>/
+node <skill>/scripts/studio.mjs flowcast --port 7788   # History at /, each intro at /<project>/<feature>/
 ```
 
 Start it in the background only if `curl -s localhost:7788/__ping` gets no answer, then open the URL. The preview has an Export button with a format pick: MP4 video, GIF, PNG frames, PDF slides. A click runs the scripts below with the page's current settings and writes `flowcast-<project>.<ext>` into the intro's own `exports/` folder, where project is the page's title. The file name then shows as one button next to Export; clicking it opens the folder.

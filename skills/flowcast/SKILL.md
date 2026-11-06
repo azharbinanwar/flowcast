@@ -28,7 +28,7 @@ With nothing after `/flowcast`, open History instead: do exactly what the `flowc
    When the story is a flow rather than one app screen, the whole canvas is the scene: `data-frame="none"` at the canvas size, captions off, the headline drawn in the scene.
 3. **Beats.** Write them in the format below with each beat's seconds and the total, and show them.
 4. **Defaults, not questions.** Pick canvas, frame, theme and captions from the output the user named and from the story's world, and state them in one line. Every one is a switch in the studio. Ask only when nothing points either way.
-5. **Build.** Write the intro to `flowcast/<feature>/intro.html` in the folder Claude Code is working in, never inside the skill. Follow `stage.md`. Check it with one contact sheet as `stage.md` says. Then open it in the studio: if `curl -s localhost:7788/__ping` answers, the studio already runs, otherwise start `node <skill>/scripts/studio.mjs flowcast --port 7788` in the background; open `http://localhost:7788/<feature>/`. A claude.ai artifact only when the user wants a link to share; in claude.ai, the artifact is the preview.
+5. **Build.** Write the intro to `flowcast/<feature>/intro.html` in the folder Claude Code is working in, never inside the skill. Follow `stage.md`. Check it with one contact sheet as `stage.md` says. Then open it in the studio. If `curl -s localhost:7788/__ping` answers, the studio already runs: add this project with `curl -s -X POST localhost:7788/__add -d '{"root":"<absolute path>/flowcast"}'`, which answers with the project's name in the URL. Otherwise start `node <skill>/scripts/studio.mjs flowcast --port 7788` in the background, which adds it itself. Open `http://localhost:7788/<project>/<feature>/`. A claude.ai artifact only when the user wants a link to share; in claude.ai, the artifact is the preview.
 6. **Output.** Exports come from the studio's Export menu, or from the scripts when asked in words; either way they use what the user set on the page. Say what was made, where, the running time, and in one line what else the same beats can become.
 
 "Change beat 2", "slower", "add a tap", "no captions": edit the intro, confirm with one frame of the beat you changed, and tell the user to refresh. Never change the app's code or post anywhere unless that exact thing was asked.
@@ -86,7 +86,7 @@ The canvas is the exported picture. Slots around the scene carry the user's word
 - Explore within the budget in step 1.
 - An intro file is tokens, scene, beats, steps and canvas words. The player does the rest: never copy its code, never hand-write an actor, a beat guard or a toolbar.
 - One contact sheet. After a fix, one cropped frame of that beat, never a new sheet. The other theme only when colours changed.
-- One studio serves every intro on port 7788. Reuse it when it answers; never start a second one.
+- One studio serves every project's intros on port 7788. Reuse it when it answers and add the project to it; never start a second one.
 - Small edits in place, not rewrites.
 
 ## Common mistakes

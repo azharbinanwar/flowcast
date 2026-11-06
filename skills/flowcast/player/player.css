@@ -128,11 +128,8 @@ html[data-mode=record] .fc-cwrap,html[data-mode=record] .fc-canvas,html[data-mod
 @media (prefers-reduced-motion:reduce){#fc-splash svg{animation:none}}
 
 /* the studio's brand, top left like any web app */
-.fc-brand{position:fixed;top:max(14px,env(safe-area-inset-top,0px));left:max(18px,env(safe-area-inset-left,0px));z-index:40;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--on);font:700 16px/1 var(--font)}
-.fc-brand svg{width:28px;height:28px}
-.fc-brand::after{content:attr(data-label);margin-left:10px;padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:var(--card);font:600 12.5px/1 var(--font);color:var(--on)}
-.fc-brand:hover::after{border-color:var(--accent)}
-@media (max-width:1100px){.fc-brand b{display:none}}
+.fc-crumbs{position:fixed;top:max(14px,env(safe-area-inset-top,0px));left:max(18px,env(safe-area-inset-left,0px));z-index:40;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--on);font:700 16px/1 var(--font)}
+.fc-crumbs svg{width:28px;height:28px}
 /* slot words wrap inside their column, never under the scene */
 .fc-slots>*{max-width:100%;overflow-wrap:break-word}
 
@@ -236,9 +233,8 @@ html:has(#flowcast[data-mode=preview]) body{background:var(--ui-bg)!important;fo
 #flowcast[data-mode=preview] #fc-pause[data-state=paused] .fc-i{margin-left:2px}
 
 /* top-left */
-html:has(#flowcast[data-mode=preview]) .fc-brand{color:var(--ui-text);font-family:var(--ui-font)}
-html:has(#flowcast[data-mode=preview]) .fc-brand::after{background:var(--ui-panel);border-color:var(--ui-line);color:var(--ui-text);font-family:var(--ui-font)}
-
+html:has(#flowcast[data-mode=preview]) .fc-crumbs{color:var(--ui-text);font-family:var(--ui-font)}
+html:has(#flowcast[data-mode=preview]) 
 /* icons and pickers */
 .fc-i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
 #flowcast[data-mode=preview] .fc-tools summary>span{flex:1;min-width:0;display:flex;align-items:center;gap:10px;color:var(--ui-text);font-size:11.5px}
@@ -308,7 +304,15 @@ html:has(#flowcast[data-mode=preview]){interpolate-size:allow-keywords}
 #flowcast[data-mode=preview] #fc-skip{display:none}
 #flowcast[data-mode=preview] #fc-full{display:grid}
 html.fc-full body{padding:0!important;background:#000!important;display:grid;place-items:center;min-height:100vh}
-html.fc-full .fc-tools,html.fc-full .fc-brand,html.fc-full .fc-dots,html.fc-full .fc-bar{display:none!important}
+html.fc-full .fc-tools,html.fc-full .fc-crumbs,html.fc-full .fc-dots,html.fc-full .fc-bar{display:none!important}
 html.fc-full #flowcast{display:grid;place-items:center;width:100vw;height:100vh}
 html.fc-full .fc-canvas,html.fc-full .fc-frame,html.fc-full .fc-screen{box-shadow:none!important;border-radius:0!important}
 html.fc-full #flowcast{gap:0}
+
+/* breadcrumb: the mark and Flowcast lead home, then the intro you are in */
+.fc-crumbs a{display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;padding:4px 8px 4px 4px;margin-left:-4px;border-radius:9px;transition:background .15s}
+.fc-crumbs a:hover{background:var(--ui-hover,rgba(0,0,0,.05))}
+.fc-crumbs .fc-sep{color:var(--ui-muted,#888);font-weight:400;opacity:.6}
+.fc-crumbs a.fc-proj{font-size:14px;font-weight:600;color:var(--ui-muted,#888);padding:4px 6px;margin:0 -2px}
+.fc-crumbs a.fc-proj:hover{color:var(--ui-text,inherit)}
+.fc-crumbs .fc-here{font-weight:600;font-size:14px;color:var(--ui-muted,#888);max-width:34vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
