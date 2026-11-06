@@ -34,10 +34,10 @@ const beats = await page.evaluate(() => flowcast.beats.map(b => b.ms));
 const files = [];
 for (let i = 0; i < beats.length; i++) {
   await page.evaluate((n) => flowcast.go(n), i); await page.waitForTimeout(Math.max(300, beats[i] * at));
-  const f = join(resolve(outdir), `beat-${i + 1}.png`); await page.screenshot({ path: f }); files.push(f);
+  const f = join(resolve(outdir), `flowcast-${i + 1}.png`); await page.screenshot({ path: f }); files.push(f);
 }
 await page.evaluate((n) => flowcast.go(n), beats.length - 1); await page.waitForTimeout(beats[beats.length - 1] + 900);
-const endFile = join(resolve(outdir), 'end.png'); await page.screenshot({ path: endFile }); files.push(endFile);
+const endFile = join(resolve(outdir), 'flowcast-end.png'); await page.screenshot({ path: endFile }); files.push(endFile);
 
 if (opt.pdf) {
   // the frames as pages, each the size of the frame
