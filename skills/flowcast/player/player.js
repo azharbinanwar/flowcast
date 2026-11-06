@@ -41,9 +41,9 @@ host.innerHTML = `
   <span class="fc-slot-toggles">${Object.keys(slots).map(k => `<button data-slot="${k}" class="${slots[k] ? 'on' : ''}">${k}</button>`).join('')}</span>
   <span class="fc-tag">${{ phone: 'Phone · 390×844', browser: 'Browser · 1280×800', none: SIZE[1] ? `Canvas · ${SIZE[0]}×${SIZE[1]}` : 'In-app' }[frame]}</span>
   <span class="fc-tag">Total <b id="fc-total">${(total / 1000).toFixed(1)}s</b></span>
-  <span class="fc-export" id="fc-export" hidden><button id="fc-go">Export ▾</button><div class="fc-menu" id="fc-menu" hidden><button data-format="mp4">MP4 video</button><button data-format="gif">GIF</button><button data-format="frames">PNG frames</button><button data-format="slides">PDF slides</button></div></span><button class="fc-saved" id="fc-saved" hidden></button>
+  <span class="fc-export" id="fc-export" hidden><button id="fc-go">Export ▾</button><div class="fc-menu" id="fc-menu" hidden><button data-format="mp4">MP4 video</button><button data-format="gif">GIF</button><button data-format="frames">PNG frames</button><button data-format="slides">PDF slides</button></div></span>
 </div>
-<div class="fc-cwrap" id="fc-cwrap"><div class="fc-canvas" id="fc-canvas">
+<div class="fc-cwrap" id="fc-cwrap"><div class="fc-busy" id="fc-busy" hidden><b id="fc-busy-title"></b><span id="fc-busy-text"></span><button id="fc-saved" hidden>Open folder</button></div><div class="fc-canvas" id="fc-canvas">
   <div class="fc-slots fc-top" id="fc-top">
     <div class="fc-slot" data-slot="logo" id="fc-slot-logo"></div>
     <h1 class="fc-slot" data-slot="headline" id="fc-slot-headline">${cv.headline || ''}</h1>
@@ -182,15 +182,16 @@ if (STUDIO) {
   $('#fc-saved').onclick = () => { if (lastFile) fetch('/open', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ file: lastFile }) }); };
   const menu = $('#fc-menu'), go = $('#fc-go');
   go.onclick = () => { if (!go.disabled) menu.hidden = !menu.hidden; };
-  document.addEventListener('click', (e) => { if (!e.target.closest('#fc-export')) menu.hidden = true; });
+  document.addEventListener('click', (e) => { if (!e.target.closest('#fc-export')) menu.hidden = true; const busy = $('#fc-busy'); if (!busy.hidden && !busy.classList.contains('working') && !e.target.closest('#fc-busy') && !e.target.closest('#fc-export')) busy.hidden = true; });
   menu.onclick = async (e) => {
     const b = e.target.closest('button'); if (!b) return; menu.hidden = true;
     const q = { format: b.dataset.format, ...state() };
-    go.disabled = true; const saved = $('#fc-saved'); saved.hidden = false; saved.textContent = `Making ${b.textContent}…`; lastFile = '';
+    const busy = $('#fc-busy'), title = $('#fc-busy-title'), text = $('#fc-busy-text'), saved = $('#fc-saved');
+    go.disabled = true; busy.hidden = false; busy.classList.add('working'); saved.hidden = true; title.textContent = `Exporting ${b.textContent}`; text.textContent = 'Recording the intro at the size and theme shown here.'; lastFile = '';
     try { const r = await fetch('/export', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(q) }).then(r => r.json());
-      if (r.ok) { lastFile = r.file; saved.textContent = `Saved · ${r.file.split('/').slice(-2).join('/')} ↗`; } else saved.textContent = `Failed: ${r.error}`; }
-    catch (err) { saved.textContent = 'Failed: ' + err.message; }
-    go.disabled = false;
+      if (r.ok) { lastFile = r.file; title.textContent = 'Saved'; text.textContent = r.file.split('/').slice(-2).join('/'); saved.hidden = false; } else { title.textContent = 'Failed'; text.textContent = r.error; } }
+    catch (err) { title.textContent = 'Failed'; text.textContent = err.message; }
+    busy.classList.remove('working'); go.disabled = false;
   };
 }
 window.flowcast = { total, go, beats, layout, canvas: () => PRESET[canvasName] };
