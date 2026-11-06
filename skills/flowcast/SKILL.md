@@ -61,7 +61,7 @@ The canvas is the exported picture. The phone is one element on it; the slots ar
 
 ## Theme
 
-From a project: its color tokens for light and dark, its font, its radius, its real components, its logo SVG with fills swapped to `currentColor`. From a story: real products keep their real identity. WhatsApp is WhatsApp green with its bubbles, Shopify has its green bag, n8n its coral. Invent colors only for things that have none, and keep them to one palette. When the user wants the design first or names a product, be realistic over imaginative: the composition is where the imagination goes. No gradients unless the app uses them. Avatars are initials on a light tint of the accent.
+From a project: its color tokens for light and dark, its font, its radius, its real components, its logo SVG with fills swapped to `currentColor`. From a story: real products keep their real identity, colours and UI patterns both. WhatsApp is WhatsApp green with its bubbles and its quick replies as full-width rows under the message, Shopify has its green bag, Slack its four-colour mark, n8n its coral. Draw the real mark when a product is named, never a stand-in bar or dot. Invent colors only for things that have none, and keep them to one palette. When the user wants the design first or names a product, be realistic over imaginative: the composition is where the imagination goes. No gradients unless the app uses them. Avatars are initials on a light tint of the accent.
 
 ## Outputs
 
