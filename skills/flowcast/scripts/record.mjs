@@ -15,7 +15,15 @@ if (opt.canvas === 'none') delete opt.canvas;
 const extra = { slots: saved.slots, words: saved.words };
 const PRESET = { square: [1080, 1080], portrait: [1080, 1350], story: [1080, 1920], landscape: [1920, 1080] };
 const [pw, ph] = PRESET[opt.canvas] || [];
-const width = +(opt.width || pw || 1080), height = +(opt.height || ph || 1920), theme = opt.theme || 'light';
+const theme = opt.theme || 'light';
+let width = +(opt.width || pw || 0), height = +(opt.height || ph || 0);
+if (!width || !height) {
+  // no canvas and no size given: a free-size composition records at its own size, a device at twice its size
+  const b = await chromium.launch(); const pg = await b.newPage();
+  await pg.goto('file://' + resolve(input)); await pg.waitForFunction(() => window.flowcast && window.flowcast.beats);
+  [width, height] = await pg.evaluate(() => flowcast.frame === 'none' && flowcast.size[1] ? flowcast.size : [flowcast.size[0] * 2, flowcast.size[1] * 2]);
+  await b.close();
+}
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, colorScheme: theme, recordVideo: { dir: dirname(resolve(output)), size: { width, height } } });

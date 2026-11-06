@@ -1,5 +1,6 @@
 /* flowcast player. The intro's own <style> overrides these tokens. */
 :root{--accent:#2f7d5b;--on-accent:#fff;--bg:#eef0ee;--screen:#fff;--card:#f3f4f2;--on:#1b1b1b;--muted:#6b6f6a;--border:rgba(0,0,0,.1);--bezel:#1b1b1f;--font:-apple-system,system-ui,sans-serif}
+[hidden]{display:none!important}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--on);font-family:var(--font);font-size:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px;box-sizing:border-box}
 #flowcast{max-width:100%;margin:0 auto;display:grid;gap:12px;justify-items:center}

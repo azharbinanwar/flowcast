@@ -193,5 +193,5 @@ if (STUDIO) {
     busy.classList.remove('working'); pick.disabled = false; clearTimeout(window.__fcHide); window.__fcHide = setTimeout(() => { busy.hidden = true; }, 10000);
   };
 }
-window.flowcast = { total, go, beats, layout, canvas: () => PRESET[canvasName] };
+window.flowcast = { total, go, beats, layout, frame, size: SIZE, canvas: () => PRESET[canvasName] };
 go(0);

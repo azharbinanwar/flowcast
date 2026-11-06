@@ -23,7 +23,7 @@ const browser = await chromium.launch();
 const probe = await browser.newPage({ viewport: { width: 1280, height: 1280 } });
 await probe.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', theme, canvas: opt.canvas, phone: opt.phone, captions: opt.captions === 'off' ? 'off' : undefined, captionsAt: opt.captions === 'below' ? 'below' : undefined, ...extra });
 await probe.goto('file://' + resolve(input)); await probe.waitForFunction(() => window.flowcast && window.flowcast.beats);
-const [w, h] = PRESET[opt.canvas] || await probe.evaluate(() => { const r = document.getElementById('fc-canvas').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; });
+const [w, h] = PRESET[opt.canvas] || await probe.evaluate(() => flowcast.frame === 'none' && flowcast.size[1] ? flowcast.size : (() => { const r = document.getElementById('fc-canvas').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; })());
 await probe.close();
 
 const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1, colorScheme: theme });
