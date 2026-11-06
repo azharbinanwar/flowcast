@@ -1,20 +1,21 @@
 # The stage
 
-An intro is one HTML file plus the shared player (`player/player.css`, `player/player.js`, copied next to it). The file holds only what is specific to this feature: tokens, scene CSS, scene markup, beats, and the steps. The player adds the frame, toolbar, captions, dots, transport, theme and caption toggles, total time, modes and the end card.
+An intro is one HTML file that loads the shared player, `player.css` and `player.js`, from its own folder. The studio and the scripts provide those two files themselves, so never copy them by hand. The intro holds only what is specific to this feature: tokens, scene CSS, scene markup, beats and steps. The player adds the frame, toolbar, captions, dots, transport, canvas, modes, export and the end card.
 
 ## Rules
 
 - **One continuous scene.** The same elements stay on screen and change state per beat. Steps flip classes; CSS transitions do the motion. No keyframe timelines, no Lottie, no video as the source.
-- **Cause then effect.** Wait, show the actor, then the effect. `s.tap('#el')` moves the finger there, presses, lifts. Timings live in `T` at the top.
+- **Cause then effect.** Wait, show the actor, then the effect. `s.tap('#el')` moves the actor there, presses, lifts. The actor is a finger by default; `data-actor="pointer"` on `#flowcast` makes it a Mac pointer for desktop apps. Timings live in `T` at the top.
+- **Steps stop on their own.** When the viewer skips or the next beat starts, the player stops the old beat's steps at their next wait. Write steps straight through; never add your own guards.
 - **Real parts, real data.** Rebuild the product's actual components with its tokens and strings. Plausible values, never lorem ipsum. Read the project's logo SVG for the end card.
 - **Surfaces behave like the real thing.** A chat pins to the bottom and each new message pushes the older ones up. A list grows from the top. A notification drops in from the top edge. A terminal scrolls. Anything not on screen yet takes no space: give it `class="fc-in"` and add `show` when its moment comes; it grows in smoothly and pushes the rest. Space such items with `margin-top` on the item, not `gap` on the parent, so the push is smooth. Never pre-place hidden elements with `opacity:0` inside a surface that flows.
 - **State is history inside a device, a moment outside it.** `apply(i)` shows everything a real screen would still show: a chat at the last beat holds every message. On the canvas, an object that finished its step is gone or shrunk to a chip, and the space goes to the next object. Collapse with `fc-in` (remove `show`) or a `.done` class that shrinks it.
+- **Declare UTF-8.** Every intro starts with `<meta charset="utf-8">`, so its own text reads right when the file is opened straight from disk.
 - **Nothing jumps.** Panels that swap are stacked absolutely in a fixed area. Rows that may be wider than the screen are grids with `minmax(0,1fr)`, never fixed-width flex items.
-- **No gradients, no invented palette.** Avatars are initials on a light tint of the accent. Everything comes from the app's tokens.
 - **`apply(i)` sets the full state a beat starts from,** so back, next, replay and the contact sheet all land on the right screen. `scene[i]` only animates that beat's change.
 - **Not an app? Split the scene.** `<template id="scene">` is what the device's user sees. `<template id="around">` is the rest, placed beside the device on the canvas: an inbox, workflow nodes, the systems that answer. Both move on the same beats. The around part is sized at about 360px wide and grows into the column it gets. Without a canvas it sits beside the phone in the preview too.
 - **A flow is its own canvas.** `data-frame="none" data-width="1080" data-height="1080" data-captions="off"`: the scene draws the whole square (or 1080×1920, 1920×1080), with its own headline row updated in `apply(i)`. Surfaces, the work, the proof and the brand all live inside the scene. A recording fills the canvas exactly.
-- **Frame follows the platform.** `data-frame="phone"` (390×844) for Flutter, Android, iOS. `browser` (1280×800) for web. `none` for an in-app stage with no device.
+- **Frame follows the platform.** `data-frame="phone"` (390×844) for Flutter, Android, iOS. `browser` (1280×800) for web. A macOS app is a desktop at `data-frame="none" data-width="1280" data-height="800"`: menu bar, the app's own window, the pointer. `none` without a size is an in-app stage with no device.
 - **Captions have a place.** `data-captions-at="inside"` under the stage, in the screen (in-app). `below` puts them under the frame (web demo).
 - **The canvas is the export.** `data-canvas="none|square|portrait|story|landscape"` and `data-phone="center|left|right"` set the start; the toolbar switches them. A `const canvas = { headline, line, cta, tags, bg: 'tint'|'accent'|'bg' }` in the script fills the slots; the logo comes from the end card. Slot words come from the beats and the project, never filler.
 - **Never use `fc-` on your own classes or ids.** Everything the player owns is prefixed `fc-`, so an intro can name things `body`, `end`, `bar`, `title` freely.
@@ -22,6 +23,7 @@ An intro is one HTML file plus the shared player (`player/player.css`, `player/p
 ## Skeleton
 
 ```html
+<meta charset="utf-8">
 <title>Feature name</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=App+Font:wght@400;600&display=swap">
@@ -69,7 +71,7 @@ A mixed scene adds, inside `#flowcast`:
 </template>
 ```
 
-Helpers on `s`: `wait(ms)`, `cls(sel, class, on)`, `text(sel, str)`, `tap(sel)`, `type(sel, str)`, `finger(show, press)`.
+Helpers on `s`: `wait(ms)`, `cls(sel, class, on)`, `text(sel, str)`, `tap(sel)`, `type(sel, str)`, `finger(show, press)`, `moveTo(sel)`.
 
 ## Modes
 
@@ -98,15 +100,14 @@ A full-canvas scene (`data-frame="none"` with a size) on a canvas of its own sha
 
 ## Check
 
-One contact sheet, one image, every beat and the end card:
+One contact sheet, every beat and the end card in one image. Render it once in the theme the app shows first, at a beat timing near the end of each beat:
 
 ```bash
-node scripts/sheet.mjs intro.html sheet.png            # light
-node scripts/sheet.mjs intro.html sheet.png --theme dark
+node scripts/sheet.mjs intro.html sheet.png --at 0.95 --theme dark
 ```
 
-Look at it once. Fix what it shows. Rerun only if something was wrong.
+Read it once. When it shows a problem, fix it, then confirm with one frame of that beat only, cropped to the spot: `node scripts/frames.mjs` and `ffmpeg -vf crop=…`. Never re-render the whole sheet to confirm a single fix. Check the other theme only when colours changed.
 
-## Publish
+## Show
 
-Preview as an artifact with the player files alongside: `files: {"player.css": "<skill>/player/player.css", "player.js": "<skill>/player/player.js"}`. For a local open or the recorder, copy or symlink the two files next to the intro.
+In Claude Code, the studio: one server for the whole `flowcast/` folder, `node scripts/studio.mjs flowcast --port 7788` in the background, started only if `curl -s localhost:7788/__ping` gets no answer. History is at `/`, each intro at `/<feature>/`. A claude.ai artifact only when the user wants a link to share, with the two player files alongside: `files: {"player.css": "<skill>/player/player.css", "player.js": "<skill>/player/player.js"}`.

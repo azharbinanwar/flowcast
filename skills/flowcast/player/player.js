@@ -15,10 +15,10 @@ const SIZE = { phone: [390, 844], browser: [1280, 800], none: [+host.dataset.wid
 // one list: a size, the places it is posted, the longest clip they take, and the bands their own UI covers on the tall one
 const PRESETS = {
   none:      { size: null,         label: 'No canvas' },
-  square:    { size: [1080, 1080], label: '1080×1080 · LinkedIn, Instagram feed', max: 600 },
-  portrait:  { size: [1080, 1350], label: '1080×1350 · Instagram portrait', max: 60 },
-  story:     { size: [1080, 1920], label: '1080×1920 · Reels, Stories, TikTok, Shorts', max: 90, safe: [250, 320] },
-  landscape: { size: [1920, 1080], label: '1920×1080 · YouTube, website', max: 0 },
+  square:    { size: [1080, 1080], label: '1080\u00d71080 \u00b7 LinkedIn, Instagram feed', max: 600 },
+  portrait:  { size: [1080, 1350], label: '1080\u00d71350 \u00b7 Instagram portrait', max: 60 },
+  story:     { size: [1080, 1920], label: '1080\u00d71920 \u00b7 Reels, Stories, TikTok, Shorts', max: 90, safe: [250, 320] },
+  landscape: { size: [1920, 1080], label: '1920\u00d71080 \u00b7 YouTube, website', max: 0 },
 };
 const PRESET = Object.fromEntries(Object.entries(PRESETS).map(([k, v]) => [k, v.size]));
 const sceneTpl = $('#scene'), endTpl = $('#endcard'), aroundTpl = $('#around');   // around: the part of the scene outside the device, on the canvas
@@ -47,8 +47,8 @@ host.innerHTML = `
   <select id="canvas-pick">${Object.entries(PRESETS).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select><span class="fc-tag" id="fc-length" hidden></span>
   <select id="phone-pick"><option value="center">Device centre</option><option value="left">Device left</option><option value="right">Device right</option></select>
   <span class="fc-slot-toggles">${Object.keys(slots).filter(k => k === 'logo' ? !!endTpl?.content.querySelector('.fc-logo') : !!cv[k]).map(k => `<button data-slot="${k}" class="${slots[k] ? 'on' : ''}">${k}</button>`).join('')}</span>
-  <span class="fc-tag">${{ phone: 'Phone · 390×844', browser: 'Browser · 1280×800', none: SIZE[1] ? `Canvas · ${SIZE[0]}×${SIZE[1]}` : 'In-app' }[frame]}</span>
-  <select id="fc-export" hidden><option value="">Export · ${(total / 1000).toFixed(1)}s</option><option value="mp4">MP4 video</option><option value="gif">GIF</option><option value="frames">PNG frames</option><option value="slides">PDF slides</option></select><span class="fc-tag" id="fc-status" hidden></span><button id="fc-saved" hidden></button>
+  <span class="fc-tag">${{ phone: 'Phone \u00b7 390\u00d7844', browser: 'Browser \u00b7 1280\u00d7800', none: SIZE[1] ? `Canvas \u00b7 ${SIZE[0]}\u00d7${SIZE[1]}` : 'In-app' }[frame]}</span>
+  <select id="fc-export" hidden><option value="">Export \u00b7 ${(total / 1000).toFixed(1)}s</option><option value="mp4">MP4 video</option><option value="gif">GIF</option><option value="frames">PNG frames</option><option value="slides">PDF slides</option></select><span class="fc-tag" id="fc-status" hidden></span><button id="fc-saved" hidden></button>
 </div>
 <div class="fc-cwrap" id="fc-cwrap"><div class="fc-canvas" id="fc-canvas">
   <div class="fc-slots fc-top" id="fc-top">
@@ -71,11 +71,12 @@ host.innerHTML = `
   </div>
 </div></div>
 <div class="fc-dots" id="fc-dots"></div>
-<div class="fc-bar"><button id="fc-pause">Pause</button><button id="fc-prev" aria-label="Previous">‹</button><button id="fc-next" aria-label="Next">›</button><button id="fc-replay">Replay</button><button id="fc-skip">Skip</button></div>`;
+<div class="fc-bar"><button id="fc-pause">Pause</button><button id="fc-prev" aria-label="Previous">\u2039</button><button id="fc-next" aria-label="Next">\u203a</button><button id="fc-replay">Replay</button><button id="fc-skip">Skip</button></div>`;
 host.dataset.mode = mode;
 $('#fc-stage').append(sceneTpl.content);
 if (aroundTpl) $('#fc-around').append(aroundTpl.content);
 if (endTpl) { $('#fc-end').append(endTpl.content); const logo = $('#fc-end .fc-logo'); if (logo) $('#fc-slot-logo').append(logo.cloneNode(true)); }
+if (host.dataset.actor === 'pointer') $('#fc-finger').classList.add('fc-pointer');
 if (frame === 'none') { $('#fc-frame').style.width = SIZE[0] + 'px'; if (SIZE[1]) $('#fc-frame').style.height = SIZE[1] + 'px'; else $('#fc-stage').style.height = '440px'; }
 $('#fc-canvas').dataset.bg = cv.bg || 'tint';
 if (mode === 'preview') document.querySelectorAll('.fc-slots h1, .fc-slots p, .fc-cta').forEach(e => e.contentEditable = 'plaintext-only');
@@ -91,6 +92,7 @@ const s = {
   type: async (q, text) => { for (let k = 1; k <= text.length; k++) { $(q).textContent = text.slice(0, k); await s.wait(T.type ?? 30); } },
 };
 
+const STALE = Symbol('stale beat');
 let i = 0, paused = false, run = 0, raf, startAt, elapsed = 0;
 function render() {
   $('#fc-title').textContent = beats[i].title; $('#fc-body').textContent = beats[i].body;
@@ -98,7 +100,12 @@ function render() {
 }
 function go(n) {
   window.flowcastDone = false; i = Math.max(0, Math.min(beats.length - 1, n)); run++; elapsed = 0; paused = false; $('#fc-pause').textContent = 'Pause';
-  s.cls('#fc-end', 'show', false); s.finger(false); apply(i); render(); scene[i](s); tick(run);
+  s.cls('#fc-end', 'show', false); s.finger(false); apply(i); render();
+  // the beat's steps run with their own wait, which stops them the moment another beat starts
+  const mine = run, own = { ...s, wait: async (ms) => { await s.wait(ms); if (mine !== run) throw STALE; } };
+  for (const k of ['tap', 'type']) own[k] = async (...a) => { if (mine !== run) throw STALE; return s[k].apply(own, a); };
+  Promise.resolve().then(() => scene[i](own)).catch(e => { if (e !== STALE) console.error(e); });
+  tick(run);
 }
 function finish(mine) {
   if (!endCard) { if (mode === 'embed') go(0); else window.flowcastDone = true; return; }
@@ -190,7 +197,7 @@ const state = () => ({
 });
 // Export: when the page comes from the studio on localhost, the buttons post to it and the file is made by the toolchain and revealed
 const STUDIO = location.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(location.hostname);
-let saveTimer; const saveState = () => { if (!STUDIO) return; clearTimeout(saveTimer); saveTimer = setTimeout(() => fetch('/state', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(state()) }).catch(() => {}), 300); };
+let saveTimer; const saveState = () => { if (!STUDIO) return; clearTimeout(saveTimer); saveTimer = setTimeout(() => fetch('state', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(state()) }).catch(() => {}), 300); };
 $('.fc-tools').addEventListener('change', saveState); $('.fc-tools').addEventListener('click', saveState); $('.fc-slots') && document.querySelectorAll('.fc-slots').forEach(el => el.addEventListener('input', saveState));
 let lastFile = '';
 // the studio opens on a splash: brand colour, the logo centred, then it fades to the studio
@@ -206,19 +213,19 @@ if (STUDIO) {
   const icon = document.createElement('link'); icon.rel = 'icon'; icon.type = 'image/svg+xml';
   icon.href = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg>');
   document.querySelectorAll('link[rel~="icon"]').forEach(l => l.remove()); document.head.append(icon);
-  const brand = document.createElement('a'); brand.className = 'fc-brand'; brand.href = 'https://github.com/azharbinanwar/flowcast'; brand.target = '_blank';
-  brand.innerHTML = '<svg viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg><b>Flowcast</b>';
+  const brand = document.createElement('a'); brand.className = 'fc-brand'; brand.href = '/'; brand.title = 'History';
+  brand.dataset.label = 'History'; brand.innerHTML = '<svg viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg><b>Flowcast</b>';
   document.body.prepend(brand);
   $('#fc-export').hidden = false;
-  $('#fc-saved').onclick = () => { if (lastFile) fetch('/open', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ file: lastFile }) }); };
+  $('#fc-saved').onclick = () => { if (lastFile) fetch('open', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ file: lastFile }) }); };
   const pick = $('#fc-export');
   pick.onchange = async () => {
     const format = pick.value, label = pick.selectedOptions[0].textContent; pick.value = ''; if (!format) return;
     const q = { format, project: document.title, ...state() };
     const status = $('#fc-status'), saved = $('#fc-saved');
-    pick.disabled = true; status.hidden = false; saved.hidden = true; status.textContent = `Exporting ${label}…`; lastFile = '';
-    try { const r = await fetch('/export', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(q) }).then(r => r.json());
-      if (r.ok) { lastFile = r.file; status.hidden = true; saved.textContent = r.file.split('/').pop() + (r.file.includes('.') && !r.file.endsWith('-frames') ? '' : '/') + ' ↗'; saved.hidden = false; } else status.textContent = `Failed: ${r.error}`; }
+    pick.disabled = true; status.hidden = false; saved.hidden = true; status.textContent = `Exporting ${label}\u2026`; lastFile = '';
+    try { const r = await fetch('export', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(q) }).then(r => r.json());
+      if (r.ok) { lastFile = r.file; status.hidden = true; saved.textContent = r.file.split('/').pop() + (r.file.includes('.') && !r.file.endsWith('-frames') ? '' : '/') + ' \u2197'; saved.hidden = false; } else status.textContent = `Failed: ${r.error}`; }
     catch (err) { status.textContent = 'Failed: ' + err.message; }
     pick.disabled = false;
   };

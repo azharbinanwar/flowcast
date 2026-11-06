@@ -48,9 +48,22 @@ Claude runs this for you the first time you export.
 ```
 /flowcast prayer alarm                    a feature in the project you are in
 /flowcast <paste a story or a post>       no project needed
+/flowcast                                 History: every intro you made here
 ```
 
-Flowcast answers with the beats and opens the studio in your browser.
+Flowcast answers with the beats and opens the studio in your browser. `/flowcast-history`, or "open flowcast", reopens History any time, and starts the studio if it isn't running.
+
+### Where things are saved
+
+```
+flowcast/
+  <feature>/
+    intro.html          the source: beats, scene, words
+    intro.state.json    what you set on the page
+    exports/            your MP4, GIF, PDF and frames
+```
+
+Keep the folder and you can export any intro again, in any format, later.
 
 ### The studio
 
@@ -61,7 +74,7 @@ A local page with the intro playing and a toolbar:
 - **Canvas:** no canvas, 1080×1080 for LinkedIn and Instagram feed, 1080×1350 for Instagram portrait, 1080×1920 for Reels, Stories, TikTok and Shorts, 1920×1080 for YouTube and websites.
 - **Position:** device or scene left, centre or right, when the canvas has room beside it.
 - **Slots:** headline, line, CTA, tags and logo around the scene. Click any of them on the page to change the words.
-- **Export · 18.0s:** pick MP4 video, GIF, PNG frames or PDF slides. The file lands in `flowcast-exports/` beside the intro and the file name becomes a button that opens the folder.
+- **Export · 18.0s:** pick MP4 video, GIF, PNG frames or PDF slides. The file lands in the intro's `exports/` folder and its name becomes a button that opens the folder.
 
 What you set on the page is what gets exported, pixel for pixel. Your choices are saved, so a refresh or an export asked for in words uses them too.
 
@@ -79,10 +92,10 @@ change beat 2 to say ...
 
 | Export | Name |
 |---|---|
-| Video | `flowcast-<project>.mp4` |
-| GIF | `flowcast-<project>.gif` |
-| Slides | `flowcast-<project>.pdf` |
-| Frames | `flowcast-<project>-frames/flowcast-1.png`, `flowcast-2.png`, … with the end card last |
+| Video | `exports/flowcast-<project>.mp4` |
+| GIF | `exports/flowcast-<project>.gif` |
+| Slides | `exports/flowcast-<project>.pdf` |
+| Frames | `exports/flowcast-<project>-frames/flowcast-1.png`, `flowcast-2.png`, … with the end card last |
 
 ## Requirements
 
@@ -94,6 +107,7 @@ change beat 2 to say ...
 
 ```
 .claude-plugin/          plugin manifest and marketplace entry
+skills/flowcast-history/SKILL.md   reopens History
 skills/flowcast/
   SKILL.md               how Claude designs an intro from a feature or a story
   stage.md               the intro file contract on the shared player

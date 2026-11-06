@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- History: every intro lives in its own `flowcast/<name>/` folder with its settings and exports; one studio serves them all, with a History page of covers. `/flowcast` alone or `/flowcast-history` reopens it, starting the studio when needed.
+- Player: a beat's steps stop by themselves when another beat starts; a Mac pointer actor with `data-actor="pointer"`; the scripts link the player next to an intro themselves.
+- Skill: tightened, with the build location, screenshots first, one icon family, end card on the app's surface, and a cheaper check after a fix.
 - Studio opens on a splash with the Flowcast mark, and shows the mark top left.
 - On wider or taller canvases, the scene or device can sit left, centre or right, with the headline, line and CTA beside it as one block.
 - A full-canvas scene fills a canvas of its own shape edge to edge.

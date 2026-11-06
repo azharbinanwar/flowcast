@@ -3,10 +3,10 @@
 ## The studio
 
 ```bash
-node <skill>/scripts/studio.mjs intro.html        # prints http://localhost:7788/
+node <skill>/scripts/studio.mjs flowcast --port 7788   # History at /, each intro at /<feature>/
 ```
 
-Start it in the background and open the URL. The preview has an Export button with a format pick: MP4 video, GIF, PNG frames, PDF slides. A click runs the scripts below with the page's current settings and writes `flowcast-<project>.<ext>` into `flowcast-exports/` beside the intro, where project is the page's title. The file name then shows as one button next to Export; clicking it opens the folder.
+Start it in the background only if `curl -s localhost:7788/__ping` gets no answer, then open the URL. The preview has an Export button with a format pick: MP4 video, GIF, PNG frames, PDF slides. A click runs the scripts below with the page's current settings and writes `flowcast-<project>.<ext>` into the intro's own `exports/` folder, where project is the page's title. The file name then shows as one button next to Export; clicking it opens the folder.
 
 ## With Node, pixel-perfect
 
@@ -40,7 +40,7 @@ node <skill>/scripts/frames.mjs intro.html out/ --canvas square --phone right --
 
 Frames are stills at the end of each beat, after the cause and the effect; `--at 0.5` takes them mid-beat. Slides are those frames as pages, one per beat and the end card last, the shape LinkedIn document posts and carousels want.
 
-The intro file needs `player.css` and `player.js` next to it: copy or symlink them from `<skill>/player/`.
+The scripts link `player.css` and `player.js` next to the intro themselves when they are missing.
 
 Launch intro, WhatsApp style: add a first beat where the app's logo scales in on an empty screen and a last beat that fades to one line. Narration or music: `ffmpeg -i out.mp4 -i voice.mp3 -shortest -c:v copy out2.mp4` with the ffmpeg at `node -p "require('ffmpeg-static')"`.
 

@@ -5,6 +5,12 @@ import { resolve } from 'node:path';
 
 const [,, input, output, ...rest] = process.argv;
 if (!input || !output) { console.error('usage: node sheet.mjs intro.html sheet.png [--theme dark] [--at 0.85]'); process.exit(1); }
+// the intro loads player.css and player.js from its own folder: link them from the skill when they are not there
+import { existsSync as _ex, symlinkSync as _ln, copyFileSync as _cp, readFileSync as _rf } from 'node:fs';
+import { dirname as _dn, join as _jn } from 'node:path';
+import { fileURLToPath as _fu } from 'node:url';
+const ensurePlayer = (html) => { const src = (() => { try { return _rf(resolve(html), 'utf8'); } catch { return ''; } })(); for (const f of ['player.css', 'player.js']) { if (!src.includes(`"${f}"`) && !src.includes(`"./${f}"`)) continue; const to = _jn(_dn(resolve(html)), f), from = _jn(_dn(_fu(import.meta.url)), '../player', f); if (!_ex(to)) { try { _ln(from, to); } catch { _cp(from, to); } } } };
+if (input) ensurePlayer(input);
 const opt = Object.fromEntries(rest.map((a, k, arr) => a.startsWith('--') ? [a.slice(2), arr[k + 1]] : null).filter(Boolean));
 // what the user set on the preview, saved by the studio beside the intro; flags given here win over it
 import { existsSync, readFileSync } from 'node:fs';
