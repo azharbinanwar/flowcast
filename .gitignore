@@ -3,3 +3,4 @@ package-lock.json
 *.webm
 *.mp4
 *.gif
+.DS_Store

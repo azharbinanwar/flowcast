@@ -2,8 +2,22 @@
   "name": "flowcast",
   "version": "1.0.0",
   "description": "Turn a feature or a story into something people watch: an in-app intro, a social post, a GIF, a video, PNG frames or PDF slides. The product acts itself out.",
-  "author": { "name": "Azhar Ali" },
+  "author": {
+    "name": "Azhar Ali"
+  },
   "homepage": "https://github.com/azharbinanwar/flowcast",
   "repository": "https://github.com/azharbinanwar/flowcast",
-  "keywords": ["intro", "onboarding", "video", "gif", "social", "linkedin", "carousel", "n8n", "animation"]
+  "keywords": [
+    "intro",
+    "onboarding",
+    "video",
+    "gif",
+    "social",
+    "linkedin",
+    "carousel",
+    "n8n",
+    "animation"
+  ],
+  "license": "MIT",
+  "icon": "./.claude-plugin/icon.svg"
 }

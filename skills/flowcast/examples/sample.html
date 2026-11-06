@@ -1,0 +1,25 @@
+<title>Sample Intro</title>
+<link rel="stylesheet" href="../player/player.css">
+<style>
+/* the smallest intro on the player: two rows, one tap, a full-canvas scene. Used by the tests and as a starting point. */
+:root{--accent:#2F7D5B;--on-accent:#fff;--bg:#eef0ee;--screen:#F7F7F4;--card:#fff;--on:#1b1b1b;--muted:#6b6f6a;--border:#e3e5e0;--bezel:#1b1b1f;--font:-apple-system,system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--screen:#151816;--card:#202421;--on:#eef1ee;--muted:#9aa19b;--border:#2e332f;color-scheme:dark}}
+:root[data-theme=dark]{--screen:#151816;--card:#202421;--on:#eef1ee;--muted:#9aa19b;--border:#2e332f;color-scheme:dark}
+.sq{width:1080px;height:1080px;position:relative;background:var(--screen);font-family:var(--font);color:var(--on)}
+.head{position:absolute;top:60px;left:60px;font-size:40px;font-weight:800}
+.row{position:absolute;left:60px;right:60px;height:120px;border-radius:20px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;padding:0 32px;font-size:32px;transition:background .3s}
+.row.sel{background:color-mix(in srgb,var(--accent) 18%,var(--card))}
+#r1{top:200px}#r2{top:350px}
+</style>
+<div id="flowcast" data-frame="none" data-width="1080" data-height="1080" data-captions="off" data-canvas="none">
+<template id="scene"><div class="sq"><div class="head" id="h"></div><div class="row" id="r1">Fajr</div><div class="row" id="r2">Dhuhr</div></div></template>
+<template id="endcard"><b>Sample</b><p>One line on the end card.</p></template>
+</div>
+<script>
+const T = { settle: 300 };
+const canvas = { show: { logo: false, headline: false, line: false, cta: false, tags: false } };
+const beats = [{ title: 'Pick a prayer', ms: 1200 }, { title: 'It is set', ms: 1200 }];
+function apply(i) { s.text('#h', beats[i].title); s.cls('#r1', 'sel', i >= 1); }
+const scene = { 0: async (s) => { await s.wait(T.settle); await s.tap('#r1'); s.cls('#r1', 'sel'); }, 1: async () => {} };
+</script>
+<script src="../player/player.js"></script>

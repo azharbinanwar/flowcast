@@ -193,7 +193,22 @@ const STUDIO = location.protocol === 'http:' && ['localhost', '127.0.0.1'].inclu
 let saveTimer; const saveState = () => { if (!STUDIO) return; clearTimeout(saveTimer); saveTimer = setTimeout(() => fetch('/state', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(state()) }).catch(() => {}), 300); };
 $('.fc-tools').addEventListener('change', saveState); $('.fc-tools').addEventListener('click', saveState); $('.fc-slots') && document.querySelectorAll('.fc-slots').forEach(el => el.addEventListener('input', saveState));
 let lastFile = '';
+// the studio opens on a splash: brand colour, the logo centred, then it fades to the studio
+if (STUDIO && mode === 'preview') {
+  const sp = document.createElement('div'); sp.id = 'fc-splash';
+  sp.innerHTML = '<svg viewBox="0 0 64 64"><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg>';
+  document.body.append(sp);
+  const leave = () => { setTimeout(() => sp.classList.add('out'), 900); setTimeout(() => sp.remove(), 1300); };
+  document.readyState === 'complete' ? leave() : addEventListener('load', leave, { once: true });
+}
 if (STUDIO) {
+  // the studio tab carries the Flowcast mark
+  const icon = document.createElement('link'); icon.rel = 'icon'; icon.type = 'image/svg+xml';
+  icon.href = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg>');
+  document.querySelectorAll('link[rel~="icon"]').forEach(l => l.remove()); document.head.append(icon);
+  const brand = document.createElement('a'); brand.className = 'fc-brand'; brand.href = 'https://github.com/azharbinanwar/flowcast'; brand.target = '_blank';
+  brand.innerHTML = '<svg viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg><b>Flowcast</b>';
+  document.body.prepend(brand);
   $('#fc-export').hidden = false;
   $('#fc-saved').onclick = () => { if (lastFile) fetch('/open', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ file: lastFile }) }); };
   const pick = $('#fc-export');

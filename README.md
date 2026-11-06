@@ -99,8 +99,17 @@ skills/flowcast/
   stage.md               the intro file contract on the shared player
   record.md              recording and converting
   player/                the shared player: frames, canvas sizes, modes, toolbar
+  examples/              a sample intro, used by the tests
   scripts/               studio, recorder, converter, frames and slides, contact sheet
 ```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Run the tests from `skills/flowcast` with `npm test`.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
 
 ## Version
 

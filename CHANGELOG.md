@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Studio opens on a splash with the Flowcast mark, and shows the mark top left.
+- On wider or taller canvases, the scene or device can sit left, centre or right, with the headline, line and CTA beside it as one block.
+- A full-canvas scene fills a canvas of its own shape edge to edge.
+- Dark theme: brand and status colours get their own dark values; phone-like surfaces are lifted with an edge.
+- Slots always show real words from the intro, toggles only appear when there is something to show, and a refresh keeps every choice.
+- Export shows the running time in its label; the saved file is one button that opens its folder; frames are numbered `flowcast-1.png` onward with the end card last.
+- Skill: one person, one surface; messages arrive the way people receive them; real product UI patterns and marks.
+- MIT license, contributing guide, sample intro, test suite with CI, issue templates, plugin icon.
+
 ## 1.0.0 · 2026-11-06
 
 First release.

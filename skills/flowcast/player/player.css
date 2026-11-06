@@ -115,3 +115,17 @@ html[data-mode=record],html[data-mode=record] body{margin:0;padding:0;height:aut
 html[data-mode=record] #flowcast{display:block;max-width:none;margin:0;gap:0}
 html[data-mode=record] .fc-cwrap,html[data-mode=record] .fc-canvas,html[data-mode=record] .fc-phone,html[data-mode=record] .fc-fit{margin:0}
 @media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}
+
+/* the studio's opening splash */
+#fc-splash{position:fixed;inset:0;z-index:100;background:#FF6B4A;display:grid;place-items:center;transition:opacity .4s}
+#fc-splash svg{width:112px;height:112px;animation:fc-splash-in .5s cubic-bezier(.4,0,.2,1) both}
+#fc-splash.out{opacity:0}
+@keyframes fc-splash-in{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){#fc-splash svg{animation:none}}
+
+/* the studio's brand, top left like any web app */
+.fc-brand{position:fixed;top:max(14px,env(safe-area-inset-top,0px));left:max(18px,env(safe-area-inset-left,0px));z-index:40;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--on);font:700 16px/1 var(--font)}
+.fc-brand svg{width:28px;height:28px}
+@media (max-width:1100px){.fc-brand b{display:none}}
+/* slot words wrap inside their column, never under the scene */
+.fc-slots>*{max-width:100%;overflow-wrap:break-word}
