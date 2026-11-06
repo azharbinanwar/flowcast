@@ -59,6 +59,12 @@ body{margin:0;background:var(--bg);color:var(--on);font-family:var(--font);font-
 .fc-slots .fc-tags{font-size:24px;color:var(--muted);opacity:.85}
 .fc-slots [contenteditable]:focus{outline:2px dashed var(--accent);outline-offset:6px}
 
+/* in the preview the canvas sits on a neutral backdrop with a shadow, so its edge is the export's edge; a recording has neither */
+html:not([data-mode=record]) body{background:#e2e3e8}
+@media (prefers-color-scheme:dark){html:not([data-mode=record]):not([data-theme=light]) body{background:#141418}}
+html[data-theme=dark]:not([data-mode=record]) body{background:#141418}
+html:not([data-mode=record]) .fc-canvas:not([data-preset=none]),html:not([data-mode=record]) .fc-frame.fc-none .fc-screen{box-shadow:0 12px 48px rgba(0,0,0,.22)}
+
 /* frames */
 .fc-fit{position:relative}
 .fc-frame{transform-origin:top left;background:var(--bezel);box-shadow:0 20px 60px rgba(0,0,0,.25);box-sizing:border-box}
