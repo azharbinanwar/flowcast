@@ -24,7 +24,7 @@ const run = (script, args) => new Promise((res, rej) => {
 const flags = (q) => ['--theme', q.theme || 'light', ...(q.canvas && q.canvas !== 'none' ? ['--canvas', q.canvas, '--phone', q.phone || 'center'] : []), ...(q.captions === 'off' ? ['--captions', 'off'] : q.captions === 'below' ? ['--captions', 'below'] : []), '--state', stateFile];
 
 // show the file in the system's file manager
-const reveal = (file) => { if (process.platform === 'darwin') spawn('open', ['-R', file]); else if (process.platform === 'win32') spawn('explorer', ['/select,', file]); else spawn('xdg-open', [dirname(file)]); };
+const reveal = (file) => { const isDir = !extname(file); if (process.platform === 'darwin') spawn('open', isDir ? [file] : ['-R', file]); else if (process.platform === 'win32') spawn('explorer', isDir ? [file] : ['/select,', file]); else spawn('xdg-open', [isDir ? file : dirname(file)]); };
 
 async function exportIt(q) {
   const outDir = join(dir, 'flowcast-exports'); await mkdir(outDir, { recursive: true });
@@ -32,7 +32,7 @@ async function exportIt(q) {
   const base = join(outDir, `flowcast-${project}`);
   if (q.format === 'frames' || q.format === 'slides') {
     const fdir = `${base}-frames`; const args = [intro, fdir, ...flags(q)]; if (q.format === 'slides') args.push('--pdf', `${base}.pdf`);
-    const files = (await run('frames.mjs', args)).split('\n'); return files[files.length - 1];
+    const files = (await run('frames.mjs', args)).split('\n'); return q.format === 'slides' ? files[files.length - 1] : fdir;
   }
   const webm = `${base}.webm`; await run('record.mjs', [intro, webm, ...flags(q)]);
   const out = `${base}.${q.format === 'gif' ? 'gif' : 'mp4'}`; await run('convert.mjs', [webm, out, ...(q.format === 'gif' ? ['--width', '720'] : [])]);
