@@ -23,6 +23,9 @@ const run = (script, args) => new Promise((res, rej) => {
 });
 const flags = (q) => ['--theme', q.theme || 'light', ...(q.canvas && q.canvas !== 'none' ? ['--canvas', q.canvas, '--phone', q.phone || 'center'] : []), ...(q.captions === 'off' ? ['--captions', 'off'] : q.captions === 'below' ? ['--captions', 'below'] : []), '--state', stateFile];
 
+// show the file in the system's file manager
+const reveal = (file) => { if (process.platform === 'darwin') spawn('open', ['-R', file]); else if (process.platform === 'win32') spawn('explorer', ['/select,', file]); else spawn('xdg-open', [dirname(file)]); };
+
 async function exportIt(q) {
   const outDir = join(dir, `${name}-exports`); await mkdir(outDir, { recursive: true });
   const tag = [q.canvas && q.canvas !== 'none' ? q.canvas : 'frame', q.theme || 'light'].join('-'), base = join(outDir, `${name}-${tag}`);
@@ -42,10 +45,15 @@ createServer(async (req, res) => {
       let body = ''; for await (const c of req) body += c; await writeFile(stateFile, body);
       res.writeHead(200, { 'content-type': 'application/json' }); return res.end('{"ok":true}');
     }
+    if (req.method === 'POST' && req.url === '/open') {
+      let body = ''; for await (const c of req) body += c; const { file } = JSON.parse(body || '{}');
+      if (file && file.startsWith(dir)) reveal(file);
+      res.writeHead(200, { 'content-type': 'application/json' }); return res.end('{"ok":true}');
+    }
     if (req.method === 'POST' && req.url === '/export') {
       let body = ''; for await (const c of req) body += c; const q = JSON.parse(body || '{}'); await writeFile(stateFile, JSON.stringify(q));
       const file = await exportIt(q);
-      if (process.platform === 'darwin') spawn('open', ['-R', file]);   // reveal it, the user sees the file land
+      reveal(file);   // the user sees the file land
       res.writeHead(200, { 'content-type': 'application/json' }); return res.end(JSON.stringify({ ok: true, file }));
     }
     const path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
