@@ -41,9 +41,9 @@ host.innerHTML = `
   <span class="fc-slot-toggles">${Object.keys(slots).map(k => `<button data-slot="${k}" class="${slots[k] ? 'on' : ''}">${k}</button>`).join('')}</span>
   <span class="fc-tag">${{ phone: 'Phone · 390×844', browser: 'Browser · 1280×800', none: SIZE[1] ? `Canvas · ${SIZE[0]}×${SIZE[1]}` : 'In-app' }[frame]}</span>
   <span class="fc-tag">Total <b id="fc-total">${(total / 1000).toFixed(1)}s</b></span>
-  <select id="fc-export" hidden><option value="">Export…</option><option value="mp4">MP4 video</option><option value="gif">GIF</option><option value="frames">PNG frames</option><option value="slides">PDF slides</option></select>
+  <select id="fc-export" hidden><option value="">Export…</option><option value="mp4">MP4 video</option><option value="gif">GIF</option><option value="frames">PNG frames</option><option value="slides">PDF slides</option></select><span class="fc-tag" id="fc-status" hidden></span><button id="fc-saved" hidden>Open folder</button>
 </div>
-<div class="fc-cwrap" id="fc-cwrap"><div class="fc-busy" id="fc-busy" hidden><b id="fc-busy-title"></b><span id="fc-busy-text"></span><button id="fc-saved" hidden>Open folder</button></div><div class="fc-canvas" id="fc-canvas">
+<div class="fc-cwrap" id="fc-cwrap"><div class="fc-canvas" id="fc-canvas">
   <div class="fc-slots fc-top" id="fc-top">
     <div class="fc-slot" data-slot="logo" id="fc-slot-logo"></div>
     <h1 class="fc-slot" data-slot="headline" id="fc-slot-headline">${cv.headline || ''}</h1>
@@ -181,16 +181,15 @@ if (STUDIO) {
   $('#fc-export').hidden = false;
   $('#fc-saved').onclick = () => { if (lastFile) fetch('/open', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ file: lastFile }) }); };
   const pick = $('#fc-export');
-  document.addEventListener('click', (e) => { const busy = $('#fc-busy'); if (!busy.hidden && !busy.classList.contains('working') && !e.target.closest('#fc-busy') && !e.target.closest('#fc-export')) busy.hidden = true; });
   pick.onchange = async () => {
     const format = pick.value, label = pick.selectedOptions[0].textContent; pick.value = ''; if (!format) return;
     const q = { format, ...state() };
-    const busy = $('#fc-busy'), title = $('#fc-busy-title'), text = $('#fc-busy-text'), saved = $('#fc-saved');
-    pick.disabled = true; busy.hidden = false; busy.classList.add('working'); saved.hidden = true; title.textContent = `Exporting ${label}`; text.textContent = 'at the size and theme shown here'; lastFile = '';
+    const status = $('#fc-status'), saved = $('#fc-saved');
+    pick.disabled = true; status.hidden = false; saved.hidden = true; status.textContent = `Exporting ${label}…`; lastFile = '';
     try { const r = await fetch('/export', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(q) }).then(r => r.json());
-      if (r.ok) { lastFile = r.file; title.textContent = 'Saved'; text.textContent = r.file.split('/').slice(-2).join('/'); saved.hidden = false; } else { title.textContent = 'Failed'; text.textContent = r.error; } }
-    catch (err) { title.textContent = 'Failed'; text.textContent = err.message; }
-    busy.classList.remove('working'); pick.disabled = false; clearTimeout(window.__fcHide); window.__fcHide = setTimeout(() => { busy.hidden = true; }, 10000);
+      if (r.ok) { lastFile = r.file; status.textContent = `Saved · ${r.file.split('/').pop()}`; saved.hidden = false; } else status.textContent = `Failed: ${r.error}`; }
+    catch (err) { status.textContent = 'Failed: ' + err.message; }
+    pick.disabled = false;
   };
 }
 window.flowcast = { total, go, beats, layout, frame, size: SIZE, canvas: () => PRESET[canvasName] };
