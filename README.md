@@ -4,6 +4,10 @@ Turn a feature or a story into something people watch.
 
 Point it at a feature in your app, or paste the story of a workflow, and Flowcast designs the scene, writes the beats, and plays it back as a small animated intro. Then export it as an MP4, a GIF, PNG frames or a PDF carousel, sized for where you post it.
 
+![Flowcast explaining itself, made with Flowcast](docs/samples/flowcast-launch.gif)
+
+*Flowcast explaining itself, made with Flowcast. [Watch the MP4](docs/samples/flowcast-launch.mp4).*
+
 ![CleanKit storage cleanup, made with Flowcast](docs/samples/cleankit-storage.gif)
 
 *Made with Flowcast from the CleanKit app's own code: the Mac's storage fills up, CleanKit scans, finds Slack, Chrome and Xcode caches, and frees 29.1 GB. [Watch the MP4](docs/samples/cleankit-storage.mp4).*
