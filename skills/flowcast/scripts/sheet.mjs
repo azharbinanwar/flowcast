@@ -18,7 +18,7 @@ const stateFile = opt.state || resolve(input).replace(/\.html$/, '.state.json');
 const saved = existsSync(stateFile) ? JSON.parse(readFileSync(stateFile, 'utf8')) : {};
 for (const k of ['canvas', 'phone', 'theme', 'captions']) if (opt[k] === undefined && saved[k] !== undefined) opt[k] = saved[k];
 if (opt.canvas === 'none') delete opt.canvas;
-const extra = { slots: saved.slots, words: saved.words };
+const extra = { slots: saved.slots, words: saved.words, speed: saved.speed, durations: saved.durations, colors: saved.colors };
 const at = +(opt.at || 0.85);
 
 const browser = await chromium.launch();

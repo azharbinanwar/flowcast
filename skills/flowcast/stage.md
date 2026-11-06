@@ -18,6 +18,7 @@ An intro is one HTML file that loads the shared player, `player.css` and `player
 - **Frame follows the platform.** `data-frame="phone"` (390×844) for Flutter, Android, iOS. `browser` (1280×800) for web. A macOS app is a desktop at `data-frame="none" data-width="1280" data-height="800"`: menu bar, the app's own window, the pointer. `none` without a size is an in-app stage with no device.
 - **Captions have a place.** `data-captions-at="inside"` under the stage, in the screen (in-app). `below` puts them under the frame (web demo).
 - **The canvas is the export.** `data-canvas="none|square|portrait|story|landscape"` and `data-phone="center|left|right"` set the start; the toolbar switches them. A `const canvas = { headline, line, cta, tags, bg: 'tint'|'accent'|'bg' }` in the script fills the slots; the logo comes from the end card. Slot words come from the beats and the project, never filler.
+- **Group the colours.** `const palette = { main: ['--accent', '--bg'], WhatsApp: ['--wa', '--wa-bubble'], n8n: ['--n8n'] }` in the script: `main` is the two to four colours most people change, then one group per product or part on screen. The studio's Colours section shows them in that order, light and dark side by side; tokens left out land in Other.
 - **Never use `fc-` on your own classes or ids.** Everything the player owns is prefixed `fc-`, so an intro can name things `body`, `end`, `bar`, `title` freely.
 
 ## Skeleton

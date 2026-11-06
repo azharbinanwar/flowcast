@@ -135,3 +135,180 @@ html[data-mode=record] .fc-cwrap,html[data-mode=record] .fc-canvas,html[data-mod
 @media (max-width:1100px){.fc-brand b{display:none}}
 /* slot words wrap inside their column, never under the scene */
 .fc-slots>*{max-width:100%;overflow-wrap:break-word}
+
+
+/* the preview: the stage on the left, every option in a drawer fixed to the right edge that scrolls, sections open and close */
+body:has(#flowcast[data-mode=preview]){padding-top:56px}
+@media (min-width:901px){body:has(#flowcast[data-mode=preview]){padding-right:356px}}
+#flowcast[data-mode=preview] .fc-tools{position:fixed;top:0;right:0;bottom:0;width:340px;box-sizing:border-box;z-index:30;background:var(--card);border-left:1px solid var(--border);box-shadow:-12px 0 40px rgba(0,0,0,.12);overflow-y:auto;overflow-x:hidden;display:block;padding:8px 0 24px;text-align:left}
+@media (max-width:900px){#flowcast[data-mode=preview] .fc-tools{position:static;width:100%;border:1px solid var(--border);border-radius:14px;box-shadow:none}}
+.fc-tools details{border-bottom:1px solid var(--border);padding:0 20px}
+.fc-tools summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;padding:16px 0;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.fc-tools summary::-webkit-details-marker{display:none}
+.fc-tools summary::after{content:'+';font-size:18px;font-weight:400;letter-spacing:0}
+.fc-tools details[open] summary::after{content:'\2212'}
+.fc-tools .fc-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-bottom:16px;min-width:0}
+.fc-tools .fc-row select{width:100%;min-width:0;text-overflow:ellipsis}
+[data-sec=timing] .fc-row{flex-wrap:nowrap}[data-sec=timing] .fc-row select{flex:1}
+.fc-tools .fc-row .fc-tag{max-width:100%;white-space:normal}
+.fc-beats{display:grid;gap:6px;padding-bottom:16px}
+.fc-brow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px;align-items:center;padding:8px 8px 8px 12px;border-radius:12px;border:1px solid var(--border);cursor:pointer;min-width:0}
+.fc-brow.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.fc-brow b{display:block;font-size:12.5px;color:var(--on);font-variant-numeric:tabular-nums}
+.fc-brow small{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fc-brow button:disabled{opacity:.35;cursor:not-allowed}
+
+/* the studio's own look: one set of tokens for its chrome, separate from the intro's, in both themes */
+html:has(#flowcast[data-mode=preview]){--ui-bg:#eeeef2;--ui-panel:#ffffff;--ui-field:#f4f4f7;--ui-line:rgba(20,18,30,.09);--ui-text:#17161b;--ui-muted:#7a7680;--ui-hover:rgba(20,18,30,.05);--ui-accent:#FF6B4A;--ui-ink:#fff;--ui-font:-apple-system,'SF Pro Text',Inter,system-ui,sans-serif}
+@media (prefers-color-scheme:dark){html:not([data-theme=light]):has(#flowcast[data-mode=preview]){--ui-bg:#0e0d11;--ui-panel:#18171c;--ui-field:#222127;--ui-line:rgba(255,255,255,.08);--ui-text:#f1f0f3;--ui-muted:#9a96a0;--ui-hover:rgba(255,255,255,.05);--ui-accent:#FF7A5C}}
+html[data-theme=dark]:has(#flowcast[data-mode=preview]){--ui-bg:#0e0d11;--ui-panel:#18171c;--ui-field:#222127;--ui-line:rgba(255,255,255,.08);--ui-text:#f1f0f3;--ui-muted:#9a96a0;--ui-hover:rgba(255,255,255,.05);--ui-accent:#FF7A5C}
+html:has(#flowcast[data-mode=preview]) body{background:var(--ui-bg)!important;font-family:var(--ui-font)}
+
+/* drawer */
+#flowcast[data-mode=preview] .fc-tools{background:var(--ui-panel);border-left:1px solid var(--ui-line);box-shadow:none;color:var(--ui-text);font:500 13px/1.3 var(--ui-font);padding:6px 0 28px}
+#flowcast[data-mode=preview] .fc-tools details{border-bottom:1px solid var(--ui-line);padding:0 22px}
+#flowcast[data-mode=preview] .fc-tools summary{padding:18px 0 14px;font-size:11px;letter-spacing:.08em;color:var(--ui-muted)}
+#flowcast[data-mode=preview] .fc-tools summary::after{content:'';width:8px;height:8px;border-right:1.6px solid var(--ui-muted);border-bottom:1.6px solid var(--ui-muted);transform:rotate(-45deg);transition:transform .2s;margin-right:3px}
+#flowcast[data-mode=preview] .fc-tools details[open] summary::after{content:'';transform:rotate(45deg)}
+#flowcast[data-mode=preview] .fc-tools .fc-row{gap:8px;padding-bottom:18px}
+
+/* fields */
+#flowcast[data-mode=preview] .fc-tools button,#flowcast[data-mode=preview] .fc-tools select{font:600 13px/1 var(--ui-font);height:36px;border-radius:10px;border:1px solid var(--ui-line);background:var(--ui-field);color:var(--ui-text);padding:0 12px;cursor:pointer;transition:background .15s,border-color .15s}
+#flowcast[data-mode=preview] .fc-tools button:hover:not(:disabled),#flowcast[data-mode=preview] .fc-tools select:hover{border-color:color-mix(in srgb,var(--ui-text) 22%,transparent)}
+#flowcast[data-mode=preview] .fc-tools select{appearance:none;-webkit-appearance:none;padding-right:34px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+#flowcast[data-mode=preview] .fc-tools .fc-tag{background:none;border:0;padding:0;color:var(--ui-muted);font-size:12px}
+
+/* Look: two switches */
+#flowcast[data-mode=preview] [data-sec=look] .fc-row{display:grid;gap:6px}
+#flowcast[data-mode=preview] #fc-theme,#flowcast[data-mode=preview] #fc-captions{display:flex;align-items:center;gap:10px;width:100%;height:44px;background:var(--ui-field)!important;color:var(--ui-text)!important;border-color:var(--ui-line)!important;font-weight:600}
+#flowcast[data-mode=preview] #fc-theme>span,#flowcast[data-mode=preview] #fc-captions>span{flex:1;text-align:left}
+#flowcast[data-mode=preview] #fc-theme::after,#flowcast[data-mode=preview] #fc-captions::after{content:'';width:36px;height:22px;border-radius:999px;background:color-mix(in srgb,var(--ui-muted) 45%,transparent) radial-gradient(circle at 11px 11px,#fff 8px,transparent 8.5px);transition:background .2s}
+#flowcast[data-mode=preview] #fc-theme.on::after,#flowcast[data-mode=preview] #fc-captions.on::after{background:var(--ui-accent) radial-gradient(circle at 25px 11px,#fff 8px,transparent 8.5px)}
+
+/* Canvas: slot chips */
+#flowcast[data-mode=preview] .fc-tools .fc-slot-toggles{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+#flowcast[data-mode=preview] .fc-tools .fc-slot-toggles button{height:30px;padding:0 11px;font-size:12px;border-radius:999px;text-transform:capitalize}
+#flowcast[data-mode=preview] .fc-tools .fc-slot-toggles button.on{background:color-mix(in srgb,var(--ui-accent) 14%,var(--ui-field));border-color:var(--ui-accent);color:var(--ui-accent)}
+#flowcast[data-mode=preview] #phone-pick{width:100%}
+
+/* Timing */
+#flowcast[data-mode=preview] .fc-beats{gap:4px;padding-bottom:18px}
+#flowcast[data-mode=preview] .fc-brow{border:1px solid transparent;border-radius:12px;padding:8px 8px 8px 10px;grid-template-columns:24px minmax(0,1fr) 30px auto auto;gap:6px;transition:background .15s}
+#flowcast[data-mode=preview] .fc-brow:hover{background:var(--ui-hover)}
+#flowcast[data-mode=preview] .fc-brow::before{content:attr(data-n);width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--ui-field);border:1px solid var(--ui-line);font-size:11px;font-weight:700;color:var(--ui-muted)}
+#flowcast[data-mode=preview] .fc-brow.on{background:color-mix(in srgb,var(--ui-accent) 9%,transparent);border-color:color-mix(in srgb,var(--ui-accent) 35%,transparent)}
+#flowcast[data-mode=preview] .fc-brow.on::before{background:var(--ui-accent);border-color:var(--ui-accent);color:#fff}
+#flowcast[data-mode=preview] .fc-brow b{font-size:13px;color:var(--ui-text)}
+#flowcast[data-mode=preview] .fc-brow small{color:var(--ui-muted);margin-top:2px}
+#flowcast[data-mode=preview] .fc-tools .fc-brow button{width:30px;height:30px;padding:0;border-radius:8px;font-size:16px;font-weight:500;background:var(--ui-panel)}
+
+/* Export: the one primary action */
+#flowcast[data-mode=preview] #fc-export{width:100%}
+#flowcast[data-mode=preview] .fc-tools #fc-go{width:100%;height:42px;background:var(--ui-accent);border-color:var(--ui-accent);color:var(--ui-ink);font-size:14px}
+#flowcast[data-mode=preview] .fc-tools #fc-go:hover:not(:disabled){background:color-mix(in srgb,var(--ui-accent) 88%,#000)}
+#flowcast[data-mode=preview] .fc-tools #fc-go:disabled{opacity:.6;cursor:wait}
+#flowcast[data-mode=preview] .fc-tools .fc-undo{color:var(--ui-accent);border-color:transparent;background:none}
+#flowcast[data-mode=preview] .fc-undo .fc-i{width:14px;height:14px}
+#flowcast[data-mode=preview] #fc-saved{width:100%;justify-content:flex-start;color:var(--ui-accent)}
+#flowcast[data-mode=preview] #fc-status{color:var(--ui-muted)}
+
+/* under the stage: progress and one transport pill */
+#flowcast[data-mode=preview] .fc-dots{gap:6px;margin-top:6px}
+#flowcast[data-mode=preview] .fc-dot{width:26px;height:4px;border-radius:2px;border:0;background:var(--ui-line)}
+#flowcast[data-mode=preview] .fc-dot.on{width:48px}
+#flowcast[data-mode=preview] .fc-dot i{background:var(--ui-accent)}
+.fc-i .fc-fill{fill:currentColor;stroke:none}
+.fc-pill{display:inline-flex;align-items:center;gap:2px}
+.fc-bar .fc-i{width:18px;height:18px}
+#flowcast[data-mode=preview] .fc-bar{gap:12px;margin-top:4px}
+#flowcast[data-mode=preview] .fc-bar button{display:grid;place-items:center;border:0;cursor:pointer;color:var(--ui-text);font:600 13px/1 var(--ui-font);transition:background .15s,transform .1s}
+#flowcast[data-mode=preview] .fc-bar button:active{transform:scale(.94)}
+#flowcast[data-mode=preview] .fc-round,#flowcast[data-mode=preview] .fc-pill{background:var(--ui-panel);border:1px solid var(--ui-line);box-shadow:0 10px 28px rgba(0,0,0,.14)}
+#flowcast[data-mode=preview] .fc-round{width:46px;height:46px;border-radius:50%;padding:0}
+#flowcast[data-mode=preview] #fc-skip{width:auto;min-width:46px;padding:0 18px;border-radius:999px}
+#flowcast[data-mode=preview] .fc-round:hover{background:var(--ui-field)}
+#flowcast[data-mode=preview] .fc-pill{border-radius:999px;padding:4px}
+#flowcast[data-mode=preview] .fc-pill button{width:40px;height:40px;border-radius:50%;padding:0;background:transparent}
+#flowcast[data-mode=preview] .fc-pill button:hover{background:var(--ui-hover)}
+#flowcast[data-mode=preview] .fc-pill #fc-pause{width:40px;height:40px;margin:0;background:var(--ui-accent);color:#fff;box-shadow:none}
+#flowcast[data-mode=preview] .fc-pill #fc-pause:hover{background:color-mix(in srgb,var(--ui-accent) 88%,#000)}
+#flowcast[data-mode=preview] #fc-pause .fc-i{width:18px;height:18px}
+#flowcast[data-mode=preview] #fc-pause[data-state=paused] .fc-i{margin-left:2px}
+
+/* top-left */
+html:has(#flowcast[data-mode=preview]) .fc-brand{color:var(--ui-text);font-family:var(--ui-font)}
+html:has(#flowcast[data-mode=preview]) .fc-brand::after{background:var(--ui-panel);border-color:var(--ui-line);color:var(--ui-text);font-family:var(--ui-font)}
+
+/* icons and pickers */
+.fc-i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#flowcast[data-mode=preview] .fc-tools summary>span{flex:1;min-width:0;display:flex;align-items:center;gap:10px;color:var(--ui-text);font-size:11.5px}
+#flowcast[data-mode=preview] .fc-tools summary .fc-i{width:15px;height:15px;color:var(--ui-accent)}
+#flowcast[data-mode=preview] #fc-theme .fc-i,#flowcast[data-mode=preview] #fc-captions .fc-i{color:var(--ui-muted)}
+#flowcast[data-mode=preview] .fc-label{display:flex;align-items:center;justify-content:space-between;font-size:11.5px;font-weight:600;color:var(--ui-muted);margin:2px 0 8px}
+#flowcast[data-mode=preview] .fc-seg{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;padding:3px;border-radius:11px;background:var(--ui-field);border:1px solid var(--ui-line);width:100%}
+#flowcast[data-mode=preview] .fc-tools .fc-seg button{height:30px;border:0;border-radius:8px;background:none;color:var(--ui-muted);padding:0;font-variant-numeric:tabular-nums}
+#flowcast[data-mode=preview] .fc-tools .fc-seg button.on{background:var(--ui-panel);color:var(--ui-text);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+#flowcast[data-mode=preview] .fc-fmts{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+#flowcast[data-mode=preview] .fc-tools .fc-fmts button{height:auto;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:10px;row-gap:2px;align-items:center;text-align:left;padding:11px 12px;border-radius:12px}
+#flowcast[data-mode=preview] .fc-fmts .fc-i{grid-row:1/span 2;width:20px;height:20px;color:var(--ui-muted)}
+#flowcast[data-mode=preview] .fc-fmts b{font-size:13px}
+#flowcast[data-mode=preview] .fc-fmts small{font-size:11px;font-weight:500;color:var(--ui-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#flowcast[data-mode=preview] .fc-tools .fc-fmts button.on{border-color:var(--ui-accent);background:color-mix(in srgb,var(--ui-accent) 10%,var(--ui-field))}
+#flowcast[data-mode=preview] .fc-fmts button.on .fc-i{color:var(--ui-accent)}
+#flowcast[data-mode=preview] .fc-tools #fc-go{display:flex;align-items:center;justify-content:center;gap:8px}
+#flowcast[data-mode=preview] #fc-go .fc-i{width:16px;height:16px}
+.fc-caption h2 em{font-style:normal;color:var(--accent)}
+
+/* Colours: a row per colour, its light and dark swatch side by side; groups open on their own */
+#flowcast[data-mode=preview] .fc-cols{display:grid;gap:2px;padding-bottom:18px}
+#flowcast[data-mode=preview] .fc-chead,#flowcast[data-mode=preview] .fc-crow{display:grid;grid-template-columns:minmax(0,1fr) 26px 44px 44px;gap:8px;align-items:center}
+#flowcast[data-mode=preview] .fc-chead{color:var(--ui-muted);justify-items:center;padding:0 0 4px}
+#flowcast[data-mode=preview] .fc-chead span:nth-child(2){grid-column:3}
+#flowcast[data-mode=preview] .fc-chead .fc-i{width:13px;height:13px}
+#flowcast[data-mode=preview] .fc-crow{padding:5px 0;font-size:12.5px;font-weight:600;color:var(--ui-text)}
+#flowcast[data-mode=preview] .fc-crow>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#flowcast[data-mode=preview] .fc-sw{position:relative;display:grid;place-items:center;cursor:pointer}
+#flowcast[data-mode=preview] .fc-sw .fc-i{display:none}
+#flowcast[data-mode=preview] .fc-sw input{appearance:none;-webkit-appearance:none;width:30px;height:30px;border-radius:9px;border:1px solid var(--ui-line);padding:0;background:none;cursor:pointer;box-shadow:inset 0 0 0 2px var(--ui-panel)}
+#flowcast[data-mode=preview] .fc-sw input::-webkit-color-swatch-wrapper{padding:2px}
+#flowcast[data-mode=preview] .fc-sw input::-webkit-color-swatch{border:0;border-radius:6px}
+#flowcast[data-mode=preview] .fc-sw input::-moz-color-swatch{border:0;border-radius:6px}
+#flowcast[data-mode=preview] .fc-tools details.fc-sub{padding:0;border:1px solid var(--ui-line);border-radius:12px;margin-top:8px;padding:0 12px}
+#flowcast[data-mode=preview] .fc-tools .fc-sub summary{padding:11px 0;text-transform:none;letter-spacing:0;font-size:12.5px}
+#flowcast[data-mode=preview] .fc-tools .fc-sub summary>span{font-size:12.5px;font-weight:700}
+#flowcast[data-mode=preview] .fc-tools .fc-sub[open]{padding-bottom:8px}
+#flowcast[data-mode=preview] .fc-tools .fc-sreset{margin-right:10px;width:26px;height:26px;padding:0;display:grid;place-items:center;border-radius:7px;background:none;border-color:transparent;color:var(--ui-accent)}
+#flowcast[data-mode=preview] .fc-tools .fc-sreset:hover{background:var(--ui-hover)}
+/* a hidden reset keeps its room, so the header never changes height; it fades in and out */
+#flowcast[data-mode=preview] .fc-tools .fc-sreset{transition:opacity .2s,background .15s}
+#flowcast[data-mode=preview] .fc-tools .fc-sreset[hidden]{display:grid!important;visibility:hidden;opacity:0}
+#flowcast[data-mode=preview] .fc-tools summary{min-height:26px}
+#flowcast[data-mode=preview] .fc-sreset .fc-i{width:13px;height:13px}
+
+/* motion in the studio itself: sections open and close, the current beat moves, the indicator grows */
+html:has(#flowcast[data-mode=preview]){interpolate-size:allow-keywords}
+#flowcast[data-mode=preview] .fc-tools details::details-content{block-size:0;overflow:hidden;opacity:0;transition:block-size .3s cubic-bezier(.3,.7,.2,1),opacity .25s,content-visibility .3s allow-discrete}
+#flowcast[data-mode=preview] .fc-tools details[open]::details-content{block-size:auto;opacity:1}
+#flowcast[data-mode=preview] .fc-tools summary::after{transition:transform .3s cubic-bezier(.3,.7,.2,1)}
+#flowcast[data-mode=preview] .fc-brow{transition:background .3s,border-color .3s}
+#flowcast[data-mode=preview] .fc-brow::before{transition:background .3s,border-color .3s,color .3s}
+#flowcast[data-mode=preview] .fc-dot{transition:width .4s cubic-bezier(.3,.7,.2,1),background .3s}
+#flowcast[data-mode=preview] .fc-dot.done i{transition:width .3s}
+#flowcast[data-mode=preview] .fc-tools .fc-creset{width:26px;height:26px;padding:0;display:grid;place-items:center;border-radius:7px;background:none;border-color:transparent;color:var(--ui-accent)}
+#flowcast[data-mode=preview] .fc-creset[hidden]{display:grid!important;visibility:hidden;opacity:0}
+#flowcast[data-mode=preview] .fc-tools .fc-creset{transition:opacity .2s}
+#flowcast[data-mode=preview] .fc-creset .fc-i{width:13px;height:13px}
+/* the drawer always keeps room for its scrollbar, so opening a section never shifts the content sideways */
+#flowcast[data-mode=preview] .fc-tools{scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:var(--ui-line) transparent}
+#flowcast[data-mode=preview] .fc-tools::-webkit-scrollbar{width:8px}
+#flowcast[data-mode=preview] .fc-tools::-webkit-scrollbar-thumb{background:var(--ui-line);border-radius:4px}
+
+/* the right-hand button: full screen in the studio, Skip in an in-app intro */
+#fc-full{display:none}
+#flowcast[data-mode=preview] #fc-skip{display:none}
+#flowcast[data-mode=preview] #fc-full{display:grid}
+html.fc-full body{padding:0!important;background:#000!important;display:grid;place-items:center;min-height:100vh}
+html.fc-full .fc-tools,html.fc-full .fc-brand,html.fc-full .fc-dots,html.fc-full .fc-bar{display:none!important}
+html.fc-full #flowcast{display:grid;place-items:center;width:100vw;height:100vh}
+html.fc-full .fc-canvas,html.fc-full .fc-frame,html.fc-full .fc-screen{box-shadow:none!important;border-radius:0!important}
+html.fc-full #flowcast{gap:0}

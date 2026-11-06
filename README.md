@@ -75,14 +75,15 @@ Keep the folder and you can export any intro again, in any format, later.
 
 ### The studio
 
-A local page with the intro playing and a toolbar:
+A local page with the intro playing on the left and every option in a drawer on the right. Each section opens and closes on its own and has a reset in its header when something in it has changed.
 
-- **Theme:** light or dark.
-- **Captions:** on or off.
-- **Canvas:** no canvas, 1080×1080 for LinkedIn and Instagram feed, 1080×1350 for Instagram portrait, 1080×1920 for Reels, Stories, TikTok and Shorts, 1920×1080 for YouTube and websites.
-- **Position:** device or scene left, centre or right, when the canvas has room beside it.
-- **Slots:** headline, line, CTA, tags and logo around the scene. Click any of them on the page to change the words.
-- **Export · 18.0s:** pick MP4 video, GIF, PNG frames or PDF slides. The file lands in the intro's `exports/` folder and its name becomes a button that opens the folder.
+- **Look:** dark mode and captions, as switches.
+- **Colours:** every colour in the intro, its light and dark shade side by side, grouped by product or part. Reset one colour, one group, or all.
+- **Canvas:** no canvas, 1080×1080 for LinkedIn and Instagram feed, 1080×1350 for Instagram portrait, 1080×1920 for Reels, Stories, TikTok and Shorts, 1920×1080 for YouTube and websites. Device or scene left, centre or right, and the slots around it: headline, line, CTA, tags and logo. Click any of them on the page to change the words.
+- **Timing:** a speed for the whole intro, and each beat's own seconds. A shorter beat plays its animation faster to fit, a longer one slower, from a third of its time to double.
+- **Export:** pick MP4, GIF, PNG frames or PDF slides, then Export. The label shows the running time, or how many images or pages you get. The file lands in the intro's `exports/` folder and its name becomes a button that opens the folder.
+
+Under the video: replay, previous, play or pause, next, and full screen, which plays the video alone the way a viewer sees it. Esc brings the studio back.
 
 What you set on the page is what gets exported, pixel for pixel. Your choices are saved, so a refresh or an export asked for in words uses them too.
 

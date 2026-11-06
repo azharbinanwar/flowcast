@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Studio drawer: every option in a panel on the right with sections that open and close, an icon each, and a reset in each header that shows only when something changed.
+- Timing: a speed for the whole intro and seconds per beat; a beat's animation speeds up or slows down to fit its time. Saved, and used by every export.
+- Colours: every colour token, light and dark side by side, grouped by product or part through the intro's `palette`; reset per colour, group or all. Saved and exported.
+- Export: pick a format, then Export; the label shows seconds for video and GIF, image or page count for frames and slides.
+- Playback: replay, a play/pause pill with previous and next, and full screen; the current beat and progress animate between beats.
+- Sample: Flowcast explaining itself, at the top of the README.
 - History: every intro lives in its own `flowcast/<name>/` folder with its settings and exports; one studio serves them all, with a History page of covers. `/flowcast` alone or `/flowcast-history` reopens it, starting the studio when needed.
 - Player: a beat's steps stop by themselves when another beat starts; a Mac pointer actor with `data-actor="pointer"`; the scripts link the player next to an intro themselves.
 - Skill: tightened, with the build location, screenshots first, one icon family, end card on the app's surface, and a cheaper check after a fix.

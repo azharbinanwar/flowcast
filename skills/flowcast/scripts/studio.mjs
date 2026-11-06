@@ -117,7 +117,7 @@ createServer(async (req, res) => {
     if (parts.length === 1) {
       // the intro opens with what the user last set on it
       let st = {}; try { st = JSON.parse(await readFile(stateOf(name), 'utf8')); } catch {}
-      const pre = { canvas: st.canvas, phone: st.phone, theme: st.theme, slots: st.slots, words: st.words, ...(st.captions === 'off' ? { captions: 'off' } : st.captions ? { captionsAt: st.captions } : {}) };
+      const pre = { canvas: st.canvas, phone: st.phone, theme: st.theme, slots: st.slots, words: st.words, speed: st.speed, durations: st.durations, colors: st.colors, ...(st.captions === 'off' ? { captions: 'off' } : st.captions ? { captionsAt: st.captions } : {}) };
       const html = String(await readFile(intro(name))).replace('<script', `<script>window.__flowcast=${JSON.stringify(pre)}</script><script`);
       return send(200, TYPES['.html'], html);
     }
