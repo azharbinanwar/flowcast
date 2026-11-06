@@ -6,7 +6,7 @@
 node <skill>/scripts/studio.mjs intro.html        # prints http://localhost:7788/
 ```
 
-Start it in the background and open the URL. The preview carries Export buttons: MP4, GIF, Frames, Slides. A click runs the scripts below with the page's current settings, writes into `<intro>-exports/` beside the intro, and reveals the file in Finder.
+Start it in the background and open the URL. The preview has an Export button with a format pick: MP4 video, GIF, PNG frames, PDF slides. A click runs the scripts below with the page's current settings, writes into `<intro>-exports/` beside the intro, and reveals the file. The saved path shows next to the button; clicking it opens the folder again.
 
 ## With Node, pixel-perfect
 

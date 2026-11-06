@@ -42,7 +42,8 @@ const endFile = join(resolve(outdir), 'end.png'); await page.screenshot({ path: 
 if (opt.pdf) {
   // the frames as pages, each the size of the frame
   const doc = await browser.newPage();
-  await doc.setContent(`<style>@page{size:${w}px ${h}px;margin:0}body{margin:0}img{display:block;width:${w}px;height:${h}px;page-break-after:always}</style>` + files.map(f => `<img src="file://${f}">`).join(''));
+  const imgs = files.map(f => `<img src="data:image/png;base64,${readFileSync(f).toString('base64')}">`).join('');
+  await doc.setContent(`<style>@page{size:${w}px ${h}px;margin:0}body{margin:0}img{display:block;width:${w}px;height:${h}px;page-break-after:always}</style>` + imgs, { waitUntil: 'load' });
   await doc.pdf({ path: resolve(opt.pdf), width: `${w}px`, height: `${h}px`, printBackground: true });
   files.push(resolve(opt.pdf));
 }

@@ -41,7 +41,7 @@ host.innerHTML = `
   <span class="fc-slot-toggles">${Object.keys(slots).map(k => `<button data-slot="${k}" class="${slots[k] ? 'on' : ''}">${k}</button>`).join('')}</span>
   <span class="fc-tag">${{ phone: 'Phone · 390×844', browser: 'Browser · 1280×800', none: SIZE[1] ? `Canvas · ${SIZE[0]}×${SIZE[1]}` : 'In-app' }[frame]}</span>
   <span class="fc-tag">Total <b id="fc-total">${(total / 1000).toFixed(1)}s</b></span>
-  <span class="fc-export" id="fc-export" hidden><button data-format="mp4">MP4</button><button data-format="gif">GIF</button><button data-format="frames">Frames</button><button data-format="slides">Slides</button></span><span class="fc-tag" id="fc-note" hidden></span><button id="fc-open" hidden>Open folder</button>
+  <span class="fc-export" id="fc-export" hidden><select id="fc-format"><option value="mp4">MP4 video</option><option value="gif">GIF</option><option value="frames">PNG frames</option><option value="slides">PDF slides</option></select><button id="fc-go">Export</button></span><button class="fc-saved" id="fc-saved" hidden></button>
 </div>
 <div class="fc-cwrap" id="fc-cwrap"><div class="fc-canvas" id="fc-canvas">
   <div class="fc-slots fc-top" id="fc-top">
@@ -179,17 +179,16 @@ $('.fc-tools').addEventListener('change', saveState); $('.fc-tools').addEventLis
 let lastFile = '';
 if (STUDIO) {
   $('#fc-export').hidden = false;
-  $('#fc-open').onclick = () => fetch('/open', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ file: lastFile }) });
-  $('#fc-export').onclick = async (e) => {
-    const b = e.target.closest('button'); if (!b || b.disabled) return;
-    const q = { format: b.dataset.format, ...state() };
-    document.querySelectorAll('#fc-export button').forEach(x => x.disabled = true);
-    const note = $('#fc-note'); note.hidden = false; note.textContent = `Making ${b.textContent}…`;
-    try { const r = await fetch('/export', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(q) }).then(r => r.json()); note.textContent = r.ok ? `Saved · ${r.file.split('/').pop()}` : `Failed: ${r.error}`; if (r.ok) { lastFile = r.file; $('#fc-open').hidden = false; } }
-    catch (err) { note.textContent = 'Failed: ' + err.message; }
-    document.querySelectorAll('#fc-export button').forEach(x => x.disabled = false);
+  $('#fc-saved').onclick = () => { if (lastFile) fetch('/open', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ file: lastFile }) }); };
+  $('#fc-go').onclick = async () => {
+    const b = $('#fc-go'); if (b.disabled) return;
+    const q = { format: $('#fc-format').value, ...state() };
+    b.disabled = true; const saved = $('#fc-saved'); saved.hidden = false; saved.textContent = `Making ${$('#fc-format').selectedOptions[0].textContent}…`; lastFile = '';
+    try { const r = await fetch('/export', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(q) }).then(r => r.json());
+      if (r.ok) { lastFile = r.file; saved.textContent = `Saved · ${r.file.split('/').slice(-2).join('/')} ↗`; } else saved.textContent = `Failed: ${r.error}`; }
+    catch (err) { saved.textContent = 'Failed: ' + err.message; }
+    b.disabled = false;
   };
 }
-
 window.flowcast = { total, go, beats, layout, canvas: () => PRESET[canvasName] };
 go(0);
