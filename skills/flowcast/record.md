@@ -9,7 +9,14 @@ npm install          # Playwright, its Chromium, and ffmpeg
 ```
 
 Record what the preview shows. Only when the user has not set them, use these defaults and say them:
-- **Canvas:** story 1080×1920, square 1080×1080, landscape 1920×1080, and where the phone sits: centre, left, right. Which slots show.
+- **Canvas, one list, a size and where it is posted:**
+  | preset | size | posted on | longest clip |
+  |---|---|---|---|
+  | square | 1080×1080 | LinkedIn, Instagram feed | 10 min |
+  | portrait | 1080×1350 | Instagram portrait | 60 s |
+  | story | 1080×1920 | Reels, Stories, TikTok, Shorts | 90 s, top 250px and bottom 320px kept clear of text |
+  | landscape | 1920×1080 | YouTube, website | any |
+  The preview shows the same list and warns when the total runs past the limit. Where the phone sits: centre, left, right. Which slots show.
 - **Theme:** light, dark, or both (two files).
 - **Captions:** off (default for video), or on with the user's words. `below` the frame for a floating-phone post.
 

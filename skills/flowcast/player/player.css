@@ -19,7 +19,8 @@ body{margin:0;background:var(--bg);color:var(--on);font-family:var(--font);font-
 .fc-tools .fc-slot-toggles{display:inline-flex;gap:4px}.fc-tools [hidden]{display:none}.fc-tools .fc-slot-toggles button{padding:6px 10px;font-size:12px;text-transform:capitalize}
 .fc-cwrap{position:relative}
 .fc-canvas{transform-origin:top left;display:grid;gap:40px;padding:72px;box-sizing:border-box;align-content:center;justify-content:center;justify-items:center;font-family:var(--font)}
-.fc-canvas[data-preset=story]{padding:96px 72px}
+.fc-canvas[data-preset=story]{padding:calc(var(--fc-safe-top,0px) + 40px) 72px calc(var(--fc-safe-bottom,0px) + 40px)}   /* the bands Reels and Stories cover with their own UI stay empty */
+.fc-canvas[data-preset=portrait]{padding:72px}
 .fc-canvas[data-preset=none]{padding:0;gap:0;background:transparent;color:inherit}
 .fc-canvas[data-layout=column]{grid-template-areas:"top" "phone" "around" "bottom";grid-template-columns:minmax(0,1fr)}
 .fc-canvas[data-layout=row]{grid-template-areas:"top phone" "around phone" "bottom phone";grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto auto;align-items:center;column-gap:64px}

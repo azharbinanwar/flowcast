@@ -5,9 +5,9 @@ import { resolve, join } from 'node:path';
 import { mkdirSync } from 'node:fs';
 
 const [,, input, outdir, ...rest] = process.argv;
-if (!input || !outdir) { console.error('usage: node frames.mjs intro.html outdir [--canvas story|square|landscape] [--phone center|left|right] [--theme dark|light] [--captions off|inside|below] [--at 0.9] [--pdf slides.pdf]'); process.exit(1); }
+if (!input || !outdir) { console.error('usage: node frames.mjs intro.html outdir [--canvas square|portrait|story|landscape] [--phone center|left|right] [--theme dark|light] [--captions off|inside|below] [--at 0.9] [--pdf slides.pdf]'); process.exit(1); }
 const opt = Object.fromEntries(rest.map((a, k, arr) => a.startsWith('--') ? [a.slice(2), arr[k + 1]] : null).filter(Boolean));
-const PRESET = { story: [1080, 1920], square: [1080, 1080], landscape: [1920, 1080] };
+const PRESET = { square: [1080, 1080], portrait: [1080, 1350], story: [1080, 1920], landscape: [1920, 1080] };
 const at = +(opt.at || 0.9), theme = opt.theme || 'light';
 mkdirSync(resolve(outdir), { recursive: true });
 

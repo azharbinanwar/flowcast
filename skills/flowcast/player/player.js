@@ -12,7 +12,15 @@ const mode = document.documentElement.dataset.mode || 'preview';
 const frame = host.dataset.frame || 'phone';
 const captionsAt = host.dataset.captionsAt || 'inside';
 const SIZE = { phone: [390, 844], browser: [1280, 800], none: [+host.dataset.width || 420, +host.dataset.height || 0] }[frame];   // none: a free-size composition the intro draws itself
-const PRESET = { none: null, story: [1080, 1920], square: [1080, 1080], landscape: [1920, 1080] };
+// one list: a size, the places it is posted, the longest clip they take, and the bands their own UI covers on the tall one
+const PRESETS = {
+  none:      { size: null,         label: 'No canvas' },
+  square:    { size: [1080, 1080], label: '1080×1080 · LinkedIn, Instagram feed', max: 600 },
+  portrait:  { size: [1080, 1350], label: '1080×1350 · Instagram portrait', max: 60 },
+  story:     { size: [1080, 1920], label: '1080×1920 · Reels, Stories, TikTok, Shorts', max: 90, safe: [250, 320] },
+  landscape: { size: [1920, 1080], label: '1920×1080 · YouTube, website', max: 0 },
+};
+const PRESET = Object.fromEntries(Object.entries(PRESETS).map(([k, v]) => [k, v.size]));
 const sceneTpl = $('#scene'), endTpl = $('#endcard'), aroundTpl = $('#around');   // around: the part of the scene outside the device, on the canvas
 let canvasName = PRESET[host.dataset.canvas] !== undefined ? host.dataset.canvas : 'none';
 let phonePos = host.dataset.phone || (aroundTpl ? 'left' : 'center');
@@ -27,7 +35,7 @@ const captionHTML = '<div class="fc-caption"><h2 id="fc-title"></h2><p id="fc-bo
 host.innerHTML = `
 <div class="fc-tools">
   <button id="fc-theme">Dark</button><button id="fc-captions" class="on">Captions</button>
-  <select id="canvas-pick"><option value="none">No canvas</option><option value="story">Story 1080×1920</option><option value="square">Square 1080×1080</option><option value="landscape">Landscape 1920×1080</option></select>
+  <select id="canvas-pick">${Object.entries(PRESETS).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select><span class="fc-tag" id="fc-length" hidden></span>
   <select id="phone-pick"><option value="center">Device centre</option><option value="left">Device left</option><option value="right">Device right</option></select>
   <span class="fc-slot-toggles">${Object.keys(slots).map(k => `<button data-slot="${k}" class="${slots[k] ? 'on' : ''}">${k}</button>`).join('')}</span>
   <span class="fc-tag">${{ phone: 'Phone · 390×844', browser: 'Browser · 1280×800', none: SIZE[1] ? `Canvas · ${SIZE[0]}×${SIZE[1]}` : 'In-app' }[frame]}</span>
@@ -130,7 +138,7 @@ function layout() {
   const [w, h] = SIZE;
   if (frame === 'none' && !h) return;
   if (!c) {
-    cvEl.style.width = cvEl.style.height = ''; cvEl.style.transform = ''; wrap.style.width = wrap.style.height = '';
+    $('#fc-length').hidden = true; cvEl.style.width = cvEl.style.height = ''; cvEl.style.transform = ''; wrap.style.width = wrap.style.height = '';
     const tall = innerHeight - chrome() - (captionsAt === 'below' ? 120 : 0);
     // a free-size composition fills its recording exactly; a device keeps a margin
     const fill = frame === 'none' && mode === 'record';
@@ -139,6 +147,8 @@ function layout() {
   }
   const [cw, ch] = c; cvEl.style.width = cw + 'px'; cvEl.style.height = ch + 'px';
   const column = canvasName === 'story' || phonePos === 'center';
+  const preset = PRESETS[canvasName]; cvEl.style.setProperty('--fc-safe-top', (preset.safe?.[0] || 0) + 'px'); cvEl.style.setProperty('--fc-safe-bottom', (preset.safe?.[1] || 0) + 'px');
+  const over = preset.max && total / 1000 > preset.max; $('#fc-length').hidden = !over; if (over) $('#fc-length').textContent = `Over ${preset.max}s for this place, tighten the beats`;
   cvEl.dataset.layout = column ? 'column' : 'row';
   // the phone takes the room the slots and the around part leave
   const st = getComputedStyle(cvEl), pad = parseFloat(st.paddingTop) * 2, padX = parseFloat(st.paddingLeft) * 2, gap = parseFloat(st.rowGap) || 0;

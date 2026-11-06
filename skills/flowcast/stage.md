@@ -16,7 +16,7 @@ An intro is one HTML file plus the shared player (`player/player.css`, `player/p
 - **A flow is its own canvas.** `data-frame="none" data-width="1080" data-height="1080" data-captions="off"`: the scene draws the whole square (or 1080×1920, 1920×1080), with its own headline row updated in `apply(i)`. Surfaces, the work, the proof and the brand all live inside the scene. A recording fills the canvas exactly.
 - **Frame follows the platform.** `data-frame="phone"` (390×844) for Flutter, Android, iOS. `browser` (1280×800) for web. `none` for an in-app stage with no device.
 - **Captions have a place.** `data-captions-at="inside"` under the stage, in the screen (in-app). `below` puts them under the frame (web demo).
-- **The canvas is the export.** `data-canvas="none|story|square|landscape"` and `data-phone="center|left|right"` set the start; the toolbar switches them. A `const canvas = { headline, line, cta, tags, bg: 'tint'|'accent'|'bg' }` in the script fills the slots; the logo comes from the end card. Slot words come from the beats and the project, never filler.
+- **The canvas is the export.** `data-canvas="none|square|portrait|story|landscape"` and `data-phone="center|left|right"` set the start; the toolbar switches them. A `const canvas = { headline, line, cta, tags, bg: 'tint'|'accent'|'bg' }` in the script fills the slots; the logo comes from the end card. Slot words come from the beats and the project, never filler.
 - **Never use `fc-` on your own classes or ids.** Everything the player owns is prefixed `fc-`, so an intro can name things `body`, `end`, `bar`, `title` freely.
 
 ## Skeleton
@@ -87,9 +87,10 @@ Set `data-mode` on `<html>`; the recorder does it for you.
 | Preset | Size | Layout |
 |---|---|---|
 | none | the frame alone | preview, in-app, web embed |
-| story | 1080×1920 | logo and headline above the phone, line, CTA and tags below |
-| square | 1080×1080 | phone left or right with text beside it, or centred with text above and below |
-| landscape | 1920×1080 | phone left or right, text beside it |
+| square | 1080×1080 · LinkedIn, Instagram feed | phone left or right with text beside it, or centred with text above and below |
+| portrait | 1080×1350 · Instagram portrait | as square |
+| story | 1080×1920 · Reels, Stories, TikTok, Shorts | logo and headline above the phone, line, CTA and tags below; top 250px and bottom 320px stay clear |
+| landscape | 1920×1080 · YouTube, website | phone left or right, text beside it |
 
 The phone takes the room the slots leave. Toggle a slot off and the phone grows.
 

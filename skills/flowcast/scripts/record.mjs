@@ -4,9 +4,9 @@ import { resolve, dirname } from 'node:path';
 import { rename } from 'node:fs/promises';
 
 const [,, input, output, ...rest] = process.argv;
-if (!input || !output) { console.error('usage: node record.mjs intro.html out.webm [--width W] [--height H] [--canvas story|square|landscape] [--phone center|left|right] [--theme dark|light] [--captions off|inside|below]'); process.exit(1); }
+if (!input || !output) { console.error('usage: node record.mjs intro.html out.webm [--width W] [--height H] [--canvas square|portrait|story|landscape] [--phone center|left|right] [--theme dark|light] [--captions off|inside|below]'); process.exit(1); }
 const opt = Object.fromEntries(rest.map((a, k, arr) => a.startsWith('--') ? [a.slice(2), arr[k + 1]] : null).filter(Boolean));
-const PRESET = { story: [1080, 1920], square: [1080, 1080], landscape: [1920, 1080] };
+const PRESET = { square: [1080, 1080], portrait: [1080, 1350], story: [1080, 1920], landscape: [1920, 1080] };
 const [pw, ph] = PRESET[opt.canvas] || [];
 const width = +(opt.width || pw || 1080), height = +(opt.height || ph || 1920), theme = opt.theme || 'light';
 

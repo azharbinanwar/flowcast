@@ -47,9 +47,10 @@ Who the user is, what they do, what they get back. No filler, no marketing words
 |---|---|---|---|---|
 | App intro, in-app | none | none | inside | none, last beat's button does the real thing |
 | Preview | by platform | none, the user switches it in the toolbar | inside | yes |
-| Story, reel | phone | story, phone centred, headline above, line and CTA below | off | logo and one line |
-| LinkedIn or Instagram post | phone | square, phone right, text beside it | off | logo and one line |
-| Landscape video, YouTube | by platform | landscape, phone left or right | off | logo and one line |
+| Reels, Stories, TikTok, Shorts | phone | 1080×1920, phone centred, headline above, line and CTA below | off | logo and one line |
+| LinkedIn or Instagram feed post | phone | 1080×1080, phone right, text beside it | off | logo and one line |
+| Instagram portrait | phone | 1080×1350, phone right | off | logo and one line |
+| YouTube, website video | by platform | 1920×1080, phone left or right | off | logo and one line |
 | Web demo, embed | browser | none | below | yes, then loops |
 | Carousel, still | by platform | square or story, one beat per page | the beat's title and line as the slide text | last slide is the end card |
 
