@@ -27,10 +27,11 @@ const flags = (q) => ['--theme', q.theme || 'light', ...(q.canvas && q.canvas !=
 const reveal = (file) => { if (process.platform === 'darwin') spawn('open', ['-R', file]); else if (process.platform === 'win32') spawn('explorer', ['/select,', file]); else spawn('xdg-open', [dirname(file)]); };
 
 async function exportIt(q) {
-  const outDir = join(dir, `${name}-exports`); await mkdir(outDir, { recursive: true });
-  const tag = [q.canvas && q.canvas !== 'none' ? q.canvas : 'frame', q.theme || 'light'].join('-'), base = join(outDir, `${name}-${tag}`);
+  const outDir = join(dir, 'flowcast-exports'); await mkdir(outDir, { recursive: true });
+  const project = (q.project || name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const base = join(outDir, `flowcast-${project}`);
   if (q.format === 'frames' || q.format === 'slides') {
-    const fdir = `${base}-frames`; const args = [intro, fdir, ...flags(q)]; if (q.format === 'slides') args.push('--pdf', `${base}-slides.pdf`);
+    const fdir = `${base}-frames`; const args = [intro, fdir, ...flags(q)]; if (q.format === 'slides') args.push('--pdf', `${base}.pdf`);
     const files = (await run('frames.mjs', args)).split('\n'); return files[files.length - 1];
   }
   const webm = `${base}.webm`; await run('record.mjs', [intro, webm, ...flags(q)]);

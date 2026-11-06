@@ -6,7 +6,7 @@
 node <skill>/scripts/studio.mjs intro.html        # prints http://localhost:7788/
 ```
 
-Start it in the background and open the URL. The preview has an Export button with a format pick: MP4 video, GIF, PNG frames, PDF slides. A click runs the scripts below with the page's current settings, writes into `<intro>-exports/` beside the intro, and reveals the file. The saved path shows next to the button; clicking it opens the folder again.
+Start it in the background and open the URL. The preview has an Export button with a format pick: MP4 video, GIF, PNG frames, PDF slides. A click runs the scripts below with the page's current settings and writes `flowcast-<project>.<ext>` into `flowcast-exports/` beside the intro, where project is the page's title. The file name then shows as one button next to Export; clicking it opens the folder.
 
 ## With Node, pixel-perfect
 

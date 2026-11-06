@@ -183,11 +183,11 @@ if (STUDIO) {
   const pick = $('#fc-export');
   pick.onchange = async () => {
     const format = pick.value, label = pick.selectedOptions[0].textContent; pick.value = ''; if (!format) return;
-    const q = { format, ...state() };
+    const q = { format, project: document.title, ...state() };
     const status = $('#fc-status'), saved = $('#fc-saved');
     pick.disabled = true; status.hidden = false; saved.hidden = true; status.textContent = `Exporting ${label}…`; lastFile = '';
     try { const r = await fetch('/export', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(q) }).then(r => r.json());
-      if (r.ok) { lastFile = r.file; status.hidden = true; saved.textContent = `Saved · ${r.file.split('/').pop()} ↗`; saved.hidden = false; } else status.textContent = `Failed: ${r.error}`; }
+      if (r.ok) { lastFile = r.file; status.hidden = true; saved.textContent = r.file.split('/').pop(); saved.hidden = false; } else status.textContent = `Failed: ${r.error}`; }
     catch (err) { status.textContent = 'Failed: ' + err.message; }
     pick.disabled = false;
   };
