@@ -186,11 +186,11 @@ if (STUDIO) {
     const format = pick.value, label = pick.selectedOptions[0].textContent; pick.value = ''; if (!format) return;
     const q = { format, ...state() };
     const busy = $('#fc-busy'), title = $('#fc-busy-title'), text = $('#fc-busy-text'), saved = $('#fc-saved');
-    pick.disabled = true; busy.hidden = false; busy.classList.add('working'); saved.hidden = true; title.textContent = `Exporting ${label}`; text.textContent = 'Recording the intro at the size and theme shown here.'; lastFile = '';
+    pick.disabled = true; busy.hidden = false; busy.classList.add('working'); saved.hidden = true; title.textContent = `Exporting ${label}`; text.textContent = 'at the size and theme shown here'; lastFile = '';
     try { const r = await fetch('/export', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(q) }).then(r => r.json());
       if (r.ok) { lastFile = r.file; title.textContent = 'Saved'; text.textContent = r.file.split('/').slice(-2).join('/'); saved.hidden = false; } else { title.textContent = 'Failed'; text.textContent = r.error; } }
     catch (err) { title.textContent = 'Failed'; text.textContent = err.message; }
-    busy.classList.remove('working'); pick.disabled = false;
+    busy.classList.remove('working'); pick.disabled = false; clearTimeout(window.__fcHide); window.__fcHide = setTimeout(() => { busy.hidden = true; }, 10000);
   };
 }
 window.flowcast = { total, go, beats, layout, canvas: () => PRESET[canvasName] };
