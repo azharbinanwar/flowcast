@@ -144,7 +144,7 @@ function layout() {
     const tall = innerHeight - chrome() - (captionsAt === 'below' ? 120 : 0);
     // a free-size composition fills its recording exactly; a device keeps a margin
     const fill = frame === 'none' && mode === 'record';
-    setFrame(fill ? Math.min(innerWidth / w, innerHeight / h) : mode === 'record' ? Math.min((innerWidth - 32) / w, tall / h) * 0.92 : Math.min(1, (innerWidth - 32) / w, tall / h));
+    setFrame(fill ? (innerWidth === w && innerHeight === h ? 1 : Math.min(innerWidth / w, innerHeight / h)) : mode === 'record' ? Math.min((innerWidth - 32) / w, tall / h) * 0.92 : Math.min(1, (innerWidth - 32) / w, tall / h));
     return;
   }
   const [cw, ch] = c; cvEl.style.width = cw + 'px'; cvEl.style.height = ch + 'px';

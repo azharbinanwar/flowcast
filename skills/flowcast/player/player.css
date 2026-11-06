@@ -112,4 +112,7 @@ html:not([data-mode=record]) .fc-canvas:not([data-preset=none]),html:not([data-m
 [data-mode=embed] .fc-dots,[data-mode=record] .fc-dots,[data-mode=record] .fc-bar,
 [data-mode=embed] #fc-prev,[data-mode=embed] #fc-next,[data-mode=embed] #fc-skip{display:none}
 [data-mode=record] .fc-frame{box-shadow:none}
+html[data-mode=record],html[data-mode=record] body{margin:0;padding:0;height:auto}
+html[data-mode=record] #flowcast{display:block;max-width:none;margin:0;gap:0}
+html[data-mode=record] .fc-cwrap,html[data-mode=record] .fc-canvas,html[data-mode=record] .fc-phone,html[data-mode=record] .fc-fit{margin:0}
 @media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}

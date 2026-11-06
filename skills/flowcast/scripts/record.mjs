@@ -33,8 +33,9 @@ await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record'
 await page.goto('file://' + resolve(input));
 await page.waitForFunction(() => window.flowcast && window.flowcast.beats);
 await page.evaluate(() => {
-  // the frame fills the viewport, centred, on the page background
-  const host = document.getElementById('flowcast'); host.style.marginTop = `${Math.max(0, (innerHeight - host.getBoundingClientRect().height) / 2)}px`;
+  // a free-size composition sits at 0,0 at 1:1; a device is centred on the canvas
+  const host = document.getElementById('flowcast'); const r = document.getElementById('fc-canvas').getBoundingClientRect();
+  if (r.width < innerWidth - 1 || r.height < innerHeight - 1) { host.style.display = 'grid'; host.style.placeItems = 'center'; host.style.minHeight = innerHeight + 'px'; }
   flowcast.go(0);
 });
 await page.waitForFunction(() => window.flowcastDone, null, { timeout: 120000 });

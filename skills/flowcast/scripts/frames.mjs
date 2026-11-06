@@ -29,7 +29,7 @@ await probe.close();
 const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1, colorScheme: theme });
 await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', theme, canvas: opt.canvas, phone: opt.phone, captions: opt.captions === 'off' ? 'off' : undefined, captionsAt: opt.captions === 'below' ? 'below' : undefined, ...extra });
 await page.goto('file://' + resolve(input)); await page.waitForFunction(() => window.flowcast && window.flowcast.beats);
-await page.evaluate(() => { const host = document.getElementById('flowcast'); host.style.marginTop = `${Math.max(0, (innerHeight - host.getBoundingClientRect().height) / 2)}px`; });
+await page.evaluate(() => { const host = document.getElementById('flowcast'); const r = document.getElementById('fc-canvas').getBoundingClientRect(); if (r.width < innerWidth - 1 || r.height < innerHeight - 1) { host.style.display = 'grid'; host.style.placeItems = 'center'; host.style.minHeight = innerHeight + 'px'; } });
 const beats = await page.evaluate(() => flowcast.beats.map(b => b.ms));
 const files = [];
 for (let i = 0; i < beats.length; i++) {
