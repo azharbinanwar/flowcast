@@ -27,6 +27,10 @@ body{margin:0;background:var(--bg);color:var(--on);font-family:var(--font);font-
 .fc-canvas[data-layout=column]{grid-template-areas:"top" "phone" "around" "bottom";grid-template-columns:minmax(0,1fr)}
 .fc-canvas[data-layout=row]{grid-template-areas:"top phone" "around phone" "bottom phone";grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto auto;align-items:center;column-gap:64px}
 .fc-canvas[data-layout=row][data-phone=left]{grid-template-areas:"phone top" "phone around" "phone bottom";grid-template-columns:auto minmax(0,1fr)}
+.fc-canvas[data-bare=yes]{padding:0!important;gap:0!important;place-content:center}
+.fc-canvas[data-layout=row][data-around=no]{grid-template-areas:"top phone" "bottom phone";grid-template-rows:auto auto;align-content:center;row-gap:28px}
+.fc-canvas[data-layout=row][data-around=no][data-phone=left]{grid-template-areas:"phone top" "phone bottom"}
+.fc-canvas[data-layout=row] .fc-slots{justify-self:start;max-width:none;width:100%}
 .fc-around{grid-area:around;min-width:0;justify-self:center}
 .fc-canvas[data-around=yes] .fc-slots h1{font-size:44px}.fc-canvas[data-around=yes] .fc-slots p{font-size:22px}.fc-canvas[data-around=yes] .fc-slots .fc-cta{font-size:22px;padding:14px 28px}.fc-canvas[data-around=yes] .fc-slots{gap:14px}
 .fc-canvas[data-around=no] .fc-around{display:none}

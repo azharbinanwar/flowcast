@@ -1,0 +1,12 @@
+{
+  "name": "flowcast",
+  "owner": { "name": "Azhar Ali" },
+  "plugins": [
+    {
+      "name": "flowcast",
+      "source": "./",
+      "description": "Turn a feature or a story into an intro, a post, a GIF, a video, frames or slides.",
+      "version": "1.0.0"
+    }
+  ]
+}

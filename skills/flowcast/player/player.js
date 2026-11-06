@@ -31,6 +31,14 @@ const total = beats.reduce((a, b) => a + b.ms, 0) + (endCard ? T.endCard : 0);
 const cv = typeof canvas === 'object' ? canvas : {};   // the content around the phone on a social canvas
 const slots = { logo: !!endTpl, headline: !!cv.headline, line: !!cv.line, cta: !!cv.cta, tags: !!cv.tags, ...(cv.show || {}), ...(pre.slots || {}) };
 Object.assign(cv, pre.words || {});   // words the user typed on the preview, saved by the studio
+// a slot switched on always has real words: taken from the end card first, the title and first beat after
+{ const end = endTpl?.content, txt = (q) => end?.querySelector(q)?.textContent.trim() || '';
+  const tagLine = [...(end?.querySelectorAll('p') || [])].map(e => e.textContent.trim()).find(t => t.startsWith('#')) || '';
+  const plain = [...(end?.querySelectorAll('p') || [])].map(e => e.textContent.trim()).find(t => t && !t.startsWith('#')) || '';
+  cv.headline ||= txt('h1') || txt('b') || document.title;
+  cv.line ||= plain || [beats[0].title, beats[0].em].filter(Boolean).join(' ');
+  cv.cta ||= txt('.cta') || txt('button');
+  cv.tags ||= tagLine; }
 
 const captionHTML = '<div class="fc-caption"><h2 id="fc-title"></h2><p id="fc-body"></p></div>';
 host.innerHTML = `
@@ -38,10 +46,9 @@ host.innerHTML = `
   <button id="fc-theme">Dark</button><button id="fc-captions" class="on">Captions</button>
   <select id="canvas-pick">${Object.entries(PRESETS).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select><span class="fc-tag" id="fc-length" hidden></span>
   <select id="phone-pick"><option value="center">Device centre</option><option value="left">Device left</option><option value="right">Device right</option></select>
-  <span class="fc-slot-toggles">${Object.keys(slots).map(k => `<button data-slot="${k}" class="${slots[k] ? 'on' : ''}">${k}</button>`).join('')}</span>
+  <span class="fc-slot-toggles">${Object.keys(slots).filter(k => k === 'logo' ? !!endTpl?.content.querySelector('.fc-logo') : !!cv[k]).map(k => `<button data-slot="${k}" class="${slots[k] ? 'on' : ''}">${k}</button>`).join('')}</span>
   <span class="fc-tag">${{ phone: 'Phone · 390×844', browser: 'Browser · 1280×800', none: SIZE[1] ? `Canvas · ${SIZE[0]}×${SIZE[1]}` : 'In-app' }[frame]}</span>
-  <span class="fc-tag">Total <b id="fc-total">${(total / 1000).toFixed(1)}s</b></span>
-  <select id="fc-export" hidden><option value="">Export…</option><option value="mp4">MP4 video</option><option value="gif">GIF</option><option value="frames">PNG frames</option><option value="slides">PDF slides</option></select><span class="fc-tag" id="fc-status" hidden></span><button id="fc-saved" hidden></button>
+  <select id="fc-export" hidden><option value="">Export · ${(total / 1000).toFixed(1)}s</option><option value="mp4">MP4 video</option><option value="gif">GIF</option><option value="frames">PNG frames</option><option value="slides">PDF slides</option></select><span class="fc-tag" id="fc-status" hidden></span><button id="fc-saved" hidden></button>
 </div>
 <div class="fc-cwrap" id="fc-cwrap"><div class="fc-canvas" id="fc-canvas">
   <div class="fc-slots fc-top" id="fc-top">
@@ -136,7 +143,10 @@ function layout() {
   const c = PRESET[canvasName], cvEl = $('#fc-canvas'), wrap = $('#fc-cwrap');
   cvEl.dataset.preset = canvasName; cvEl.dataset.phone = c || aroundTpl ? phonePos : 'center'; cvEl.dataset.around = aroundTpl ? 'yes' : 'no';
   Object.entries(slots).forEach(([k, on]) => { $(`#fc-slot-${k}`).hidden = !c || !on; });
-  $('#phone-pick').hidden = !c || frame === 'none'; $('.fc-slot-toggles').hidden = !c;
+  // position matters when the canvas is a different shape from the scene: a device always, a full-canvas scene on a wider or taller canvas
+  const sameShape = frame === 'none' && SIZE[1] && c && Math.abs(c[0] / c[1] - SIZE[0] / SIZE[1]) < .01;
+  $('#phone-pick').hidden = !c || sameShape; $('.fc-slot-toggles').hidden = !c;
+  [...$('#phone-pick').options].forEach(o => { o.textContent = `${frame === 'none' ? 'Scene' : 'Device'} ${{ center: 'centre', left: 'left', right: 'right' }[o.value]}`; });
   const [w, h] = SIZE;
   if (frame === 'none' && !h) return;
   if (!c) {
@@ -156,7 +166,13 @@ function layout() {
   const st = getComputedStyle(cvEl), pad = parseFloat(st.paddingTop) * 2, padX = parseFloat(st.paddingLeft) * 2, gap = parseFloat(st.rowGap) || 0;
   const topH = $('#fc-top').offsetHeight, botH = $('#fc-bottom').offsetHeight, arH = aroundTpl ? $('#fc-around').offsetHeight : 0;
   const stack = [topH, botH, arH].filter(Boolean);
-  const k = column
+  // a scene that is its own composition, with nothing switched on around it, fills the canvas edge to edge
+  const bare = frame === 'none' && SIZE[1] && !Object.entries(slots).some(([k, on]) => on && !$(`#fc-slot-${k}`).hidden) && !aroundTpl;
+  cvEl.dataset.bare = bare ? 'yes' : 'no';
+  // a bare scene on a wider canvas sits where the user put it
+  cvEl.style.justifyContent = bare ? { left: 'start', right: 'end', center: 'center' }[phonePos] : '';
+  const k = bare ? Math.min(cw / w, ch / h)
+    : column
     ? Math.min((ch - pad - stack.reduce((a, b) => a + b, 0) - gap * stack.length) / h, (cw - padX) / w)
     : Math.min((ch - pad) / h, (cw - padX) * (aroundTpl ? 0.36 : 0.42) / w);
   setFrame(k);

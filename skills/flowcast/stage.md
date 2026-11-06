@@ -94,6 +94,8 @@ Set `data-mode` on `<html>`; the recorder does it for you.
 
 The phone takes the room the slots leave. Toggle a slot off and the phone grows.
 
+A full-canvas scene (`data-frame="none"` with a size) on a canvas of its own shape fills it edge to edge, no padding. On a wider or taller canvas, YouTube's 1920×1080 or a story, the toolbar shows Scene left / centre / right: the scene keeps full height on its side, and switched-on slots sit beside it as one block with a shared left edge. The same goes for a device on any canvas.
+
 ## Check
 
 One contact sheet, one image, every beat and the end card:

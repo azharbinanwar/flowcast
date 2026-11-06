@@ -16,6 +16,8 @@ The product acts itself out. A feature becomes 3 to 5 beats, each one "who, does
 2. **Design the scene from the story, before any code.** Never ask for a reference and never reproduce one. Work it out:
    - **Cast.** Who starts it, what does the work, who gets the result. Name each the way the audience names it, not the way the system does. A store owner says "the courier", not "HTTP Request node".
    - **Surfaces.** What the starter and the receiver actually see: a chat, an inbox, a screen. Show each surface only with what that person sees on it. Never put the work inside a surface that would not show it.
+   - **One person, one surface.** When the business has several customers, each customer gets their own surface, never a shared inbox: their phone shows only their own messages. Put them at different stages of the same workflow, so the viewer sees the whole ladder at once. The owner gets their own side: the source list and a periodic summary, not every message.
+   - **How it arrives.** Show the moment a person receives something the way they would: a reminder lands as a notification on their lock screen, newest on top, earlier ones from the same app stacked as slimmer cards peeking underneath, each with its real age. Open a full inbox or thread only when reading it is the point.
    - **The work.** The things in the middle become visible objects: cards, nodes, a hub, a lane, whatever shape the story has. A chain is a row. One brain talking to several systems is a hub with spokes. A sort is a fork. Pick the shape the story is, not a default.
    - **Enter and leave.** On the canvas, outside a device, an object stays only while it matters: it appears when its step begins, then shrinks to a chip or leaves when its step is done, and the next thing takes the room. Decide for each object when it enters and when it leaves. Inside a device, history stays, because a real chat or screen keeps it.
    - **Motion.** Something must travel: a line that lights, a dot that moves, a chip that lands with the real value. Each beat is one movement the eye can follow. Cause, then effect.
@@ -53,7 +55,7 @@ Who the user is, what they do, what they get back. No filler, no marketing words
 | Reels, Stories, TikTok, Shorts | phone | 1080×1920, phone centred, headline above, line and CTA below | off | logo and one line |
 | LinkedIn or Instagram feed post | phone | 1080×1080, phone right, text beside it | off | logo and one line |
 | Instagram portrait | phone | 1080×1350, phone right | off | logo and one line |
-| YouTube, website video | by platform | 1920×1080, phone left or right | off | logo and one line |
+| YouTube, website video | by platform | 1920×1080, scene or device left or right, headline and CTA beside it | off | logo and one line |
 | Web demo, embed | browser | none | below | yes, then loops |
 | Carousel, still | by platform | square or story, one beat per page | the beat's title and line as the slide text | last slide is the end card |
 
@@ -61,7 +63,7 @@ The canvas is the exported picture. The phone is one element on it; the slots ar
 
 ## Theme
 
-From a project: its color tokens for light and dark, its font, its radius, its real components, its logo SVG with fills swapped to `currentColor`. From a story: real products keep their real identity, colours and UI patterns both. WhatsApp is WhatsApp green with its bubbles and its quick replies as full-width rows under the message, Shopify has its green bag, Slack its four-colour mark, n8n its coral. Draw the real mark when a product is named, never a stand-in bar or dot. Invent colors only for things that have none, and keep them to one palette. When the user wants the design first or names a product, be realistic over imaginative: the composition is where the imagination goes. No gradients unless the app uses them. Avatars are initials on a light tint of the accent.
+From a project: its color tokens for light and dark, its font, its radius, its real components, its logo SVG with fills swapped to `currentColor`. From a story: real products keep their real identity, colours and UI patterns both. WhatsApp is WhatsApp green with its bubbles and its quick replies as full-width rows under the message, Shopify has its green bag, Slack its four-colour mark, n8n its coral. Draw the real mark when a product is named, never a stand-in bar or dot. Invent colors only for things that have none, and keep them to one palette. When the user wants the design first or names a product, be realistic over imaginative: the composition is where the imagination goes. Every brand and status colour gets its own dark value tuned for a dark surface, not the light hex reused: a purple, red or orange that reads on white goes muddy on near-black. Surfaces that are dark in both themes, like a phone, get a slightly lifted shade and a hairline edge in dark so they don't sink into the page. Dimmed states use the same treatment in both themes. Check the sheet in both themes. No gradients unless the app uses them. Avatars are initials on a light tint of the accent.
 
 ## Outputs
 

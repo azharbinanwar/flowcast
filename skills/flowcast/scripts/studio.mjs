@@ -61,7 +61,13 @@ createServer(async (req, res) => {
     let file = path === '/' ? intro : join(dir, path);
     // the player files come from the skill when the intro's folder has none
     try { await stat(file); } catch { if (/^\/player\.(css|js)$/.test(path)) file = join(playerDir, path.slice(1)); }
-    const data = await readFile(file);
+    let data = await readFile(file);
+    if (file === intro) {
+      // the page opens with what the user last set on it
+      let st = {}; try { st = JSON.parse(await readFile(stateFile, 'utf8')); } catch {}
+      const pre = { canvas: st.canvas, phone: st.phone, theme: st.theme, slots: st.slots, words: st.words, ...(st.captions === 'off' ? { captions: 'off' } : st.captions ? { captionsAt: st.captions } : {}) };
+      data = String(data).replace('<script', `<script>window.__flowcast=${JSON.stringify(pre)}</script><script`);
+    }
     res.writeHead(200, { 'content-type': TYPES[extname(file)] || 'application/octet-stream', 'cache-control': 'no-store' }); res.end(data);
   } catch (e) {
     res.writeHead(e.code === 'ENOENT' ? 404 : 500, { 'content-type': 'application/json' }); res.end(JSON.stringify({ ok: false, error: e.message }));
