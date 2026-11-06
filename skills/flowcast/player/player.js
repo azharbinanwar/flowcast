@@ -29,7 +29,8 @@ if (typeof T !== 'object') window.T = {};
 T.endCard ??= 2000;
 const total = beats.reduce((a, b) => a + b.ms, 0) + (endCard ? T.endCard : 0);
 const cv = typeof canvas === 'object' ? canvas : {};   // the content around the phone on a social canvas
-const slots = { logo: !!endTpl, headline: !!cv.headline, line: !!cv.line, cta: !!cv.cta, tags: !!cv.tags, ...(cv.show || {}) };
+const slots = { logo: !!endTpl, headline: !!cv.headline, line: !!cv.line, cta: !!cv.cta, tags: !!cv.tags, ...(cv.show || {}), ...(pre.slots || {}) };
+Object.assign(cv, pre.words || {});   // words the user typed on the preview, saved by the studio
 
 const captionHTML = '<div class="fc-caption"><h2 id="fc-title"></h2><p id="fc-body"></p></div>';
 host.innerHTML = `
@@ -40,6 +41,7 @@ host.innerHTML = `
   <span class="fc-slot-toggles">${Object.keys(slots).map(k => `<button data-slot="${k}" class="${slots[k] ? 'on' : ''}">${k}</button>`).join('')}</span>
   <span class="fc-tag">${{ phone: 'Phone · 390×844', browser: 'Browser · 1280×800', none: SIZE[1] ? `Canvas · ${SIZE[0]}×${SIZE[1]}` : 'In-app' }[frame]}</span>
   <span class="fc-tag">Total <b id="fc-total">${(total / 1000).toFixed(1)}s</b></span>
+  <span class="fc-export" id="fc-export" hidden><button data-format="mp4">MP4</button><button data-format="gif">GIF</button><button data-format="frames">Frames</button><button data-format="slides">Slides</button></span><span class="fc-tag" id="fc-note" hidden></span>
 </div>
 <div class="fc-cwrap" id="fc-cwrap"><div class="fc-canvas" id="fc-canvas">
   <div class="fc-slots fc-top" id="fc-top">
@@ -164,6 +166,28 @@ function layout() {
   cvEl.style.transform = `scale(${K})`; wrap.style.width = cw * K + 'px'; wrap.style.height = ch * K + 'px';
 }
 addEventListener('resize', layout); layout();
+
+// what the user set on the page: every export, by button or by asking Claude, uses exactly this
+const state = () => ({
+  canvas: canvasName, phone: phonePos, theme: isDark() ? 'dark' : 'light', captions: document.documentElement.dataset.captions === 'off' ? 'off' : captionsAt,
+  slots: { ...slots }, words: Object.fromEntries(['headline', 'line', 'cta', 'tags'].map(k => [k, $(`#fc-slot-${k}`).textContent.trim()])),
+});
+// Export: when the page comes from the studio on localhost, the buttons post to it and the file is made by the toolchain and revealed
+const STUDIO = location.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(location.hostname);
+let saveTimer; const saveState = () => { if (!STUDIO) return; clearTimeout(saveTimer); saveTimer = setTimeout(() => fetch('/state', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(state()) }).catch(() => {}), 300); };
+$('.fc-tools').addEventListener('change', saveState); $('.fc-tools').addEventListener('click', saveState); $('.fc-slots') && document.querySelectorAll('.fc-slots').forEach(el => el.addEventListener('input', saveState));
+if (STUDIO) {
+  $('#fc-export').hidden = false;
+  $('#fc-export').onclick = async (e) => {
+    const b = e.target.closest('button'); if (!b || b.disabled) return;
+    const q = { format: b.dataset.format, ...state() };
+    document.querySelectorAll('#fc-export button').forEach(x => x.disabled = true);
+    const note = $('#fc-note'); note.hidden = false; note.textContent = `Making ${b.textContent}…`;
+    try { const r = await fetch('/export', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(q) }).then(r => r.json()); note.textContent = r.ok ? `Saved · ${r.file.split('/').pop()}` : `Failed: ${r.error}`; }
+    catch (err) { note.textContent = 'Failed: ' + err.message; }
+    document.querySelectorAll('#fc-export button').forEach(x => x.disabled = false);
+  };
+}
 
 window.flowcast = { total, go, beats, layout, canvas: () => PRESET[canvasName] };
 go(0);

@@ -27,12 +27,12 @@ Pixel-perfect MP4 and GIF come from headless Chromium and ffmpeg, both installed
 npm install
 ```
 
-Then ask for what you want and Claude makes it: MP4, GIF, PNG frames, or a PDF of slides. No brew, no ffmpeg on your PATH. In claude.ai, where there is no Node, you get the preview, the beats and the post text.
+Then the preview opens on localhost with Export buttons: MP4, GIF, PNG frames, PDF slides. Set the canvas, theme and captions on the page and press one; the file lands beside the intro. Or just ask Claude for it. No brew, no ffmpeg on your PATH. In claude.ai, where there is no Node, you get the preview, the beats and the post text.
 
 ## Layout
 
 - `skills/flowcast/SKILL.md` — how Claude thinks: who it is for, designing the scene from the story, beats, defaults, outputs.
 - `skills/flowcast/stage.md` — the intro file contract on the shared player.
 - `skills/flowcast/player/` — the shared player: frames, canvas presets, modes, toolbar.
-- `skills/flowcast/scripts/` — contact sheet, recorder, converter.
+- `skills/flowcast/scripts/` — studio server, recorder, converter, frames and slides, contact sheet.
 - `skills/flowcast/record.md` — recording and converting.

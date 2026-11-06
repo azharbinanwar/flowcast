@@ -25,8 +25,10 @@ The product acts itself out. A feature becomes 3 to 5 beats, each one "who, does
    When the story is a flow rather than an app screen, the whole canvas is the scene: `data-frame="none"` at the canvas size, the surfaces and the work laid out on it, captions off, the headline drawn in the scene.
 3. **Beats.** Write them (format below) with each beat's seconds and the total, and show them.
 4. **Set defaults, do not ask.** Pick them from the output the user named (table below) and from the story's world, and state them in one line. From a project the colors are its tokens. From a story with no project, take the accent from the product in the story (a WhatsApp chat is WhatsApp green) and say so. Everything is a toolbar switch on the preview: canvas, phone position, slots, theme, captions. The user changes what they want and exports. Ask only when nothing in the story or the output tells you which way to go.
-5. **Stage.** Build the intro file on the shared player as `stage.md` says. Check it with one contact sheet. Show it as an artifact with the player files alongside, unless the user asked for the file only.
-6. **Output.** Make what was picked. Then say what was made, where it is, the running time, and in one line what else the same beats can become.
+5. **Stage.** Build the intro file on the shared player as `stage.md` says. Check it with one contact sheet. Then show it:
+   - In Claude Code: start the studio in the background, `node <skill>/scripts/studio.mjs <intro.html>`, and open its URL in the browser. The page has Export buttons for MP4, GIF, frames and slides; each runs the toolchain and reveals the file. Every change the user makes on the page is saved beside the intro, so an export asked for in words uses the same settings. Publish an artifact only when the user wants a link to share.
+   - In claude.ai: show it as an artifact with the player files alongside.
+6. **Output.** Make what was picked with the scripts, never with defaults the user has changed on the page: the scripts read `<intro>.state.json` on their own. Then say what was made, where it is, the running time, and in one line what else the same beats can become.
 
 "Change beat 2", "slower", "add a tap", "no captions": edit, rerun the sheet, re-show. Never change the app's code or post anywhere unless that exact thing was asked.
 

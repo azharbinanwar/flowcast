@@ -6,11 +6,18 @@ import { resolve } from 'node:path';
 const [,, input, output, ...rest] = process.argv;
 if (!input || !output) { console.error('usage: node sheet.mjs intro.html sheet.png [--theme dark] [--at 0.85]'); process.exit(1); }
 const opt = Object.fromEntries(rest.map((a, k, arr) => a.startsWith('--') ? [a.slice(2), arr[k + 1]] : null).filter(Boolean));
+// what the user set on the preview, saved by the studio beside the intro; flags given here win over it
+import { existsSync, readFileSync } from 'node:fs';
+const stateFile = opt.state || resolve(input).replace(/\.html$/, '.state.json');
+const saved = existsSync(stateFile) ? JSON.parse(readFileSync(stateFile, 'utf8')) : {};
+for (const k of ['canvas', 'phone', 'theme', 'captions']) if (opt[k] === undefined && saved[k] !== undefined) opt[k] = saved[k];
+if (opt.canvas === 'none') delete opt.canvas;
+const extra = { slots: saved.slots, words: saved.words };
 const at = +(opt.at || 0.85);
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 460, height: 1000 }, colorScheme: opt.theme || 'light' });
-if (opt.theme) await page.addInitScript((t) => { window.__flowcast = { theme: t }; }, opt.theme);
+await page.addInitScript((pre) => { window.__flowcast = pre; }, { theme: opt.theme, ...extra });
 await page.goto('file://' + resolve(input));
 await page.waitForFunction(() => window.flowcast && window.flowcast.beats);
 const beats = await page.evaluate(() => flowcast.beats.map(b => b.ms));

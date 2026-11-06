@@ -1,5 +1,13 @@
 # Recording to video or GIF
 
+## The studio
+
+```bash
+node <skill>/scripts/studio.mjs intro.html        # prints http://localhost:7788/
+```
+
+Start it in the background and open the URL. The preview carries Export buttons: MP4, GIF, Frames, Slides. A click runs the scripts below with the page's current settings, writes into `<intro>-exports/` beside the intro, and reveals the file in Finder.
+
 ## With Node, pixel-perfect
 
 Headless Chromium draws the intro and ffmpeg encodes it, the same way Remotion and HyperFrames render. Everything comes from npm; nothing else to install. Once, in the skill's folder (the base directory given when the skill is invoked):
@@ -8,7 +16,7 @@ Headless Chromium draws the intro and ffmpeg encodes it, the same way Remotion a
 npm install          # Playwright, its Chromium, and ffmpeg
 ```
 
-Record what the preview shows. Only when the user has not set them, use these defaults and say them:
+The studio saves what the user set on the page to `<intro>.state.json`, and every script reads it: canvas, phone, theme, captions, slots and the words they typed. Flags override it. Only when nothing was set, use these defaults and say them:
 - **Canvas, one list, a size and where it is posted:**
   | preset | size | posted on | longest clip |
   |---|---|---|---|
