@@ -17,7 +17,10 @@ body{margin:0;background:var(--bg);color:var(--on);font-family:var(--font);font-
 /* canvas: the exported picture. The phone and the slots live on it. */
 .fc-tools select{font:inherit;border-radius:999px;padding:8px 12px;background:var(--card);color:var(--on);border:1px solid var(--border)}
 .fc-tools .fc-slot-toggles{display:inline-flex;gap:4px}
-.fc-export{display:inline-flex;gap:4px;margin-left:6px}.fc-export button{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:600}.fc-export button:disabled{opacity:.5;cursor:wait}
+.fc-export{display:inline-flex;gap:4px;margin-left:6px;position:relative}
+.fc-menu{position:absolute;top:calc(100% + 6px);left:0;z-index:20;display:grid;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:6px;min-width:150px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.fc-menu button{background:transparent;color:var(--on);border:0;text-align:left;border-radius:8px;padding:8px 12px;font-weight:500}
+.fc-menu button:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}.fc-export button{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:600}.fc-export button:disabled{opacity:.5;cursor:wait}
 .fc-saved{font-size:12px;font-weight:600;color:var(--accent);background:var(--card)}.fc-tools [hidden]{display:none}.fc-tools .fc-slot-toggles button{padding:6px 10px;font-size:12px;text-transform:capitalize}
 .fc-cwrap{position:relative}
 .fc-canvas{transform-origin:top left;display:grid;gap:40px;padding:72px;box-sizing:border-box;align-content:center;justify-content:center;justify-items:center;font-family:var(--font)}
