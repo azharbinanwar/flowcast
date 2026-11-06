@@ -4,3 +4,5 @@ package-lock.json
 *.mp4
 *.gif
 .DS_Store
+!docs/samples/*.mp4
+!docs/samples/*.gif
