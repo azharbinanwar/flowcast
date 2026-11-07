@@ -391,3 +391,11 @@ html.fc-full #flowcast[data-mode=preview] .fc-bar{left:50%}
 #flowcast[data-mode=preview] .fc-tools #fc-go.fc-exporting{opacity:1;cursor:progress;background:color-mix(in srgb,var(--ui-accent) 85%,#000)}
 #flowcast[data-mode=preview] .fc-tools .fc-fmts button:disabled{opacity:.55;cursor:default}
 #flowcast[data-mode=preview] #fc-status{display:block;width:100%;color:#e5484d;font-size:12.5px;line-height:1.4}
+
+/* the Privacy switch, the same as the other switches, and its plain note */
+#flowcast[data-mode=preview] #fc-private{display:flex;align-items:center;gap:10px;width:100%;height:44px;background:var(--ui-field)!important;color:var(--ui-text)!important;border-color:var(--ui-line)!important;font-weight:600}
+#flowcast[data-mode=preview] #fc-private>span{flex:1;text-align:left}
+#flowcast[data-mode=preview] #fc-private .fc-i{color:var(--ui-muted)}
+#flowcast[data-mode=preview] #fc-private::after{content:'';width:36px;height:22px;border-radius:999px;background:color-mix(in srgb,var(--ui-muted) 45%,transparent) radial-gradient(circle at 11px 11px,#fff 8px,transparent 8.5px);transition:background .2s}
+#flowcast[data-mode=preview] #fc-private.on::after{background:var(--ui-accent) radial-gradient(circle at 25px 11px,#fff 8px,transparent 8.5px)}
+#flowcast[data-mode=preview] .fc-hint{margin:2px 2px 0;font-size:12px;line-height:1.45;color:var(--ui-muted)}

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Privacy: Hide personal details swaps emails, phone numbers and card numbers for safe samples in the preview and every export, keeps dates, prices and other numbers, and brings the real text back when turned off.
+- History: a ⋯ menu on each card, with icons, to rename, duplicate or delete an intro. Delete asks first in a dialog, then moves the intro to the Trash; anything that fails says why.
+- README: a roadmap of what is coming.
 - Fixed: the beat dots vanished and crept sideways in intros with their own `.done` style, such as CleanKit. Every class the player puts on the dots, finger, end card, outro, splash and Export button now starts with `fc-`, so an intro's own names can never reach them.
 - The Export button shows the export itself: the animated mark and Exporting MP4 while the file is made, then Saved to exports for a moment; Open exports folder is the one place to find the file, and a failure says why under the button.
 - One animated Flowcast mark, `player/motion.svg` (fold and press): it plays in the studio splash, loops on the Export button (without its tile) and on History cards while their covers load, and closes the credit outro. PNG and PDF use a still mark.

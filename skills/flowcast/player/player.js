@@ -86,6 +86,7 @@ const ICON = {
   link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
   folder: '<path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>',
   check: '<path d="M20 6 9 17l-5-5"/>',
+  shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
 };
 const I = (n) => `<svg class="fc-i" viewBox="0 0 24 24">${ICON[n]}</svg>`;
@@ -101,6 +102,7 @@ const captionHTML = '<div class="fc-caption"><h2 id="fc-title"></h2><p id="fc-bo
 host.innerHTML = `
 <div class="fc-tools">
   ${head('look', 'Look', { icon: 'look', open: true })}<div class="fc-row"><button id="fc-theme">${I('moon')}<span>Dark mode</span></button><button id="fc-captions" class="on">${I('captions')}<span>Captions</span></button></div></details>
+  ${head('privacy', 'Privacy', { icon: 'shield' })}<div class="fc-row fc-switches"><button id="fc-private">${I('shield')}<span>Hide personal details</span></button><p class="fc-hint">Emails, phone numbers and card numbers become safe samples in the preview and in every export. Names cannot be told apart from other words, so keep real names out of the story.</p></div></details>
   ${head('credit', 'Credit', { icon: 'credit' })}<div class="fc-row fc-switches"><button id="fc-credit" title="A small tag in the corner of the video">${I('credit')}<span>Made with Flowcast</span></button><button id="fc-credit-link" title="Adds github.com/azharbinanwar/flowcast to the tag">${I('link')}<span>Show repo link</span></button><div class="fc-label" id="fc-credit-when-label">When it shows</div><div class="fc-seg fc-when" id="fc-credit-when">${[['outro', 'Outro slide'], ['always', 'Watermark']].map(([v, n]) => `<button data-when="${v}">${n}</button>`).join('')}</div><div class="fc-label" id="fc-credit-where">Position</div><div class="fc-pos" id="fc-credit-pos">${['top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right'].map(v => `<button data-pos="${v}" title="${v.replace('-', ' ').replace('center', 'centre')}" aria-label="${v.replace('-', ' ').replace('center', 'centre')}"><i></i></button>`).join('')}</div></div></details>
   ${head('canvas', 'Canvas', { icon: 'canvas' })}<div class="fc-row">
     <select id="canvas-pick">${Object.entries(PRESETS).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select><span class="fc-tag" id="fc-length" hidden></span>
@@ -192,6 +194,27 @@ function go(n) {
   Promise.resolve().then(() => isOutro ? null : scene[i](own)).catch(e => { if (e !== STALE) console.error(e); }).finally(() => { if (mine === run) stepsDone = true; });
   tick(run);
 }
+// Hide personal details: emails, phone numbers and card numbers on the picture become safe samples, and come back when it is turned off
+let privacy = !!pre.privacy;
+const SAFE = [
+  [/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, () => 'alex@example.com'],
+  [/\b(?:\d[ -]?){12,18}\d\b/g, (m) => m.replace(/\d(?=(?:[ -]?\d){4})/g, '•')],
+  [/\+?\(?\d[\d\s().-]{7,}\d/g, (m) => { const n = m.replace(/\D/g, '').length; return n >= 9 && n <= 15 ? '+1 555 0100' : m; }],
+];
+const scrub = (s) => SAFE.reduce((t, [re, to]) => t.replace(re, to), s);
+const kept = new WeakMap();   // text node -> { real, shown }
+const scrubNode = (n) => { if (n.parentElement?.closest('.fc-made, .fc-outro')) return;
+  const k = kept.get(n), real = k && n.nodeValue === k.shown ? k.real : n.nodeValue;
+  const shown = privacy ? scrub(real) : real; kept.set(n, { real, shown }); if (n.nodeValue !== shown) n.nodeValue = shown; };
+const scrubAll = (root) => { const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); for (let n; (n = w.nextNode());) scrubNode(n);
+  root.querySelectorAll?.('input, textarea').forEach(el => { for (const a of ['value', 'placeholder']) { if (!el.hasAttribute(a)) continue; el.dataset['fcReal' + a] ??= el.getAttribute(a); el.setAttribute(a, privacy ? scrub(el.dataset['fcReal' + a]) : el.dataset['fcReal' + a]); } }); };
+let scrubbing = false;
+new MutationObserver((list) => { if (scrubbing) return; scrubbing = true;
+  for (const m of list) { if (m.type === 'characterData') scrubNode(m.target); else m.addedNodes.forEach(n => n.nodeType === 3 ? scrubNode(n) : n.nodeType === 1 && scrubAll(n)); }
+  scrubbing = false; }).observe($('#fc-canvas'), { subtree: true, childList: true, characterData: true });
+const setPrivacy = (on) => { privacy = on; $('#fc-private')?.classList.toggle('on', on); scrubbing = true; scrubAll($('#fc-canvas')); scrubbing = false; };
+$('#fc-private').onclick = () => setPrivacy(!privacy);
+setPrivacy(privacy);
 // slides: what PNG frames and PDF slides export. Each beat's finished picture, then the end card, then the outro; no motion, stepped by hand
 let stills = !!pre.stills, slide = 0;
 const slideCount = () => REAL + (endCard ? 1 : 0) + (beats.length > REAL ? 1 : 0);
@@ -305,6 +328,8 @@ const slotsDefault = { logo: !!endTpl, headline: !!cv.headline, line: !!cv.line,
 CHANGED.look = () => !!document.documentElement.dataset.theme || (document.documentElement.dataset.captions === 'off' ? 'off' : 'on') !== DEF.captions;
 RESETS.look = () => { delete document.documentElement.dataset.theme; document.documentElement.dataset.captions = DEF.captions; $('#fc-captions').classList.toggle('on', DEF.captions !== 'off'); paintTheme(); layout(); };
 const canvasDefault = PRESET[DEF.canvas] !== undefined ? DEF.canvas : 'none', phoneDefault = DEF.phone || (aroundTpl ? 'left' : 'center');
+CHANGED.privacy = () => privacy;
+RESETS.privacy = () => { setPrivacy(false); };
 CHANGED.credit = () => credit.on || credit.showLink || credit.pos !== 'bottom-right' || credit.when !== 'outro';
 RESETS.credit = () => { Object.assign(credit, { on: false, showLink: false, pos: 'bottom-right', when: 'outro' }); creditChanged(); };
 CHANGED.canvas = () => canvasName !== canvasDefault || phonePos !== phoneDefault || Object.keys(slots).some(k => slots[k] !== slotsDefault[k]);
@@ -423,6 +448,7 @@ paintStatus(); matchMedia('(prefers-color-scheme: dark)').addEventListener?.('ch
 const state = () => ({
   canvas: canvasName, phone: phonePos, theme: document.documentElement.dataset.theme || undefined, captions: document.documentElement.dataset.captions === 'off' ? 'off' : captionsAt,
   speed, durations: dur.some((m, k) => m !== base[k]) ? [...dur] : undefined,
+  privacy: privacy || undefined,
   credit: CHANGED.credit() ? { on: credit.on, showLink: credit.showLink, pos: credit.pos, when: credit.when } : undefined,
   colors: Object.keys(colors.light).length || Object.keys(colors.dark).length ? colors : undefined,
   slots: { ...slots }, words: Object.fromEntries(['headline', 'line', 'cta', 'tags'].map(k => [k, $(`#fc-slot-${k}`).textContent.trim()])),

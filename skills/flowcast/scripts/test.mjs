@@ -74,6 +74,16 @@ r = node([join(here, 'check.mjs'), sample]); ok('check passes the sample', r.sta
   ok('History page lists the intro and its script parses', page.includes('data-name="demo"') && parses);
   studio.kill(); }
 
+// 5d. Hide personal details: emails, phones and cards become samples, look-alikes stay, and turning it off brings the real text back
+{ const page = await (await (await import('playwright')).chromium.launch()).newPage();
+  const html = join(out, 'private.html'); mkdirSync(out, { recursive: true });
+  writeFileSync(html, readFileSync(sample, 'utf8').replaceAll('../player/', `${join(root, 'player')}/`).replace('<template id="scene">', '<template id="scene"><p id="pd">sara@gmail.com · (415) 555-2671 · 4242 4242 4242 4242 · 2026-11-07 · $29.00 · Order #10482</p>'));
+  await page.addInitScript(() => { window.__flowcast = { mode: 'record', privacy: true }; }); await page.goto('file://' + html); await page.waitForFunction(() => window.flowcast);
+  const on = await page.$eval('#pd', e => e.textContent); await page.evaluate(() => document.getElementById('fc-private').click()); const off = await page.$eval('#pd', e => e.textContent);
+  ok('privacy swaps personal details and keeps the rest', on === 'alex@example.com · +1 555 0100 · \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 4242 · 2026-11-07 · $29.00 · Order #10482', on);
+  ok('privacy off brings the real text back', off.startsWith('sara@gmail.com · (415) 555-2671'), off);
+  await page.context().browser().close(); }
+
 // 6. optional: record and convert
 if (process.argv.includes('--video')) {
   r = node([join(here, 'record.mjs'), sample, join(out, 'v.webm'), '--canvas', 'square']); ok('records webm', r.status === 0);

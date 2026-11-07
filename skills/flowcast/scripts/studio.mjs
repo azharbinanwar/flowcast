@@ -2,7 +2,7 @@
 // Usage: node studio.mjs [flowcast-folder | intro.html] [--port 7788]
 // Layout per project: flowcast/<name>/intro.html, intro.state.json (what the user set on the page), exports/ (the files they made).
 import { createServer } from 'node:http';
-import { readFile, writeFile, stat, mkdir, readdir, rename, unlink, copyFile } from 'node:fs/promises';
+import { readFile, writeFile, stat, mkdir, readdir, rename, unlink, copyFile, cp, rm } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { resolve, dirname, join, extname, basename } from 'node:path';
 import { homedir } from 'node:os';
@@ -102,9 +102,10 @@ const stamp = (d = new Date()) => [d.getFullYear(), d.getMonth() + 1, d.getDate(
 async function freeName(stem, ext) {
   for (let n = 1; ; n++) { const b = n === 1 ? stem : `${stem}-${n}`; if (!(await stat(ext ? `${b}.${ext}` : b).then(() => true, () => false))) return b; }
 }
+const slugify = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 async function exportIt(root, name, q) {
   const outDir = join(root, name, 'exports'); await mkdir(outDir, { recursive: true });
-  const project = (q.project || name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const project = slugify(q.project || name);
   const stem = join(outDir, `flowcast-${project}-${stamp()}`);
   if (q.format === 'frames' || q.format === 'slides') {
     const base = await freeName(stem, q.format === 'slides' ? 'pdf' : null), fdir = q.format === 'slides' ? `${base}-frames` : base;
@@ -152,6 +153,8 @@ async function card({ slug, root }, name) {
       await p.locator('#fc-canvas').screenshot({ path: coverFile });
       const view = facts.canvas || (facts.frame === 'none' && facts.size[1] ? facts.size : facts.frame === 'browser' ? [1280, 800] : [390, 844]);
       const meta = { seconds: Math.round(facts.total / 100) / 10, view, label: facts.canvas || (facts.frame === 'none' && facts.size[1]) ? `${view[0]}×${view[1]}` : facts.frame === 'browser' ? 'Browser' : 'Phone' };
+      // an intro renamed or moved to the Trash while its cover was being made: leave no folder behind for it
+      if (!(await stat(intro(root, name)).then(() => true, () => false))) { await rm(join(root, name), { recursive: true, force: true }); return meta; }
       await writeFile(metaFile, JSON.stringify(meta)); return meta;
     } finally { await b.close(); cardsInProgress.delete(key); }
   })();
@@ -167,7 +170,7 @@ async function history(only) {
   const count = groups.reduce((n, group) => n + group.projectIntros.length, 0);
   const cardOf = (group, entry) => { const u = `/${group.slug}/${encodeURIComponent(entry.name)}/`;
     return `<a class="card" href="${u}" data-url="${u}" data-name="${esc(entry.name)}" data-title="${esc(entry.title.toLowerCase())}" data-edited="${entry.edited}">
-  <span class="cv"><img class="wait" src="/__flowcast/motion.svg" alt=""><img src="${u}cover.png" alt="" loading="lazy" onload="this.parentNode.classList.add('ready')"><span class="live"></span><span class="play"><svg viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg></span></span>
+  <span class="cv"><button class="more" type="button" aria-label="More for ${esc(entry.title)}" title="Rename, duplicate or delete">\u22ef</button><span class="menu" hidden><button type="button" data-act="rename"><svg viewBox="0 0 24 24"><path d="M21.17 6.81a1 1 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5zM15 5l4 4"/></svg>Rename</button><button type="button" data-act="duplicate"><svg viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>Duplicate</button><button type="button" data-act="delete" class="danger"><svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2M10 11v6M14 11v6"/></svg>Delete\u2026</button></span><img class="wait" src="/__flowcast/motion.svg" alt=""><img src="${u}cover.png" alt="" loading="lazy" onload="this.parentNode.classList.add('ready')"><span class="live"></span><span class="play"><svg viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg></span></span>
   <span class="body"><b>${esc(entry.title)}</b><span class="facts"><span class="meta"></span><span>${ago(entry.edited)}</span></span>
   ${entry.kinds.length ? `<span class="kinds">${entry.kinds.map(k => `<i>${k}</i>`).join('')}<button class="open" title="Open the exports folder"><svg viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg>Open folder</button></span>` : '<span class="kinds none">Not exported yet</span>'}</span></a>`; };
   const cards = groups.map(group => `<section class="proj" id="p-${group.slug}" data-slug="${group.slug}"><h2><button class="pi${group.logo ? ' has' : ''}" title="${group.logo ? 'Change' : 'Add'} the logo: click or drop an image">${group.logo ? `<img src="/${group.slug}/${group.logo}?v=${Date.now()}" alt="">` : esc(group.name.slice(0, 1).toUpperCase())}</button>${only ? `<b>${esc(group.name)}</b>` : `<a href="/${group.slug}/"><b>${esc(group.name)}</b></a>`}<small>${group.projectIntros.length} intro${group.projectIntros.length === 1 ? '' : 's'} \u00b7 ${esc(group.root.replace(homedir(), '~'))}</small></h2><div class="grid">${group.projectIntros.map(entry => cardOf(group, entry)).join('')}</div></section>`).join('');
@@ -196,6 +199,23 @@ p.sub{color:var(--muted);margin:0 0 24px}
 .proj h2 .pi{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:var(--panel);border:1px solid var(--line);font-size:13px;color:var(--muted)}
 .proj h2 small{font-size:12.5px;font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
+.cv .more{position:absolute;top:10px;right:10px;z-index:3;width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 90%,transparent);color:var(--text);font:700 18px/1 var(--font);cursor:pointer;opacity:0;transition:opacity .15s}
+.card:hover .cv .more,.cv .more:focus-visible,.card.menu-open .cv .more{opacity:1}
+.cv .menu{position:absolute;top:48px;right:10px;z-index:4;display:grid;min-width:170px;padding:5px;border-radius:12px;background:var(--panel);border:1px solid var(--line);box-shadow:0 12px 30px rgba(0,0,0,.25)}
+.cv .menu button{display:flex;align-items:center;gap:10px;font:600 13px var(--font);text-align:left;padding:8px 10px;border:0;border-radius:8px;background:none;color:var(--text);cursor:pointer}
+.cv .menu button:hover{background:var(--hover)}
+.cv .menu svg,dialog.ask svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.cv .menu svg{color:var(--muted)}.cv .menu .danger svg{color:currentColor}.cv .menu .danger{color:#e5484d}
+dialog.ask{border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--text);padding:22px 22px 18px;width:min(380px,calc(100vw - 32px));box-shadow:0 24px 60px rgba(0,0,0,.35)}
+dialog.ask::backdrop{background:rgba(10,8,14,.55);backdrop-filter:blur(2px)}
+dialog.ask h3{margin:0 0 8px;font:700 17px var(--font)}dialog.ask p{margin:0 0 18px;color:var(--muted);font-size:13.5px;line-height:1.5}
+dialog.ask .row{display:flex;justify-content:flex-end;gap:8px}
+dialog.ask button{display:inline-flex;align-items:center;gap:8px;font:600 13.5px var(--font);height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--field);color:var(--text);cursor:pointer}
+dialog.ask button.danger{background:#e5484d;border-color:#e5484d;color:#fff}
+dialog.ask .err{color:#e5484d;font-size:12.5px;margin:-8px 0 12px}
+/* anything marked hidden stays hidden, whatever display a rule gives it */
+[hidden]{display:none!important}
+.card .body input.rn{font:600 15px var(--font);color:var(--text);background:var(--field);border:1px solid var(--accent);border-radius:8px;padding:4px 8px;width:100%;box-sizing:border-box}
 .card{display:flex;flex-direction:column;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:transform .2s cubic-bezier(.3,.7,.2,1),box-shadow .2s,border-color .2s}
 .card:hover{transform:translateY(-3px);box-shadow:0 14px 36px rgba(0,0,0,.14);border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
 .cv{position:relative;aspect-ratio:1/1;background:var(--field);display:grid;place-items:center;overflow:hidden;border-bottom:1px solid var(--line)}
@@ -216,6 +236,7 @@ p.sub{color:var(--muted);margin:0 0 24px}
 .kinds{display:flex;gap:5px;flex-wrap:wrap;margin-top:2px}
 .kinds i{font:700 10.5px/1 var(--font);font-style:normal;letter-spacing:.04em;padding:5px 7px;border-radius:6px;background:color-mix(in srgb,var(--accent) 12%,var(--field));color:var(--accent)}
 .kinds.none{font-size:12px;color:var(--muted)}
+.note-err{margin:4px 0 0;color:#e5484d;font-size:12px}
 .kinds .open{margin-left:auto;display:inline-flex;align-items:center;gap:5px;font:600 11.5px/1 var(--font);color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:7px;padding:4px 8px;cursor:pointer}
 .kinds .open:hover{border-color:var(--accent);color:var(--accent)}
 .kinds .open svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -223,12 +244,35 @@ p.sub{color:var(--muted);margin:0 0 24px}
 .empty code{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
 @media (max-width:640px){.tools input{width:140px}}
 </style>
+<dialog class="ask" id="ask" aria-labelledby="ask-title"><form method="dialog"><h3 id="ask-title"></h3><p>It moves to the Trash with its exports, so you can put it back from there.</p><p class="err" hidden></p><div class="row"><button value="cancel">Cancel</button><button value="delete" class="danger"><svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2M10 11v6M14 11v6"/></svg>Move to Trash</button></div></form></dialog>
 <header><a class="crumb" href="/">${MARK}Flowcast</a>${only ? `<span class="sep">/</span><span class="here">${esc(only.name)}</span>` : ''}${count ? `<div class="tools"><input id="q" type="search" placeholder="Search intros" aria-label="Search intros"><select id="sort" aria-label="Sort"><option value="edited">Last edited</option><option value="name">Name</option></select></div>` : ''}</header>
 <main><h1>${only ? esc(only.name) : 'Your intros'}</h1><p class="sub">${only ? `${count} intro${count === 1 ? '' : 's'} in ${esc(only.root.replace(homedir(), '~'))}.` : `${count} intro${count === 1 ? '' : 's'} across ${groups.length} project${groups.length === 1 ? '' : 's'}.`} Open one to play, change or export it again.</p>
 ${count ? `<div id="grid">${cards}</div><div class="nomatch" id="nomatch" hidden>No intro matches that search.</div>` : `<div class="empty">No intros yet. Run <code>/flowcast</code> with a feature or a story to make the first one.</div>`}</main>
 <script>
 // facts arrive per card once its cover is ready; a hover plays the intro itself, scaled into the card
 // Open folder sits inside the card's link: it opens the folder instead of the intro
+// deleting asks first, in a dialog of its own, and says what went wrong if the move fails
+const ask = document.getElementById('ask');
+const alertCard = (card, msg) => { const m = Object.assign(document.createElement('p'), { className: 'note-err', textContent: msg || 'That did not work. Try again.' }); card.querySelector('.body').append(m); setTimeout(() => m.remove(), 5000); };
+function askDelete(card) {
+  ask.querySelector('h3').textContent = 'Delete \u201c' + card.querySelector('.body b').textContent + '\u201d?';
+  ask.querySelector('.err').hidden = true; ask.showModal(); ask.querySelector('[value=cancel]').focus();
+  ask.onclose = null; ask.querySelector('form').onsubmit = async (e) => { if (e.submitter?.value !== 'delete') return; e.preventDefault();
+    const r = await act(card, 'delete'); if (r.ok || r.gone) { ask.close(); location.reload(); } else { const er = ask.querySelector('.err'); er.textContent = 'It could not be moved to the Trash: ' + r.error; er.hidden = false; } };
+}
+// the ⋯ menu: rename in place, duplicate, or delete
+const act = (card, what, body) => fetch(card.dataset.url + what, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body || {}) }).then(r => r.json());
+document.querySelectorAll('.card').forEach(card => {
+  const menu = card.querySelector('.menu'), close = () => { menu.hidden = true; card.classList.remove('menu-open'); };
+  card.querySelector('.more').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); const open = menu.hidden; document.querySelectorAll('.card .menu').forEach(m => { m.hidden = true; m.closest('.card').classList.remove('menu-open'); }); menu.hidden = !open; card.classList.toggle('menu-open', open); });
+  menu.addEventListener('click', async (e) => { e.preventDefault(); e.stopPropagation(); const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.act === 'delete') { close(); return askDelete(card); }
+    if (b.dataset.act === 'duplicate') { const r = await act(card, 'duplicate'); if (r.ok || r.gone) location.reload(); else alertCard(card, r.error); return; }
+    if (b.dataset.act === 'rename') { close(); const t = card.querySelector('.body b'), input = Object.assign(document.createElement('input'), { className: 'rn', value: t.textContent, ariaLabel: 'Intro name' }); t.replaceWith(input); input.focus(); input.select();
+      const stop = (e) => e.preventDefault(); input.addEventListener('click', stop);
+      input.addEventListener('keydown', async (e) => { if (e.key === 'Escape') { input.replaceWith(t); } if (e.key !== 'Enter') return; e.preventDefault(); const title = input.value.trim(); if (!title || title === t.textContent) return input.replaceWith(t); const r = await act(card, 'rename', { title }); if (r.ok || r.gone) location.reload(); else alertCard(card, r.error); }); } });
+});
+document.addEventListener('click', () => document.querySelectorAll('.card .menu').forEach(m => { m.hidden = true; m.closest('.card').classList.remove('menu-open'); }));
 document.querySelectorAll('.card .open').forEach(b => b.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); fetch(b.closest('.card').dataset.url + 'open', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"folder":true}' }); }));
 document.querySelectorAll('.card').forEach(c => {
   const u = c.dataset.url; let meta = null;
@@ -289,6 +333,32 @@ createServer(async (req, res) => {
     if (req.method === 'POST') {
       let body = ''; for await (const c of req) body += c; const q = JSON.parse(body || '{}');
       if (sub === 'state') { await writeFile(stateOf(root, name), body); return send(200, 'application/json', '{"ok":true}'); }
+      if (['rename', 'duplicate', 'delete'].includes(sub) && !(await stat(intro(root, name)).then(() => true, () => false)))
+        return send(404, 'application/json', JSON.stringify({ ok: false, gone: true, error: 'This intro was already moved or deleted.' }));
+      // rename: the title in the intro, and the folder to match when that name is free
+      if (sub === 'rename') {
+        const title = String(q.title || '').trim().slice(0, 120); if (!title) return send(400, 'application/json', JSON.stringify({ ok: false, error: 'Give the intro a name.' }));
+        const html = await readFile(intro(root, name), 'utf8'), esc2 = title.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+        await writeFile(intro(root, name), /<title>[^<]*<\/title>/.test(html) ? html.replace(/<title>[^<]*<\/title>/, `<title>${esc2}</title>`) : `<title>${esc2}</title>\n` + html);
+        const next = slugify(title); let moved = name;
+        if (next && next !== name && !(await stat(join(root, next)).then(() => true, () => false))) { await rename(join(root, name), join(root, next)); moved = next; }
+        return send(200, 'application/json', JSON.stringify({ ok: true, name: moved }));
+      }
+      // duplicate: the intro and its settings, not its exports, as "<name>-copy"
+      if (sub === 'duplicate') {
+        let copy = `${name}-copy`; for (let n = 2; await stat(join(root, copy)).then(() => true, () => false); n++) copy = `${name}-copy-${n}`;
+        await cp(join(root, name), join(root, copy), { recursive: true, verbatimSymlinks: true, filter: (src) => !src.startsWith(join(root, name, 'exports')) });
+        const html = await readFile(intro(root, copy), 'utf8'); await writeFile(intro(root, copy), html.replace(/<title>([^<]*)<\/title>/, (m, t) => `<title>${t} copy</title>`));
+        return send(200, 'application/json', JSON.stringify({ ok: true, name: copy }));
+      }
+      // delete: moved to the system Trash, never erased, so it can be put back
+      if (sub === 'delete') {
+        const trash = process.platform === 'darwin' ? join(homedir(), '.Trash') : process.platform === 'linux' ? join(homedir(), '.local', 'share', 'Trash', 'files') : join(root, '.trash');
+        await mkdir(trash, { recursive: true }); let to = join(trash, `${name} ${stamp()}`);
+        for (let n = 2; await stat(to).then(() => true, () => false); n++) to = join(trash, `${name} ${stamp()} ${n}`);
+        try { await rename(join(root, name), to); } catch (e) { if (e.code !== 'EXDEV') throw e; await cp(join(root, name), to, { recursive: true, verbatimSymlinks: true }); await rm(join(root, name), { recursive: true }); }
+        return send(200, 'application/json', JSON.stringify({ ok: true, trash: to }));
+      }
       if (sub === 'open') { if (q.folder) reveal(join(root, name, 'exports')); else if (q.file && q.file.startsWith(join(root, name))) reveal(q.file); return send(200, 'application/json', '{"ok":true}'); }
       if (sub === 'export') { await writeFile(stateOf(root, name), JSON.stringify(q)); const file = await exportIt(root, name, q); reveal(file); return send(200, 'application/json', JSON.stringify({ ok: true, file })); }
       return send(404, 'text/plain', 'not found');
@@ -298,7 +368,7 @@ createServer(async (req, res) => {
       // the intro opens with what the user last set on it
       let st = {}; try { st = JSON.parse(await readFile(stateOf(root, name), 'utf8')); } catch {}
       // ?mode=record plays it bare, for the History cover and the hover preview
-      const pre = { ...(url.searchParams.get('mode') === 'record' ? { mode: 'record' } : {}), project: proj.name, exported: await readdir(join(root, name, 'exports')).then(fs => fs.some(f => !f.startsWith('.') && !f.endsWith('.webm') && !f.endsWith('.json')), () => false), canvas: st.canvas, phone: st.phone, theme: st.theme, slots: st.slots, words: st.words, speed: st.speed, durations: st.durations, colors: st.colors, credit: st.credit, ...(st.captions === 'off' ? { captions: 'off' } : st.captions ? { captionsAt: st.captions } : {}) };
+      const pre = { ...(url.searchParams.get('mode') === 'record' ? { mode: 'record' } : {}), project: proj.name, exported: await readdir(join(root, name, 'exports')).then(fs => fs.some(f => !f.startsWith('.') && !f.endsWith('.webm') && !f.endsWith('.json')), () => false), canvas: st.canvas, phone: st.phone, theme: st.theme, slots: st.slots, words: st.words, speed: st.speed, durations: st.durations, colors: st.colors, credit: st.credit, privacy: st.privacy, ...(st.captions === 'off' ? { captions: 'off' } : st.captions ? { captionsAt: st.captions } : {}) };
       const html = String(await readFile(intro(root, name))).replace('<script', `<script>window.__flowcast=${JSON.stringify(pre)}</script><script`);
       return send(200, TYPES['.html'], html);
     }
