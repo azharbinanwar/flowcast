@@ -28,7 +28,7 @@ With nothing after `/flowcast`, open History instead: do exactly what the `flowc
    When the story is a flow rather than one app screen, the whole canvas is the scene: `data-frame="none"` at the canvas size, captions off, the headline drawn in the scene.
 3. **Beats.** Write them in the format below with each beat's seconds and the total, and show them.
 4. **Defaults, not questions.** Pick canvas, frame, theme and captions from the output the user named and from the story's world, and state them in one line. Every one is a switch in the studio. Ask only when nothing points either way.
-5. **Build.** Write the intro to `flowcast/<feature>/intro.html` in the folder Claude Code is working in, never inside the skill. Follow `stage.md`. Check it with one contact sheet as `stage.md` says. Then open it in the studio. If `curl -s localhost:7788/__ping` answers, the studio already runs: add this project with `curl -s -X POST localhost:7788/__add -d '{"root":"<absolute path>/flowcast"}'`, which answers with the project's name in the URL. Otherwise start `node <skill>/scripts/studio.mjs flowcast --port 7788` in the background, which adds it itself. Open `http://localhost:7788/<project>/<feature>/`. A claude.ai artifact only when the user wants a link to share; in claude.ai, the artifact is the preview.
+5. **Build.** Write the intro to `flowcast/<feature>/intro.html` in the folder Claude Code is working in, never inside the skill. Follow `stage.md`. Check it as `stage.md` says: `check.mjs` until All clear, then one contact sheet. Then open it in the studio. If `curl -s localhost:7788/__ping` answers, the studio already runs: add this project with `curl -s -X POST localhost:7788/__add -d '{"root":"<absolute path>/flowcast"}'`, which answers with the project's name in the URL. Otherwise start `node <skill>/scripts/studio.mjs flowcast --port 7788` in the background, which adds it itself. Open `http://localhost:7788/<project>/<feature>/`. A claude.ai artifact only when the user wants a link to share; in claude.ai, the artifact is the preview.
 6. **Output.** Exports come from the studio's Export menu, or from the scripts when asked in words; either way they use what the user set on the page. Say what was made, where, the running time, and in one line what else the same beats can become.
 
 "Change beat 2", "slower", "add a tap", "no captions": edit the intro, confirm with one frame of the beat you changed, and tell the user to refresh. Never change the app's code or post anywhere unless that exact thing was asked.
@@ -83,9 +83,13 @@ The canvas is the exported picture. Slots around the scene carry the user's word
 
 ## Keeping it cheap
 
-- Explore within the budget in step 1.
-- An intro file is tokens, scene, beats, steps and canvas words. The player does the rest: never copy its code, never hand-write an actor, a beat guard or a toolbar.
-- One contact sheet. After a fix, one cropped frame of that beat, never a new sheet. The other theme only when colours changed.
+- This skill and `stage.md` are already loaded: never print them, never open the player or the scripts to learn how they work.
+- Explore within the budget in step 1. Find colours, labels and icons with `grep -o` on the exact name, not by reading whole files.
+- Look at the project's screenshots small: one or two, shrunk first (`sips -Z 800 shot.png --out /tmp/s.png`), never at full size.
+- Write the intro once, from the skeleton in `stage.md`: tokens, scene, beats, steps and canvas words. The player does the rest: never copy its code, never hand-write an actor, a beat guard or a toolbar, never use `fc-` names.
+- Check in words before pictures: `check.mjs`, then one sheet. After a fix, `check.mjs` again, not a new picture.
+- Never write files inside the skill. Scratch files go in the session's scratch folder.
+- If a script fails, report it in one line and carry on with the others; do not debug Flowcast from inside another project.
 - One studio serves every project's intros on port 7788. Reuse it when it answers and add the project to it; never start a second one.
 - Small edits in place, not rewrites.
 

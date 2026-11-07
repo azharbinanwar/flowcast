@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `check.mjs`: a layout check in words, every beat with captions on and off, for parts cut off, text that does not fit, and bottom bars placed from the top. Most checks now need no image.
+- Contact sheet renders in record mode at full size and comes out as one small image; it no longer goes blank or blurry with the drawer.
+- Skill: bottom parts anchor to the bottom; checks in words before pictures; never print the skill, never write inside it, screenshots read small.
 - Projects: one list of your projects in `~/.flowcast/projects.json`, one studio for all of them; each intro opens at `/<project>/<intro>/` and older links redirect. Making an intro in a new project adds it to the running studio.
 - History: grouped by project, with the size, running time and exported formats on each card, a live preview on hover, and search and sort across every project.
 - Breadcrumb in the studio: `Flowcast / project / intro`, replacing the logo and History pill.

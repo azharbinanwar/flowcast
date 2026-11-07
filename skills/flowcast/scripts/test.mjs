@@ -1,6 +1,6 @@
 // Flowcast tests. Run from the skill folder: npm test   (add --video to also record and convert)
 import { spawnSync } from 'node:child_process';
-import { readdirSync, readFileSync, rmSync, writeFileSync, existsSync } from 'node:fs';
+import { readdirSync, readFileSync, rmSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { inflateSync } from 'node:zlib';
@@ -56,6 +56,12 @@ rmSync(state, { force: true });
 r = node([join(here, 'frames.mjs'), sample, join(out, 'wide'), '--canvas', 'landscape', '--phone', 'left']);
 if (r.status === 0) { const f = png(join(out, 'wide/flowcast-1.png')); ok('landscape is 1920×1080', f.w === 1920 && f.h === 1080, `${f.w}×${f.h}`); ok('scene sits left at full height', near(f.px(0, 0), hex('#F7F7F4')) && near(f.px(0, 1079), hex('#F7F7F4'))); }
 else ok('landscape frames run', false, r.stderr.trim().split('\n').pop());
+
+// 5b. the layout check: the sample is clear, and a bottom sheet placed from the top is caught
+r = node([join(here, 'check.mjs'), sample]); ok('check passes the sample', r.status === 0 && r.stdout.startsWith('All clear'), r.stdout.trim() || r.stderr.trim().split('\n').pop());
+{ const bad = join(out, 'pinned.html'); mkdirSync(out, { recursive: true });
+  writeFileSync(bad, readFileSync(sample, 'utf8').replace('data-frame="none" data-width="1080" data-height="1080" data-captions="off"', 'data-frame="phone" data-captions-at="inside"').replace('<template id="scene">', '<template id="scene"><div style="position:absolute;left:0;right:0;top:520px;height:120px;background:#ccc"></div>').replaceAll('../player/', `${join(root, 'player')}/`));
+  r = node([join(here, 'check.mjs'), bad]); ok('check catches a sheet placed from the top', /Anchor it with bottom/.test(r.stdout), r.stdout.trim().slice(0, 120)); }
 
 // 6. optional: record and convert
 if (process.argv.includes('--video')) {

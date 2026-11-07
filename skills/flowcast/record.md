@@ -3,6 +3,7 @@
 ## The studio
 
 ```bash
+node <skill>/scripts/check.mjs intro.html             # layout problems in words, no image
 node <skill>/scripts/studio.mjs flowcast --port 7788   # History at /, each intro at /<project>/<feature>/
 ```
 

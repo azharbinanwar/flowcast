@@ -11,6 +11,7 @@ An intro is one HTML file that loads the shared player, `player.css` and `player
 - **Surfaces behave like the real thing.** A chat pins to the bottom and each new message pushes the older ones up. A list grows from the top. A notification drops in from the top edge. A terminal scrolls. Anything not on screen yet takes no space: give it `class="fc-in"` and add `show` when its moment comes; it grows in smoothly and pushes the rest. Space such items with `margin-top` on the item, not `gap` on the parent, so the push is smooth. Never pre-place hidden elements with `opacity:0` inside a surface that flows.
 - **State is history inside a device, a moment outside it.** `apply(i)` shows everything a real screen would still show: a chat at the last beat holds every message. On the canvas, an object that finished its step is gone or shrunk to a chip, and the space goes to the next object. Collapse with `fc-in` (remove `show`) or a `.done` class that shrinks it.
 - **Declare UTF-8.** Every intro starts with `<meta charset="utf-8">`, so its own text reads right when the file is opened straight from disk.
+- **Anchor to the edge it belongs to.** The stage changes height with the frame, the status bar and the captions, so a bottom sheet, tab bar, toolbar, button row or toast uses `bottom:`, and only things that belong at the top use `top:`. Never place a bottom part with a `top` in pixels.
 - **Nothing jumps.** Panels that swap are stacked absolutely in a fixed area. Rows that may be wider than the screen are grids with `minmax(0,1fr)`, never fixed-width flex items.
 - **`apply(i)` sets the full state a beat starts from,** so back, next, replay and the contact sheet all land on the right screen. `scene[i]` only animates that beat's change.
 - **Not an app? Split the scene.** `<template id="scene">` is what the device's user sees. `<template id="around">` is the rest, placed beside the device on the canvas: an inbox, workflow nodes, the systems that answer. Both move on the same beats. The around part is sized at about 360px wide and grows into the column it gets. Without a canvas it sits beside the phone in the preview too.
@@ -101,13 +102,16 @@ A full-canvas scene (`data-frame="none"` with a size) on a canvas of its own sha
 
 ## Check
 
-One contact sheet, every beat and the end card in one image. Render it once in the theme the app shows first, at a beat timing near the end of each beat:
+Words first, one picture only when needed.
+
+1. `node scripts/check.mjs intro.html` plays every beat with captions on and off and says in plain words what is cut off, what text does not fit, and which bottom bar floats. Fix everything it reports and run it again until it says All clear. It costs no image.
+2. Then one contact sheet, every beat and the end card in one small image, in the theme the app shows first:
 
 ```bash
-node scripts/sheet.mjs intro.html sheet.png --at 0.95 --theme dark
+node scripts/sheet.mjs intro.html sheet.jpg --at 0.95 --theme dark
 ```
 
-Read it once. When it shows a problem, fix it, then confirm with one frame of that beat only, cropped to the spot: `node scripts/frames.mjs` and `ffmpeg -vf crop=…`. Never re-render the whole sheet to confirm a single fix. Check the other theme only when colours changed.
+Read it once, for what words cannot judge: the look, the motion's end state, the brand. Confirm a fix with `check.mjs` again; when only a picture can confirm it, one frame of that beat, cropped to the spot. Never a second sheet. Check the other theme only when colours changed.
 
 ## Show
 

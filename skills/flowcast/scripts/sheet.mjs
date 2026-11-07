@@ -1,4 +1,4 @@
-// One contact sheet of every beat, so a check costs one image. Usage: node sheet.mjs intro.html sheet.png [--theme dark] [--at 0.85]
+// One contact sheet of every beat, so a check costs one small image. Usage: node sheet.mjs intro.html sheet.jpg [--theme dark] [--captions off] [--at 0.85]
 // --at is where in each beat the frame is taken (0.85 = near its end, after the cause and the effect).
 import { chromium } from 'playwright';
 import { resolve } from 'node:path';
@@ -22,8 +22,9 @@ const extra = { slots: saved.slots, words: saved.words, speed: saved.speed, dura
 const at = +(opt.at || 0.85);
 
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 460, height: 1000 }, colorScheme: opt.theme || 'light' });
-await page.addInitScript((pre) => { window.__flowcast = pre; }, { theme: opt.theme, ...extra });
+// record mode: no drawer or controls, so the frame renders at full size whatever the window
+const page = await browser.newPage({ viewport: { width: 1280, height: 1280 }, colorScheme: opt.theme || 'light' });
+await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', theme: opt.theme, captions: opt.captions === 'off' ? 'off' : undefined, captionsAt: opt.captions === 'below' ? 'below' : undefined, ...extra });
 await page.goto('file://' + resolve(input));
 await page.waitForFunction(() => window.flowcast && window.flowcast.beats);
 const beats = await page.evaluate(() => flowcast.beats.map(b => b.ms));
@@ -37,9 +38,13 @@ for (let i = 0; i < beats.length; i++) {
 await page.evaluate((n) => flowcast.go(n), beats.length - 1);
 await page.waitForTimeout(beats[beats.length - 1] + 900);
 shots.push((await page.locator('#fc-canvas').screenshot()).toString('base64'));
+const box = await page.locator('#fc-canvas').boundingBox();
 
-const sheet = await browser.newPage({ viewport: { width: 1600, height: 600 } });
-await sheet.setContent(`<body style="margin:0;background:#888;display:flex;gap:8px;padding:8px">${shots.map((b, k) => `<figure style="margin:0;text-align:center;font:12px sans-serif;color:#fff"><img src="data:image/png;base64,${b}" style="height:560px;display:block"><figcaption>${k < beats.length ? 'beat ' + (k + 1) : 'end'}</figcaption></figure>`).join('')}</body>`);
-await sheet.screenshot({ path: resolve(output), fullPage: true });
+// one small image: every frame side by side within 1500px, so reading it costs about a thousand tokens
+const gap = 6, room = 1500 - gap * (shots.length + 1), h = Math.round(Math.min(420, room / shots.length / (box.width / box.height)));
+const sheet = await browser.newPage({ viewport: { width: 1500, height: h + 30 } });
+await sheet.setContent(`<body style="margin:0;background:#888;display:flex;gap:${gap}px;padding:${gap}px">${shots.map((b, k) => `<figure style="margin:0;text-align:center;font:11px sans-serif;color:#fff"><img src="data:image/png;base64,${b}" style="height:${h}px;display:block"><figcaption>${k < beats.length ? 'beat ' + (k + 1) : 'end'}</figcaption></figure>`).join('')}</body>`, { waitUntil: 'load' });
+const out = resolve(output);
+await sheet.screenshot({ path: out, fullPage: true, ...(/\.jpe?g$/i.test(out) ? { type: 'jpeg', quality: 75 } : {}) });
 await browser.close();
 console.log(resolve(output));
