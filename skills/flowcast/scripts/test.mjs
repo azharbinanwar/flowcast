@@ -84,6 +84,13 @@ r = node([join(here, 'check.mjs'), sample]); ok('check passes the sample', r.sta
   ok('privacy off brings the real text back', off.startsWith('sara@gmail.com · (415) 555-2671'), off);
   await page.context().browser().close(); }
 
+// 5e. the starter: a new intro takes the project's tokens, frame and end card, and leaves the scene empty
+{ const proj = join(out, 'starter', 'flowcast'); mkdirSync(join(proj, 'first'), { recursive: true });
+  writeFileSync(join(proj, 'first', 'intro.html'), readFileSync(sample, 'utf8'));
+  r = node([join(here, 'starter.mjs'), proj, 'second']);
+  const made = existsSync(join(proj, 'second', 'intro.html')) ? readFileSync(join(proj, 'second', 'intro.html'), 'utf8') : '';
+  ok('starter copies the look and empties the scene', r.status === 0 && r.stdout.includes('from first') && /:root\{/.test(made) && made.includes('<div id="flowcast"') && /<template id="scene">\s*<\/template>/.test(made) && made.includes('const beats = [];'), r.stderr.trim() || r.stdout.trim()); }
+
 // 6. optional: record and convert
 if (process.argv.includes('--video')) {
   r = node([join(here, 'record.mjs'), sample, join(out, 'v.webm'), '--canvas', 'square']); ok('records webm', r.status === 0);

@@ -59,7 +59,7 @@ Claude runs this for you the first time you export.
 /flowcast                                 History: every intro you made here
 ```
 
-Flowcast answers with the beats and opens the studio in your browser. `/flowcast-history`, or "open flowcast", reopens History any time, and starts the studio if it isn't running.
+Flowcast first shows a short plan: who it is for, the steps, the look, and which earlier intro it starts from. Pick **Build it**, **Make it shorter** or **Change something**. Once you build it, the intro opens in the studio in your browser. Planning and building run in their own helpers, so it costs least in a fresh Claude Code session. `/flowcast-history`, or "open flowcast", reopens History any time, and starts the studio if it isn't running.
 
 ### Where things are saved
 
@@ -78,7 +78,7 @@ Keep the folder and you can export any intro again, in any format, later.
 A local page with the intro playing on the left and every option in a drawer on the right. Each section opens and closes on its own and has a reset in its header when something in it has changed.
 
 - **Look:** dark mode and captions, as switches.
-- **Privacy:** Hide personal details swaps emails, phone numbers and card numbers for safe samples.
+- **Privacy:** Hide personal details lists the emails, phone numbers and card numbers it finds. Switch each one on or off and change what shows instead.
 - **Credit:** off until you turn it on. Made with Flowcast, with the Flowcast repo link if you want it. Show it as an outro slide after your end card, in your intro's own colours, with its own seconds in Timing, or as a small watermark for the whole video in any corner.
 - **Colours:** every colour in the intro, its light and dark shade side by side, grouped by product or part. Reset one colour, one group, or all.
 - **Canvas:** no canvas, 1080×1080 for LinkedIn and Instagram feed, 1080×1350 for Instagram portrait, 1080×1920 for Reels, Stories, TikTok and Shorts, 1920×1080 for YouTube and websites. Device or scene left, centre or right, and the slots around it: headline, line, CTA, tags and logo. Click any of them on the page to change the words.
@@ -138,6 +138,7 @@ Just added, not yet released:
 
 Planned:
 
+- **Edit text by beat.** Every line of text in the intro, grouped by beat, to pick and change, names included.
 - **Export everything in one click.** MP4, GIF, PDF and PNG, in square, reel and wide, all at once into the exports folder.
 - **A post to go with it.** The LinkedIn, X and Instagram caption written from the beats, with a copy button.
 - **Background music.** A short track mixed into the MP4 at the right length, or none.

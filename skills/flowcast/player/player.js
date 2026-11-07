@@ -87,6 +87,10 @@ const ICON = {
   folder: '<path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>',
   check: '<path d="M20 6 9 17l-5-5"/>',
   shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+  close: '<path d="M18 6 6 18M6 6l12 12"/>',
+  mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+  phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  card: '<rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/>', user: '<circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/>', type: '<path d="M4 7V4h16v3M9 20h6M12 4v16"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
 };
 const I = (n) => `<svg class="fc-i" viewBox="0 0 24 24">${ICON[n]}</svg>`;
@@ -102,8 +106,8 @@ const captionHTML = '<div class="fc-caption"><h2 id="fc-title"></h2><p id="fc-bo
 host.innerHTML = `
 <div class="fc-tools">
   ${head('look', 'Look', { icon: 'look', open: true })}<div class="fc-row"><button id="fc-theme">${I('moon')}<span>Dark mode</span></button><button id="fc-captions" class="on">${I('captions')}<span>Captions</span></button></div></details>
-  ${head('privacy', 'Privacy', { icon: 'shield' })}<div class="fc-row fc-switches"><button id="fc-private">${I('shield')}<span>Hide personal details</span></button><p class="fc-hint">Emails, phone numbers and card numbers become safe samples in the preview and in every export. Names cannot be told apart from other words, so keep real names out of the story.</p></div></details>
-  ${head('credit', 'Credit', { icon: 'credit' })}<div class="fc-row fc-switches"><button id="fc-credit" title="A small tag in the corner of the video">${I('credit')}<span>Made with Flowcast</span></button><button id="fc-credit-link" title="Adds github.com/azharbinanwar/flowcast to the tag">${I('link')}<span>Show repo link</span></button><div class="fc-label" id="fc-credit-when-label">When it shows</div><div class="fc-seg fc-when" id="fc-credit-when">${[['outro', 'Outro slide'], ['always', 'Watermark']].map(([v, n]) => `<button data-when="${v}">${n}</button>`).join('')}</div><div class="fc-label" id="fc-credit-where">Position</div><div class="fc-pos" id="fc-credit-pos">${['top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right'].map(v => `<button data-pos="${v}" title="${v.replace('-', ' ').replace('center', 'centre')}" aria-label="${v.replace('-', ' ').replace('center', 'centre')}"><i></i></button>`).join('')}</div></div></details>
+  ${head('privacy', 'Privacy', { icon: 'shield' })}<div class="fc-row fc-switches"><button id="fc-private">${I('shield')}<span>Hide personal details</span></button><p class="fc-hint">Emails, phone numbers and card numbers become samples in the preview and every export. Switch any of them off to show it as it is, or change what shows instead.</p><div id="fc-found" class="fc-anim" style="--fc-d:grid" hidden><div class="fc-label">Found in this intro</div><div class="fc-flist"></div></div></div></details>
+  ${head('credit', 'Credit', { icon: 'credit' })}<div class="fc-row fc-switches"><button id="fc-credit" title="A small tag in the corner of the video">${I('credit')}<span>Made with Flowcast</span></button><button id="fc-credit-link" title="Adds github.com/azharbinanwar/flowcast to the tag">${I('link')}<span>Show repo link</span></button><div class="fc-label fc-anim" id="fc-credit-when-label">When it shows</div><div class="fc-seg fc-when fc-anim" style="--fc-d:grid" id="fc-credit-when">${[['outro', 'Outro slide'], ['always', 'Watermark']].map(([v, n]) => `<button data-when="${v}">${n}</button>`).join('')}</div><div class="fc-label fc-anim" id="fc-credit-where">Position</div><div class="fc-pos fc-anim" style="--fc-d:grid" id="fc-credit-pos">${['top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right'].map(v => `<button data-pos="${v}" title="${v.replace('-', ' ').replace('center', 'centre')}" aria-label="${v.replace('-', ' ').replace('center', 'centre')}"><i></i></button>`).join('')}</div></div></details>
   ${head('canvas', 'Canvas', { icon: 'canvas' })}<div class="fc-row">
     <select id="canvas-pick">${Object.entries(PRESETS).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select><span class="fc-tag" id="fc-length" hidden></span>
     <select id="phone-pick"><option value="center">Device centre</option><option value="left">Device left</option><option value="right">Device right</option></select>
@@ -111,7 +115,7 @@ host.innerHTML = `
     <span class="fc-tag">${{ phone: 'Phone \u00b7 390\u00d7844', browser: 'Browser \u00b7 1280\u00d7800', none: SIZE[1] ? `Canvas \u00b7 ${SIZE[0]}\u00d7${SIZE[1]}` : 'In-app' }[frame]}</span>
   </div></details>
   ${head('timing', 'Timing', { icon: 'timing', open: true })}<p class="fc-note" id="fc-still-note">Timing only changes video and GIF. Slides show each beat's finished picture.</p><div class="fc-label">Speed</div><div class="fc-row"><div class="fc-seg" id="fc-speed">${[0.75, 1, 1.25, 1.5].map(v => `<button data-v="${v}">${v}\u00d7</button>`).join('')}</div></div><div class="fc-label">Beats</div><div class="fc-beats" id="fc-beats"></div></details>
-  ${head('export', 'Export', { icon: 'export', open: true, reset: false }).replace('<details ', '<details id="fc-export-sec" hidden ')}<div class="fc-row"><div class="fc-fmts" id="fc-fmts">${FORMATS.map(([v, n, d], k) => `<button data-f="${v}" class="${k ? '' : 'on'}">${I(v)}<b>${n}</b><small>${d}</small></button>`).join('')}</div><select id="fc-export" hidden>${FORMATS.map(([v, n, d]) => `<option value="${v}">${n} ${d}</option>`).join('')}</select><button id="fc-go">${I('export')}<span>Export \u00b7 ${(total / 1000).toFixed(1)}s</span></button><span class="fc-tag" id="fc-status" hidden></span><button id="fc-folder" hidden>${I('folder')}<span>Open exports folder</span></button></div></details>
+  ${head('export', 'Export', { icon: 'export', open: true, reset: false }).replace('<details ', '<details id="fc-export-sec" hidden ')}<div class="fc-row"><div class="fc-fmts" id="fc-fmts">${FORMATS.map(([v, n, d], k) => `<button data-f="${v}" class="${k ? '' : 'on'}">${I(v)}<b>${n}</b><small>${d}</small></button>`).join('')}</div><select id="fc-export" hidden>${FORMATS.map(([v, n, d]) => `<option value="${v}">${n} ${d}</option>`).join('')}</select><button id="fc-go">${I('export')}<span>Export \u00b7 ${(total / 1000).toFixed(1)}s</span></button><span class="fc-tag" id="fc-status" hidden></span><button id="fc-folder" class="fc-anim" style="--fc-d:flex;--fc-gap:8px" hidden>${I('folder')}<span>Open exports folder</span></button></div></details>
 </div>
 <div class="fc-cwrap" id="fc-cwrap"><div class="fc-canvas" id="fc-canvas">
   <div class="fc-slots fc-top" id="fc-top">
@@ -138,10 +142,10 @@ host.innerHTML = `
 host.dataset.mode = mode;
 $('#fc-stage').append(sceneTpl.content);
 if (aroundTpl) $('#fc-around').append(aroundTpl.content);
-const paintCredit = () => { $('#fc-canvas').classList.toggle('fc-with-credit', credit.on); $('#fc-canvas').dataset.creditPos = credit.pos; $('#fc-canvas').dataset.creditWhen = credit.when;
+const paintCredit = () => { if ($('#fc-outro')) placeCredit();
   const ol = $('#fc-outro .fc-outro-link'); if (ol) ol.textContent = credit.showLink ? credit.link : '';
   document.querySelectorAll('#fc-credit-when button').forEach(b => b.classList.toggle('on', b.dataset.when === credit.when)); if ($('#fc-credit-when')) $('#fc-credit-when').hidden = $('#fc-credit-when-label').hidden = !credit.on;
-  document.querySelectorAll('#fc-credit-pos button').forEach(b => b.classList.toggle('on', b.dataset.pos === credit.pos)); if ($('#fc-credit-pos')) $('#fc-credit-pos').hidden = $('#fc-credit-where').hidden = !credit.on || credit.when === 'outro'; const l = $('#fc-canvas .fc-made-link'); if (l) { l.textContent = credit.showLink && credit.link ? credit.link : ''; l.hidden = !l.textContent; }
+  document.querySelectorAll('#fc-credit-pos button').forEach(b => b.classList.toggle('on', b.dataset.pos === credit.pos)); if ($('#fc-credit-pos')) $('#fc-credit-pos').hidden = $('#fc-credit-where').hidden = !credit.on || credit.when === 'outro'; const l = $('.fc-made .fc-made-link'); if (l) { l.textContent = credit.showLink && credit.link ? credit.link : ''; l.hidden = !l.textContent; }
   if ($('#fc-credit')) { $('#fc-credit').classList.toggle('on', credit.on); $('#fc-credit-link').classList.toggle('on', credit.showLink); $('#fc-credit-link').disabled = !credit.on; } };
 if (endTpl) { $('#fc-end').append(endTpl.content); const logo = $('#fc-end .fc-logo'); if (logo) $('#fc-slot-logo').append(logo.cloneNode(true)); }
 $('#fc-canvas').insertAdjacentHTML('beforeend', '<div class="fc-made"><svg viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg>Made with Flowcast<span class="fc-made-link" hidden></span></div><div class="fc-outro" id="fc-outro">' + motionImg('fc-motion') + '<svg class="fc-outro-still" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg><b>Made with Flowcast</b><span class="fc-outro-link"></span></div>'); paintCredit();
@@ -185,7 +189,7 @@ function go(n) {
   s.cls('#fc-end', 'fc-show', false); s.finger(false); render();
   // the outro beat lays its slide over the whole canvas in the intro's own colours; the scene underneath keeps its last state
   // the outro restarts the animated mark, so it always plays from the storyboard to the press
-  if (isOutro) { const o = $('#fc-outro'); o.style.fontSize = $('#fc-canvas').offsetWidth * 0.034 + 'px'; o.querySelector('.fc-motion').src = MOTION + '?' + Date.now(); o.classList.remove('fc-show'); void o.offsetWidth; o.classList.add('fc-show'); } else { s.cls('#fc-outro', 'fc-show', false); apply(i); }
+  if (isOutro) { const o = $('#fc-outro'); o.style.fontSize = creditHost().offsetWidth * 0.034 + 'px'; o.querySelector('.fc-motion').src = MOTION + '?' + Date.now(); o.classList.remove('fc-show'); void o.offsetWidth; o.classList.add('fc-show'); } else { s.cls('#fc-outro', 'fc-show', false); apply(i); }
   // the beat's steps run with their own wait, which stops them the moment another beat starts
   const mine = run, own = { ...s, wait: async (ms) => { await s.wait(ms); if (mine !== run) throw STALE; } };
   for (const k of ['tap', 'type']) own[k] = async (...a) => { if (mine !== run) throw STALE; return s[k].apply(own, a); };
@@ -195,26 +199,83 @@ function go(n) {
   tick(run);
 }
 // Hide personal details: emails, phone numbers and card numbers on the picture become safe samples, and come back when it is turned off
-let privacy = !!pre.privacy;
-const SAFE = [
-  [/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, () => 'alex@example.com'],
-  [/\b(?:\d[ -]?){12,18}\d\b/g, (m) => m.replace(/\d(?=(?:[ -]?\d){4})/g, '•')],
-  [/\+?\(?\d[\d\s().-]{7,}\d/g, (m) => { const n = m.replace(/\D/g, '').length; return n >= 9 && n <= 15 ? '+1 555 0100' : m; }],
+// on, the replacement chosen for each detail found, and the user's own find-and-replace rows (for names and anything not detected)
+// keep: details found but left as they are. Only emails, phone numbers and card numbers: a name looks like a heading or a brand, so names are not guessed
+const privacy = { on: false, map: {}, custom: [], keep: [], ...(pre.privacy === true ? { on: true } : pre.privacy || {}) };
+const KINDS = [
+  ['Email', /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, () => 'alex@example.com'],
+  ['Card', /\b(?:\d[ -]?){12,18}\d\b/g, (m) => m.replace(/\d(?=(?:[ -]?\d){4})/g, '•')],
+  ['Phone', /\+?\(?\d[\d\s().-]{7,}\d/g, (m) => { const n = m.replace(/\D/g, '').length; return n >= 9 && n <= 15 ? '+1 555 0100' : null; }],
 ];
-const scrub = (s) => SAFE.reduce((t, [re, to]) => t.replace(re, to), s);
+const replaces = (m) => !privacy.keep.includes(m);
+const sampleFor = (kind, m) => KINDS.find(k => k[0] === kind)?.[2](m) ?? m;
+const found = new Map();   // detail -> its kind, in the order they first appear
+const shownFor = (m, kind, dflt) => { if (!found.has(m)) { found.set(m, kind); queueMicrotask(paintFound); } return privacy.map[m] ?? dflt; };
+const scrub = (s) => {
+  for (const [from, to] of privacy.custom) if (from) s = s.split(from).join(to);
+  for (const [kind, re, dflt] of KINDS) s = s.replace(re, (m) => { const d = dflt(m); if (d === null) return m; const shown = shownFor(m, kind, d); return replaces(m, kind) ? shown : m; });
+  return s;
+};
 const kept = new WeakMap();   // text node -> { real, shown }
 const scrubNode = (n) => { if (n.parentElement?.closest('.fc-made, .fc-outro')) return;
   const k = kept.get(n), real = k && n.nodeValue === k.shown ? k.real : n.nodeValue;
-  const shown = privacy ? scrub(real) : real; kept.set(n, { real, shown }); if (n.nodeValue !== shown) n.nodeValue = shown; };
+  const shown = privacy.on ? scrub(real) : real; kept.set(n, { real, shown }); if (n.nodeValue !== shown) n.nodeValue = shown; };
 const scrubAll = (root) => { const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); for (let n; (n = w.nextNode());) scrubNode(n);
-  root.querySelectorAll?.('input, textarea').forEach(el => { for (const a of ['value', 'placeholder']) { if (!el.hasAttribute(a)) continue; el.dataset['fcReal' + a] ??= el.getAttribute(a); el.setAttribute(a, privacy ? scrub(el.dataset['fcReal' + a]) : el.dataset['fcReal' + a]); } }); };
+  root.querySelectorAll?.('input, textarea').forEach(el => { for (const a of ['value', 'placeholder']) { if (!el.hasAttribute(a)) continue; el.dataset['fcReal' + a] ??= el.getAttribute(a); el.setAttribute(a, privacy.on ? scrub(el.dataset['fcReal' + a]) : el.dataset['fcReal' + a]); } }); };
 let scrubbing = false;
 new MutationObserver((list) => { if (scrubbing) return; scrubbing = true;
   for (const m of list) { if (m.type === 'characterData') scrubNode(m.target); else m.addedNodes.forEach(n => n.nodeType === 3 ? scrubNode(n) : n.nodeType === 1 && scrubAll(n)); }
   scrubbing = false; }).observe($('#fc-canvas'), { subtree: true, childList: true, characterData: true });
-const setPrivacy = (on) => { privacy = on; $('#fc-private')?.classList.toggle('on', on); scrubbing = true; scrubAll($('#fc-canvas')); scrubbing = false; };
-$('#fc-private').onclick = () => setPrivacy(!privacy);
-setPrivacy(privacy);
+const rescrub = () => { scrubbing = true; scrubAll($('#fc-canvas')); scrubbing = false; };
+// details the scene only shows later are found up front too, by reading its markup once
+// the scene and end card have already moved onto the stage, so they are read from there
+{ const probe = document.createElement('div'); probe.append($('#fc-stage').cloneNode(true)); probe.querySelector('#fc-finger')?.remove();
+  // each line on its own, so text from neighbouring elements never runs together into a false match
+  const lines = []; { const w0 = document.createTreeWalker(probe, NodeFilter.SHOW_TEXT); for (let n; (n = w0.nextNode());) lines.push(n.nodeValue); }
+  // text the scene types or shows later lives in the intro's script as quoted strings; only what those strings would show on screen counts,
+  // never markup inside them, so the numbers in an icon's drawing are never taken for a phone number
+  const said = []; for (const sc of document.scripts) for (const [, , str] of sc.textContent.matchAll(/(['"`])((?:\\.|(?!\1)[^\\])*)\1/g)) {
+    if (!/[A-Za-z0-9]/.test(str)) continue; const tmp = document.createElement('template'); tmp.innerHTML = str; said.push(tmp.content.textContent); }
+  const t = lines.join('\n') + '\n' + said.join('\n');
+  for (const [kind, re, dflt] of KINDS) for (const m of t.match(re) || []) if (dflt(m) !== null && !found.has(m)) found.set(m, kind);
+ }
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// the list in the Privacy section: each detail found, what shows instead (editable), and the user's own rows
+function paintFound() {
+  const box = $('#fc-found'); if (!box) return; box.hidden = !privacy.on;
+  const ICONS = { Email: 'mail', Phone: 'phone', Card: 'card' };
+  const row = ({ key, attr, kind, was, value, on, own, mine }) => `<div class="fc-frow${on ? '' : ' fc-kept'}${own ? ' fc-own' : ''}" ${attr} data-kind="${kind}">
+    <span class="fc-fic" title="${own ? 'Your own' : kind}">${I(own ? 'type' : ICONS[kind])}</span>
+    <span class="fc-fmid"><span class="fc-fwas" title="${esc(was)}">${esc(was)}</span>
+      <span class="fc-fswap"><input class="fc-fnew" value="${esc(value)}" aria-label="Show instead of ${esc(was)}" spellcheck="false"${on ? '' : ' tabindex="-1"'}><span class="fc-fkeep">Shown as it is</span></span></span>
+    ${own ? '<span></span>' : `<button class="fc-fundo" data-undo="${esc(was)}" title="Back to the sample" ${mine ? '' : 'hidden'}>${I('reset')}</button>`}
+    ${own ? `<button class="fc-fdel" data-del="${key}" title="Remove">${I('close')}</button>` : `<button class="fc-fuse${on ? ' on' : ''}" data-use="${esc(was)}" title="${on ? 'Replaced. Switch off to show it as it is' : 'Shown as it is. Switch on to replace it'}" aria-pressed="${on}"></button>`}
+  </div>`;
+  const rows = [...found].map(([m, kind]) => { const mine = m in privacy.map, on = replaces(m, kind);
+    return row({ attr: `data-m="${esc(m)}"`, kind, was: m, value: mine ? privacy.map[m] : sampleFor(kind, m), on, mine }); }).join('');
+  const own = privacy.custom.map(([f, r], k) => row({ key: k, attr: `data-k="${k}"`, kind: 'Yours', was: f, value: r, on: true, own: true })).join('');
+  const focused = document.activeElement?.closest?.('#fc-found') ? [document.activeElement.closest('.fc-frow')?.dataset.m ?? document.activeElement.closest('.fc-frow')?.dataset.k, document.activeElement.selectionStart] : null;
+  const list = box.querySelector('.fc-flist'), before = new Set([...list.children].map(r => r.dataset.m ?? 'k' + r.dataset.k));
+  list.innerHTML = rows + own || '<p class="fc-hint fc-fnone">Nothing personal found in this intro yet.</p>';
+  if (paintFound.drawn) list.querySelectorAll('.fc-frow').forEach(r => { if (!before.has(r.dataset.m ?? 'k' + r.dataset.k)) r.classList.add('fc-enter'); });
+  paintFound.drawn = true;
+  if (focused) { const r = box.querySelector(`.fc-frow[data-m="${CSS.escape(focused[0] ?? '')}"], .fc-frow[data-k="${focused[0]}"]`)?.querySelector('input'); if (r) { r.focus(); r.setSelectionRange(focused[1], focused[1]); } }
+}
+const setPrivacy = (on) => { privacy.on = on; $('#fc-private')?.classList.toggle('on', on); rescrub(); paintFound(); };
+$('#fc-private').onclick = () => setPrivacy(!privacy.on);
+$('#fc-found').addEventListener('input', (e) => { const row = e.target.closest('.fc-frow'); if (!row || !e.target.matches('.fc-fnew')) return;
+  if (row.classList.contains('fc-own')) privacy.custom[+row.dataset.k][1] = e.target.value; else { privacy.map[row.dataset.m] = e.target.value; row.querySelector('.fc-fundo').hidden = false; }
+  rescrub(); paintResets(); });
+$('#fc-found').addEventListener('change', () => saveState());
+$('#fc-found').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.use !== undefined) { const row = b.closest('.fc-frow'), m = b.dataset.use, list = privacy.keep, at = list.indexOf(m); at < 0 ? list.push(m) : list.splice(at, 1);
+    const on = replaces(m, row.dataset.kind); row.classList.toggle('fc-kept', !on); b.classList.toggle('on', on); b.ariaPressed = on; row.querySelector('.fc-fnew').tabIndex = on ? 0 : -1;
+    rescrub(); paintResets(); saveState(); return; }
+  else if (b.dataset.undo !== undefined) { const row = b.closest('.fc-frow'), m = b.dataset.undo; delete privacy.map[m]; row.querySelector('.fc-fnew').value = sampleFor(row.dataset.kind, m); b.hidden = true; rescrub(); paintResets(); saveState(); return; }
+  else if (b.dataset.del !== undefined) { const r = b.closest('.fc-frow'); r.classList.add('fc-leave'); setTimeout(() => { privacy.custom.splice(+b.dataset.del, 1); rescrub(); paintFound(); saveState(); }, 220); return; }
+  else return;
+  rescrub(); paintFound(); saveState(); });
+setPrivacy(privacy.on);
 // slides: what PNG frames and PDF slides export. Each beat's finished picture, then the end card, then the outro; no motion, stepped by hand
 let stills = !!pre.stills, slide = 0;
 const slideCount = () => REAL + (endCard ? 1 : 0) + (beats.length > REAL ? 1 : 0);
@@ -224,7 +285,7 @@ async function still(k) {
   const isEnd = endCard && slide === REAL, isOutro = slide > REAL || (!endCard && slide === REAL);
   i = isOutro ? beats.length - 1 : isEnd ? REAL - 1 : slide;
   s.cls('#fc-end', 'fc-show', false); s.cls('#fc-outro', 'fc-show', false); s.finger(false); render(); paintPause();
-  if (isOutro) { const o = $('#fc-outro'); o.style.fontSize = $('#fc-canvas').offsetWidth * 0.034 + 'px'; o.classList.add('fc-show'); }
+  if (isOutro) { const o = $('#fc-outro'); o.style.fontSize = creditHost().offsetWidth * 0.034 + 'px'; o.classList.add('fc-show'); }
   else {
     apply(i);
     // the steps run straight through: no waiting, no finger, typed text lands whole
@@ -328,8 +389,8 @@ const slotsDefault = { logo: !!endTpl, headline: !!cv.headline, line: !!cv.line,
 CHANGED.look = () => !!document.documentElement.dataset.theme || (document.documentElement.dataset.captions === 'off' ? 'off' : 'on') !== DEF.captions;
 RESETS.look = () => { delete document.documentElement.dataset.theme; document.documentElement.dataset.captions = DEF.captions; $('#fc-captions').classList.toggle('on', DEF.captions !== 'off'); paintTheme(); layout(); };
 const canvasDefault = PRESET[DEF.canvas] !== undefined ? DEF.canvas : 'none', phoneDefault = DEF.phone || (aroundTpl ? 'left' : 'center');
-CHANGED.privacy = () => privacy;
-RESETS.privacy = () => { setPrivacy(false); };
+CHANGED.privacy = () => privacy.on || Object.keys(privacy.map).length > 0 || privacy.custom.length > 0 || privacy.keep.length > 0;
+RESETS.privacy = () => { privacy.map = {}; privacy.custom = []; privacy.keep = []; setPrivacy(false); };
 CHANGED.credit = () => credit.on || credit.showLink || credit.pos !== 'bottom-right' || credit.when !== 'outro';
 RESETS.credit = () => { Object.assign(credit, { on: false, showLink: false, pos: 'bottom-right', when: 'outro' }); creditChanged(); };
 CHANGED.canvas = () => canvasName !== canvasDefault || phonePos !== phoneDefault || Object.keys(slots).some(k => slots[k] !== slotsDefault[k]);
@@ -399,8 +460,14 @@ const side = () => mode === 'preview' && innerWidth > 900 && !full();
 const chrome = () => mode === 'record' || full() ? 0 : [side() ? '' : '.fc-tools', '.fc-dots', '.fc-bar'].filter(Boolean).reduce((a, q) => a + ($(q)?.offsetHeight || 0), 0) + 12 * 4 + 24 + (mode === 'preview' ? 68 : 0);
 const roomW = () => innerWidth - (full() ? 0 : 32) - (side() ? 356 : 0);
 // the canvas is what gets exported: a preset size, the phone placed on it, the slots around it. Preview scales the whole canvas to the window.
+// the credit tag and outro live on the exported picture: the canvas when there is one, otherwise inside the device's screen, clear of its edge and corners
+function creditHost() { return PRESET[canvasName] || frame === 'none' ? $('#fc-canvas') : $('.fc-screen'); }
+function placeCredit() { const host = creditHost(); for (const el of [$('#fc-canvas .fc-made, .fc-screen .fc-made'), $('#fc-outro')]) if (el && el.parentElement !== host) host.append(el);
+  host.classList.toggle('fc-with-credit', credit.on); host.dataset.creditPos = credit.pos; host.dataset.creditWhen = credit.when;
+  const other = host.matches('#fc-canvas') ? $('.fc-screen') : $('#fc-canvas'); other?.classList.remove('fc-with-credit'); }
 function layout() {
   const c = PRESET[canvasName], cvEl = $('#fc-canvas'), wrap = $('#fc-cwrap');
+  if ($('#fc-outro')) placeCredit();
   cvEl.dataset.preset = canvasName; cvEl.dataset.phone = c || aroundTpl ? phonePos : 'center'; cvEl.dataset.around = aroundTpl ? 'yes' : 'no';
   Object.entries(slots).forEach(([k, on]) => { $(`#fc-slot-${k}`).hidden = !c || !on; });
   // position matters when the canvas is a different shape from the scene: a device always, a full-canvas scene on a wider or taller canvas
@@ -448,7 +515,7 @@ paintStatus(); matchMedia('(prefers-color-scheme: dark)').addEventListener?.('ch
 const state = () => ({
   canvas: canvasName, phone: phonePos, theme: document.documentElement.dataset.theme || undefined, captions: document.documentElement.dataset.captions === 'off' ? 'off' : captionsAt,
   speed, durations: dur.some((m, k) => m !== base[k]) ? [...dur] : undefined,
-  privacy: privacy || undefined,
+  privacy: CHANGED.privacy() ? { on: privacy.on, map: { ...privacy.map }, custom: privacy.custom.map(r => [...r]), keep: [...privacy.keep] } : undefined,
   credit: CHANGED.credit() ? { on: credit.on, showLink: credit.showLink, pos: credit.pos, when: credit.when } : undefined,
   colors: Object.keys(colors.light).length || Object.keys(colors.dark).length ? colors : undefined,
   slots: { ...slots }, words: Object.fromEntries(['headline', 'line', 'cta', 'tags'].map(k => [k, $(`#fc-slot-${k}`).textContent.trim()])),

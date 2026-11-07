@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Fixed: Privacy took the numbers inside icon drawings for phone numbers. It now reads only text the intro shows on screen, including text its steps type in later.
+- Skill: every run shows a short plan first (who it is for, the steps, look, logo, which earlier intro it starts from) and waits for Build it, Make it shorter or Change something.
+- Skill: planning and building run in their own sub-agents, so a long chat is not re-read on every step; the main guide is a third of its old size, with the know-how moved into `plan.md` and `build.md`.
+- Skill: the main chat reads nothing from the project; the planner hands the builder the exact labels, colours and line ranges it needs, and the builder never prints a whole file and takes one image at most.
+- `starter.mjs`: a new intro starts from the project's earlier one, with its colours, fonts, frame, end card and files, so only the new scene is written.
+- Fixed: with no canvas picked, the credit tag and outro sat over the phone's edge and were cut off. They now sit inside the phone's screen, the outro with its rounded corners, and the tag stacks the link under its name to fit.
+- Privacy lists every email, phone number and card number it finds, each with its own switch and an editable replacement. Names are not guessed, since they look like headings and brand names. All of it is saved with the intro and used in every export. The list reads like a settings screen, and things that appear or go in the drawer slide instead of jumping.
 - Privacy: Hide personal details swaps emails, phone numbers and card numbers for safe samples in the preview and every export, keeps dates, prices and other numbers, and brings the real text back when turned off.
 - History: a ⋯ menu on each card, with icons, to rename, duplicate or delete an intro. Delete asks first in a dialog, then moves the intro to the Trash; anything that fails says why.
 - README: a roadmap of what is coming.
