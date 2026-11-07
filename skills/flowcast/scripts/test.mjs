@@ -1,6 +1,6 @@
 // Flowcast tests. Run from the skill folder: npm test   (add --video to also record and convert)
 import { spawnSync } from 'node:child_process';
-import { readdirSync, readFileSync, rmSync, writeFileSync, existsSync } from 'node:fs';
+import { readdirSync, readFileSync, rmSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { inflateSync } from 'node:zlib';
@@ -57,10 +57,46 @@ r = node([join(here, 'frames.mjs'), sample, join(out, 'wide'), '--canvas', 'land
 if (r.status === 0) { const f = png(join(out, 'wide/flowcast-1.png')); ok('landscape is 1920×1080', f.w === 1920 && f.h === 1080, `${f.w}×${f.h}`); ok('scene sits left at full height', near(f.px(0, 0), hex('#F7F7F4')) && near(f.px(0, 1079), hex('#F7F7F4'))); }
 else ok('landscape frames run', false, r.stderr.trim().split('\n').pop());
 
+// 5b. the layout check: the sample is clear, and a bottom sheet placed from the top is caught
+r = node([join(here, 'check.mjs'), sample]); ok('check passes the sample', r.status === 0 && r.stdout.startsWith('All clear'), r.stdout.trim() || r.stderr.trim().split('\n').pop());
+{ const bad = join(out, 'pinned.html'); mkdirSync(out, { recursive: true });
+  writeFileSync(bad, readFileSync(sample, 'utf8').replace('data-frame="none" data-width="1080" data-height="1080" data-captions="off"', 'data-frame="phone" data-captions-at="inside"').replace('<template id="scene">', '<template id="scene"><div style="position:absolute;left:0;right:0;top:520px;height:120px;background:#ccc"></div>').replaceAll('../player/', `${join(root, 'player')}/`));
+  r = node([join(here, 'check.mjs'), bad]); ok('check catches a sheet placed from the top', /Anchor it with bottom/.test(r.stdout), r.stdout.trim().slice(0, 120)); }
+
+// 5c. the studio's History page: its own script must parse, or search, previews, logos and Open folder all stop
+{ const home = join(out, 'home'), proj = join(out, 'proj', 'flowcast', 'demo'); mkdirSync(proj, { recursive: true }); mkdirSync(home, { recursive: true });
+  writeFileSync(join(proj, 'intro.html'), readFileSync(sample, 'utf8').replaceAll('../player/', `${join(root, 'player')}/`));
+  const { spawn } = await import('node:child_process');
+  const studio = spawn(process.execPath, [join(here, 'studio.mjs'), join(out, 'proj', 'flowcast'), '--port', '7799'], { env: { ...process.env, FLOWCAST_HOME: home }, stdio: 'ignore' });
+  let page = ''; for (let k = 0; k < 40 && !page; k++) { await new Promise(r => setTimeout(r, 150)); page = await fetch('http://127.0.0.1:7799/').then(r => r.text(), () => ''); }
+  const scripts = [...page.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
+  let parses = scripts.length > 0; for (const s of scripts) { try { new Function(s); } catch (e) { parses = false; console.log('   ', e.message); } }
+  ok('History page lists the intro and its script parses', page.includes('data-name="demo"') && parses);
+  studio.kill(); }
+
+// 5d. Hide personal details: emails, phones and cards become samples, look-alikes stay, and turning it off brings the real text back
+{ const page = await (await (await import('playwright')).chromium.launch()).newPage();
+  const html = join(out, 'private.html'); mkdirSync(out, { recursive: true });
+  writeFileSync(html, readFileSync(sample, 'utf8').replaceAll('../player/', `${join(root, 'player')}/`).replace('<template id="scene">', '<template id="scene"><p id="pd">sara@gmail.com · (415) 555-2671 · 4242 4242 4242 4242 · 2026-11-07 · $29.00 · Order #10482</p>'));
+  await page.addInitScript(() => { window.__flowcast = { mode: 'record', privacy: true }; }); await page.goto('file://' + html); await page.waitForFunction(() => window.flowcast);
+  const on = await page.$eval('#pd', e => e.textContent); await page.evaluate(() => document.getElementById('fc-private').click()); const off = await page.$eval('#pd', e => e.textContent);
+  ok('privacy swaps personal details and keeps the rest', on === 'alex@example.com · +1 555 0100 · \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 4242 · 2026-11-07 · $29.00 · Order #10482', on);
+  ok('privacy off brings the real text back', off.startsWith('sara@gmail.com · (415) 555-2671'), off);
+  await page.context().browser().close(); }
+
+// 5e. the starter: a new intro takes the project's tokens, frame and end card, and leaves the scene empty
+{ const proj = join(out, 'starter', 'flowcast'); mkdirSync(join(proj, 'first'), { recursive: true });
+  writeFileSync(join(proj, 'first', 'intro.html'), readFileSync(sample, 'utf8'));
+  r = node([join(here, 'starter.mjs'), proj, 'second']);
+  const made = existsSync(join(proj, 'second', 'intro.html')) ? readFileSync(join(proj, 'second', 'intro.html'), 'utf8') : '';
+  ok('starter copies the look and empties the scene', r.status === 0 && r.stdout.includes('from first') && /:root\{/.test(made) && made.includes('<div id="flowcast"') && /<template id="scene">\s*<\/template>/.test(made) && made.includes('const beats = [];'), r.stderr.trim() || r.stdout.trim()); }
+
 // 6. optional: record and convert
 if (process.argv.includes('--video')) {
   r = node([join(here, 'record.mjs'), sample, join(out, 'v.webm'), '--canvas', 'square']); ok('records webm', r.status === 0);
+  ok('notes where the intro starts, so the loading is cut', existsSync(join(out, 'v.webm.json')) && JSON.parse(readFileSync(join(out, 'v.webm.json'), 'utf8')).start > 0);
   r = node([join(here, 'convert.mjs'), join(out, 'v.webm'), join(out, 'v.mp4')]); ok('converts to mp4', r.status === 0 && existsSync(join(out, 'v.mp4')));
+  r = node([join(here, 'convert.mjs'), join(out, 'v.webm'), join(out, 'v.gif')]); ok('converts to gif', r.status === 0 && existsSync(join(out, 'v.gif')), r.stderr.trim().split('\n').pop());
 }
 
 rmSync(out, { recursive: true, force: true });

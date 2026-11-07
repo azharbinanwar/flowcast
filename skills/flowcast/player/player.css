@@ -13,7 +13,7 @@ body{margin:0;background:var(--bg);color:var(--on);font-family:var(--font);font-
 .fc-bar{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
 .fc-dots{display:flex;gap:6px;justify-content:center}
 .fc-dot{width:8px;height:8px;border-radius:4px;background:var(--card);border:1px solid var(--border);overflow:hidden;transition:width .3s;cursor:pointer}
-.fc-dot.on{width:24px}.fc-dot i{display:block;height:100%;width:0;background:var(--accent)}
+.fc-dot.fc-on{width:24px}.fc-dot i{display:block;height:100%;width:0;background:var(--accent)}
 
 /* canvas: the exported picture. The phone and the slots live on it. */
 .fc-tools select{font:inherit;border-radius:999px;padding:8px 12px;background:var(--card);color:var(--on);border:1px solid var(--border)}
@@ -80,9 +80,8 @@ html:not([data-mode=record]) .fc-canvas:not([data-preset=none]),html:not([data-m
 .fc-frame.fc-none{width:420px;height:auto;background:transparent;box-shadow:none;padding:0}
 .fc-frame.fc-none .fc-screen{border-radius:0;border:0}
 .fc-screen{width:100%;height:100%;background:var(--screen);overflow:hidden;position:relative;display:flex;flex-direction:column}
-.fc-status{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-size:13px;font-weight:700;background:var(--card);flex:none}
-.fc-status i{display:inline-block;width:18px;height:9px;border:1.5px solid var(--on);border-radius:3px;position:relative;vertical-align:middle}
-.fc-status i::after{content:'';position:absolute;inset:1.5px;right:4px;background:var(--on);border-radius:1px}
+.fc-status{height:44px;display:flex;align-items:center;justify-content:space-between;padding:4px 26px 0 32px;box-sizing:border-box;font:600 15px/1 -apple-system,'SF Pro Text',system-ui,sans-serif;letter-spacing:-.01em;background:var(--screen);color:var(--on);flex:none;transition:background .3s,color .3s}
+.fc-sys{display:flex;align-items:center;gap:5px}.fc-sys svg{fill:currentColor;display:block}
 .fc-stage{flex:1;position:relative;min-height:0;display:flex;flex-direction:column}
 .fc-caption{padding:14px 22px 22px;text-align:center;min-height:68px;background:var(--screen);flex:none}
 .fc-caption h2{margin:0 0 6px;font-size:16px;font-weight:700;text-wrap:balance}
@@ -98,15 +97,15 @@ html:not([data-mode=record]) .fc-canvas:not([data-preset=none]),html:not([data-m
 
 /* the actor */
 .fc-finger{position:absolute;z-index:9;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:var(--accent);opacity:0;transform:scale(1);transition:opacity .25s,transform .15s,left .35s,top .35s;pointer-events:none}
-.fc-finger.show{opacity:.4}.fc-finger.press{transform:scale(.75);opacity:.7}
+.fc-finger.fc-show{opacity:.4}.fc-finger.fc-press{transform:scale(.75);opacity:.7}
 
 /* the pointer actor, for desktop apps: the tip lands on the target */
 .fc-finger.fc-pointer{width:22px;height:22px;margin:-2px 0 0 -4px;border-radius:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 2l14 11-6.5 1 3.8 7.2-2.6 1.3-3.8-7.3L5 20z' fill='%23000' stroke='%23fff' stroke-width='1.4' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center/contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35));transition:opacity .2s,transform .12s,left .5s cubic-bezier(.4,0,.2,1),top .5s cubic-bezier(.4,0,.2,1)}
-.fc-finger.fc-pointer.show{opacity:1}.fc-finger.fc-pointer.press{transform:scale(.86);opacity:1}
+.fc-finger.fc-pointer.fc-show{opacity:1}.fc-finger.fc-pointer.fc-press{transform:scale(.86);opacity:1}
 
 /* end card */
 .fc-end{position:absolute;inset:0;z-index:10;background:var(--accent);color:var(--on-accent);display:grid;place-content:center;text-align:center;gap:8px;opacity:0;visibility:hidden;transition:opacity .6s}
-.fc-end.show{opacity:1;visibility:visible}
+.fc-end.fc-show{opacity:1;visibility:visible}
 .fc-end .fc-logo{width:96px;height:auto;margin:0 auto 6px;color:var(--on-accent)}
 .fc-end b{font-size:34px;font-weight:700;letter-spacing:-.5px}.fc-end p{margin:0;font-size:15px;opacity:.9}
 
@@ -122,25 +121,23 @@ html[data-mode=record] .fc-cwrap,html[data-mode=record] .fc-canvas,html[data-mod
 
 /* the studio's opening splash */
 #fc-splash{position:fixed;inset:0;z-index:100;background:#FF6B4A;display:grid;place-items:center;transition:opacity .4s}
-#fc-splash svg{width:112px;height:112px;animation:fc-splash-in .5s cubic-bezier(.4,0,.2,1) both}
-#fc-splash.out{opacity:0}
+#fc-splash svg{width:112px;height:112px;}
+#fc-splash .fc-splash-mark{width:168px;height:168px;animation:fc-splash-in .5s cubic-bezier(.4,0,.2,1) both}
+#fc-splash.fc-out{opacity:0}
 @keyframes fc-splash-in{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){#fc-splash svg{animation:none}}
+@media (prefers-reduced-motion:reduce){#fc-splash svg,#fc-splash .fc-splash-mark{animation:none}}
 
 /* the studio's brand, top left like any web app */
-.fc-brand{position:fixed;top:max(14px,env(safe-area-inset-top,0px));left:max(18px,env(safe-area-inset-left,0px));z-index:40;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--on);font:700 16px/1 var(--font)}
-.fc-brand svg{width:28px;height:28px}
-.fc-brand::after{content:attr(data-label);margin-left:10px;padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:var(--card);font:600 12.5px/1 var(--font);color:var(--on)}
-.fc-brand:hover::after{border-color:var(--accent)}
-@media (max-width:1100px){.fc-brand b{display:none}}
+.fc-crumbs{position:fixed;top:max(14px,env(safe-area-inset-top,0px));left:max(18px,env(safe-area-inset-left,0px));z-index:40;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--on);font:700 16px/1 var(--font)}
+.fc-crumbs svg{width:28px;height:28px}
 /* slot words wrap inside their column, never under the scene */
 .fc-slots>*{max-width:100%;overflow-wrap:break-word}
 
 
 /* the preview: the stage on the left, every option in a drawer fixed to the right edge that scrolls, sections open and close */
-body:has(#flowcast[data-mode=preview]){padding-top:56px}
+body:has(#flowcast[data-mode=preview]){padding-top:80px}
 @media (min-width:901px){body:has(#flowcast[data-mode=preview]){padding-right:356px}}
-#flowcast[data-mode=preview] .fc-tools{position:fixed;top:0;right:0;bottom:0;width:340px;box-sizing:border-box;z-index:30;background:var(--card);border-left:1px solid var(--border);box-shadow:-12px 0 40px rgba(0,0,0,.12);overflow-y:auto;overflow-x:hidden;display:block;padding:8px 0 24px;text-align:left}
+#flowcast[data-mode=preview] .fc-tools{position:fixed;top:64px;right:0;bottom:0;width:340px;box-sizing:border-box;z-index:30;background:var(--card);border-left:1px solid var(--border);box-shadow:-12px 0 40px rgba(0,0,0,.12);overflow-y:auto;overflow-x:hidden;display:block;padding:8px 0 24px;text-align:left}
 @media (max-width:900px){#flowcast[data-mode=preview] .fc-tools{position:static;width:100%;border:1px solid var(--border);border-radius:14px;box-shadow:none}}
 .fc-tools details{border-bottom:1px solid var(--border);padding:0 20px}
 .fc-tools summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;padding:16px 0;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
@@ -209,13 +206,12 @@ html:has(#flowcast[data-mode=preview]) body{background:var(--ui-bg)!important;fo
 #flowcast[data-mode=preview] .fc-tools #fc-go:disabled{opacity:.6;cursor:wait}
 #flowcast[data-mode=preview] .fc-tools .fc-undo{color:var(--ui-accent);border-color:transparent;background:none}
 #flowcast[data-mode=preview] .fc-undo .fc-i{width:14px;height:14px}
-#flowcast[data-mode=preview] #fc-saved{width:100%;justify-content:flex-start;color:var(--ui-accent)}
 #flowcast[data-mode=preview] #fc-status{color:var(--ui-muted)}
 
 /* under the stage: progress and one transport pill */
 #flowcast[data-mode=preview] .fc-dots{gap:6px;margin-top:6px}
 #flowcast[data-mode=preview] .fc-dot{width:26px;height:4px;border-radius:2px;border:0;background:var(--ui-line)}
-#flowcast[data-mode=preview] .fc-dot.on{width:48px}
+#flowcast[data-mode=preview] .fc-dot.fc-on{width:48px}
 #flowcast[data-mode=preview] .fc-dot i{background:var(--ui-accent)}
 .fc-i .fc-fill{fill:currentColor;stroke:none}
 .fc-pill{display:inline-flex;align-items:center;gap:2px}
@@ -236,9 +232,8 @@ html:has(#flowcast[data-mode=preview]) body{background:var(--ui-bg)!important;fo
 #flowcast[data-mode=preview] #fc-pause[data-state=paused] .fc-i{margin-left:2px}
 
 /* top-left */
-html:has(#flowcast[data-mode=preview]) .fc-brand{color:var(--ui-text);font-family:var(--ui-font)}
-html:has(#flowcast[data-mode=preview]) .fc-brand::after{background:var(--ui-panel);border-color:var(--ui-line);color:var(--ui-text);font-family:var(--ui-font)}
-
+html:has(#flowcast[data-mode=preview]) .fc-crumbs{color:var(--ui-text);font-family:var(--ui-font)}
+html:has(#flowcast[data-mode=preview]) 
 /* icons and pickers */
 .fc-i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
 #flowcast[data-mode=preview] .fc-tools summary>span{flex:1;min-width:0;display:flex;align-items:center;gap:10px;color:var(--ui-text);font-size:11.5px}
@@ -293,7 +288,7 @@ html:has(#flowcast[data-mode=preview]){interpolate-size:allow-keywords}
 #flowcast[data-mode=preview] .fc-brow{transition:background .3s,border-color .3s}
 #flowcast[data-mode=preview] .fc-brow::before{transition:background .3s,border-color .3s,color .3s}
 #flowcast[data-mode=preview] .fc-dot{transition:width .4s cubic-bezier(.3,.7,.2,1),background .3s}
-#flowcast[data-mode=preview] .fc-dot.done i{transition:width .3s}
+#flowcast[data-mode=preview] .fc-dot.fc-done i{transition:width .3s}
 #flowcast[data-mode=preview] .fc-tools .fc-creset{width:26px;height:26px;padding:0;display:grid;place-items:center;border-radius:7px;background:none;border-color:transparent;color:var(--ui-accent)}
 #flowcast[data-mode=preview] .fc-creset[hidden]{display:grid!important;visibility:hidden;opacity:0}
 #flowcast[data-mode=preview] .fc-tools .fc-creset{transition:opacity .2s}
@@ -308,7 +303,151 @@ html:has(#flowcast[data-mode=preview]){interpolate-size:allow-keywords}
 #flowcast[data-mode=preview] #fc-skip{display:none}
 #flowcast[data-mode=preview] #fc-full{display:grid}
 html.fc-full body{padding:0!important;background:#000!important;display:grid;place-items:center;min-height:100vh}
-html.fc-full .fc-tools,html.fc-full .fc-brand,html.fc-full .fc-dots,html.fc-full .fc-bar{display:none!important}
+html.fc-full .fc-tools,html.fc-full .fc-crumbs,html.fc-full .fc-dots{display:none!important}
+/* in full screen the controls float over the video like a player's: shown while the mouse moves, gone when it rests */
+html.fc-full .fc-bar{position:fixed;left:50%;bottom:max(28px,env(safe-area-inset-bottom,0px));transform:translate(-50%,12px);z-index:50;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+html.fc-full.fc-awake .fc-bar,html.fc-full .fc-bar:hover{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+html.fc-full:not(.fc-awake) body{cursor:none}
 html.fc-full #flowcast{display:grid;place-items:center;width:100vw;height:100vh}
-html.fc-full .fc-canvas,html.fc-full .fc-frame,html.fc-full .fc-screen{box-shadow:none!important;border-radius:0!important}
+html.fc-full .fc-canvas,html.fc-full .fc-frame.fc-none .fc-screen{box-shadow:none!important;border-radius:0!important}
+/* a device keeps its own shape in full screen; only the space around it turns black */
+html.fc-full:has(#flowcast) body{background:#000!important}
 html.fc-full #flowcast{gap:0}
+
+/* breadcrumb: the mark and Flowcast lead home, then the intro you are in */
+.fc-crumbs a{display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;padding:4px 8px 4px 4px;margin-left:-4px;border-radius:9px;transition:background .15s}
+.fc-crumbs a:hover{background:var(--ui-hover,rgba(0,0,0,.05))}
+.fc-crumbs .fc-sep{color:var(--ui-muted,#888);font-weight:400;opacity:.6}
+.fc-crumbs a.fc-proj{font-size:14px;font-weight:600;color:var(--ui-muted,#888);padding:4px 6px;margin:0 -2px}
+.fc-crumbs a.fc-proj:hover{color:var(--ui-text,inherit)}
+.fc-crumbs .fc-here{font-weight:600;font-size:14px;color:var(--ui-muted,#888);max-width:34vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* the studio's top bar is the same bar as History's: full width, 64px, the breadcrumb at 24px, a divider under it, so moving between them never jumps */
+html:has(#flowcast[data-mode=preview]) .fc-crumbs{top:0;left:0;right:0;height:64px;box-sizing:border-box;padding:0 max(24px,env(safe-area-inset-left,0px));gap:8px;font:700 16px/1 var(--ui-font);background:color-mix(in srgb,var(--ui-bg) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--ui-line)}
+html:has(#flowcast[data-mode=preview]) .fc-crumbs>a:first-child{padding:0;margin:0;background:none!important}
+
+/* the credit, when turned on: a small dark tag in the corner of the exported picture, readable on any scene */
+.fc-made{display:none;position:absolute;right:2.2%;bottom:2.2%;z-index:6;align-items:center;gap:8px;padding:5px 11px 5px 5px;border-radius:10px;font:600 13px/1 -apple-system,system-ui,sans-serif;letter-spacing:.01em;white-space:nowrap;color:#fff;background:rgba(18,16,22,.6);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);pointer-events:none}
+.fc-made svg{width:22px;height:22px;flex:none;border-radius:5px}
+.fc-with-credit>.fc-made{display:flex}
+#flowcast[data-mode=preview] .fc-switches{display:grid;gap:6px}
+#flowcast[data-mode=preview] #fc-credit,#flowcast[data-mode=preview] #fc-credit-link{display:flex;align-items:center;gap:10px;width:100%;height:44px;background:var(--ui-field)!important;color:var(--ui-text)!important;border-color:var(--ui-line)!important;font-weight:600}
+#flowcast[data-mode=preview] #fc-credit-link:disabled{opacity:.45;cursor:default}
+#flowcast[data-mode=preview] #fc-credit>span,#flowcast[data-mode=preview] #fc-credit-link>span{flex:1;text-align:left}
+#flowcast[data-mode=preview] #fc-credit .fc-i,#flowcast[data-mode=preview] #fc-credit-link .fc-i{color:var(--ui-muted)}
+#flowcast[data-mode=preview] #fc-credit::after,#flowcast[data-mode=preview] #fc-credit-link::after{content:'';width:36px;height:22px;border-radius:999px;background:color-mix(in srgb,var(--ui-muted) 45%,transparent) radial-gradient(circle at 11px 11px,#fff 8px,transparent 8.5px);transition:background .2s}
+#flowcast[data-mode=preview] #fc-credit.on::after,#flowcast[data-mode=preview] #fc-credit-link.on::after{background:var(--ui-accent) radial-gradient(circle at 25px 11px,#fff 8px,transparent 8.5px)}
+.fc-made-link{opacity:.7;font-weight:500;padding-left:8px;border-left:1px solid rgba(255,255,255,.22)}
+.fc-canvas{position:relative}
+.fc-with-credit[data-credit-pos^=top]>.fc-made{top:2.2%;bottom:auto}
+.fc-with-credit[data-credit-pos$=left]>.fc-made{left:2.2%;right:auto}
+.fc-with-credit[data-credit-pos$=center]>.fc-made{left:50%;right:auto;transform:translateX(-50%)}
+/* the six places, drawn as a little screen with the spot marked */
+#flowcast[data-mode=preview] .fc-pos{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%}
+#flowcast[data-mode=preview] .fc-tools .fc-pos button{height:40px;padding:0;border-radius:10px;position:relative;background:var(--ui-field)}
+#flowcast[data-mode=preview] .fc-pos button i{position:absolute;width:18px;height:5px;border-radius:3px;background:var(--ui-muted);opacity:.55}
+#flowcast[data-mode=preview] .fc-pos button[data-pos^=top] i{top:8px}#flowcast[data-mode=preview] .fc-pos button[data-pos^=bottom] i{bottom:8px}
+#flowcast[data-mode=preview] .fc-pos button[data-pos$=left] i{left:9px}#flowcast[data-mode=preview] .fc-pos button[data-pos$=right] i{right:9px}#flowcast[data-mode=preview] .fc-pos button[data-pos$=center] i{left:calc(50% - 9px)}
+#flowcast[data-mode=preview] .fc-tools .fc-pos button.on{border-color:var(--ui-accent);background:color-mix(in srgb,var(--ui-accent) 10%,var(--ui-field))}
+#flowcast[data-mode=preview] .fc-pos button.on i{background:var(--ui-accent);opacity:1}
+
+/* Watermark shows the tag all the way; Outro shows no tag, only its own beat */
+.fc-with-credit[data-credit-when=outro]>.fc-made{display:none}
+/* the outro beat: the intro's own background, text and accent, the mark springs in and the words rise after it */
+.fc-outro{position:absolute;inset:0;z-index:8;display:grid;place-content:center;justify-items:center;gap:.8em;background:var(--screen,#fff);color:var(--on,#111);font:700 16px/1.2 var(--font,-apple-system,system-ui,sans-serif);text-align:center;opacity:0;visibility:hidden;transition:opacity .35s,visibility .35s}
+.fc-outro.fc-show{opacity:1;visibility:visible}
+.fc-outro::after{content:'';position:absolute;left:50%;top:calc(50% + 6.6em);width:3.2em;height:.22em;border-radius:1em;background:var(--accent,#FF6B4A);transform:translateX(-50%) scaleX(0);transition:transform .5s cubic-bezier(.3,.7,.2,1) .45s}
+.fc-outro.fc-show::after{transform:translateX(-50%) scaleX(1)}
+.fc-outro svg{width:5.5em;height:5.5em;border-radius:1.3em;transform:scale(.6);opacity:0;transition:transform .55s cubic-bezier(.3,1.5,.4,1),opacity .3s}
+.fc-outro.fc-show svg{transform:none;opacity:1}
+.fc-outro b{font-size:1.6em;letter-spacing:-.02em;transform:translateY(.6em);opacity:0;transition:transform .45s cubic-bezier(.3,.7,.2,1) .15s,opacity .35s .15s}
+.fc-outro-link{font-weight:500;font-size:.95em;color:var(--muted,#777);transform:translateY(.6em);opacity:0;transition:transform .45s cubic-bezier(.3,.7,.2,1) .28s,opacity .35s .28s}
+.fc-outro.fc-show b,.fc-outro.fc-show .fc-outro-link{transform:none;opacity:1}
+.fc-outro-link:empty{display:none}
+#flowcast[data-mode=preview] .fc-when{grid-template-columns:repeat(2,1fr)}
+#flowcast[data-mode=preview] .fc-tools .fc-when button{font-size:12.5px}
+#flowcast[data-mode=preview] .fc-tools #fc-folder{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--ui-panel)}
+#flowcast[data-mode=preview] #fc-folder .fc-i{color:var(--ui-muted)}
+
+/* slides: the play button turns into a counter and Timing steps back, since seconds do not change a picture */
+#flowcast[data-mode=preview] .fc-pill #fc-pause[data-state=slide]{width:auto;min-width:64px;padding:0 12px;font:600 13px/1 var(--ui-font);font-variant-numeric:tabular-nums;cursor:default;background:var(--ui-field);color:var(--ui-text)}
+.fc-note{display:none;margin:0 0 12px;padding:10px 12px;border-radius:10px;background:var(--ui-field,#f4f4f7);color:var(--ui-muted,#777);font-size:12px;line-height:1.4}
+#flowcast.fc-stills .fc-note{display:block}
+#flowcast.fc-stills [data-sec=timing] .fc-seg,#flowcast.fc-stills [data-sec=timing] .fc-beats .fc-brow button,#flowcast.fc-stills [data-sec=timing] .fc-label{opacity:.45;pointer-events:none}
+/* the dots and the bar stay put at the foot of the stage area, whatever size the video is from beat to beat */
+@media (min-width:901px){
+  #flowcast[data-mode=preview] .fc-dots,#flowcast[data-mode=preview] .fc-bar{position:fixed;left:calc((100vw - 340px) / 2);transform:translateX(-50%);z-index:20}
+  #flowcast[data-mode=preview] .fc-bar{bottom:max(20px,env(safe-area-inset-bottom,0px));margin:0}
+  #flowcast[data-mode=preview] .fc-dots{bottom:calc(max(20px,env(safe-area-inset-bottom,0px)) + 62px);margin:0}
+}
+html.fc-full #flowcast[data-mode=preview] .fc-bar{left:50%}
+
+/* the animated mark: in the outro while it plays (a still one for PNG and PDF), and beside the export status */
+.fc-outro .fc-motion{width:8.25em;height:8.25em;margin:-1.375em;display:block}
+.fc-outro .fc-outro-still{display:none}
+#flowcast.fc-stills .fc-outro .fc-motion{display:none}#flowcast.fc-stills .fc-outro .fc-outro-still{display:block}
+.fc-busy{width:40px;height:40px;margin:-10px -4px;flex:none}
+/* while exporting the button keeps its place and colour, shows the mark, and cannot be pressed twice */
+#flowcast[data-mode=preview] .fc-tools #fc-go.fc-exporting{opacity:1;cursor:progress;background:color-mix(in srgb,var(--ui-accent) 85%,#000)}
+#flowcast[data-mode=preview] .fc-tools .fc-fmts button:disabled{opacity:.55;cursor:default}
+#flowcast[data-mode=preview] #fc-status{display:block;width:100%;color:#e5484d;font-size:12.5px;line-height:1.4}
+
+/* the Privacy switch, the same as the other switches, and its plain note */
+#flowcast[data-mode=preview] #fc-private{display:flex;align-items:center;gap:10px;width:100%;height:44px;background:var(--ui-field)!important;color:var(--ui-text)!important;border-color:var(--ui-line)!important;font-weight:600}
+#flowcast[data-mode=preview] #fc-private>span{flex:1;text-align:left}
+#flowcast[data-mode=preview] #fc-private .fc-i{color:var(--ui-muted)}
+#flowcast[data-mode=preview] #fc-private::after{content:'';width:36px;height:22px;border-radius:999px;background:color-mix(in srgb,var(--ui-muted) 45%,transparent) radial-gradient(circle at 11px 11px,#fff 8px,transparent 8.5px);transition:background .2s}
+#flowcast[data-mode=preview] #fc-private.on::after{background:var(--ui-accent) radial-gradient(circle at 25px 11px,#fff 8px,transparent 8.5px)}
+#flowcast[data-mode=preview] .fc-hint{margin:2px 2px 0;font-size:12px;line-height:1.45;color:var(--ui-muted)}
+
+/* the details found, as one settings-style list: kind icon, what was there over what shows instead, then its switch */
+#flowcast[data-mode=preview] #fc-found{display:grid;gap:6px;width:100%;margin-top:6px}
+#flowcast[data-mode=preview] #fc-found[hidden]{display:none}
+#flowcast[data-mode=preview] .fc-flist{display:grid;border:1px solid var(--ui-line);border-radius:12px;background:var(--ui-field);overflow:hidden}
+#flowcast[data-mode=preview] .fc-frow{display:grid;grid-template-columns:28px minmax(0,1fr) 24px auto;align-items:center;gap:10px;padding:9px 10px 9px 10px}
+#flowcast[data-mode=preview] .fc-frow+.fc-frow{border-top:1px solid var(--ui-line)}
+#flowcast[data-mode=preview] .fc-fic{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:color-mix(in srgb,var(--ui-accent) 12%,var(--ui-panel));color:var(--ui-accent)}
+#flowcast[data-mode=preview] .fc-fic .fc-i{width:14px;height:14px}
+#flowcast[data-mode=preview] .fc-frow.fc-kept .fc-fic{background:var(--ui-panel);color:var(--ui-muted)}
+#flowcast[data-mode=preview] .fc-fmid{display:grid;gap:1px;min-width:0}
+#flowcast[data-mode=preview] .fc-fwas{display:flex;gap:6px;align-items:center;min-width:0;font-size:11.5px;color:var(--ui-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#flowcast[data-mode=preview] .fc-frow.fc-kept .fc-fwas{color:var(--ui-text)}
+#flowcast[data-mode=preview] .fc-fnew{width:100%;min-width:0;height:24px;margin-left:-5px;padding:0 5px;border:1px solid transparent;border-radius:6px;background:none;color:var(--ui-text);font:600 13px var(--ui-font)}
+#flowcast[data-mode=preview] .fc-fnew:hover{border-color:var(--ui-line);background:var(--ui-panel)}
+#flowcast[data-mode=preview] .fc-fnew:focus{outline:none;border-color:var(--ui-accent);background:var(--ui-panel)}
+/* the two lines share one spot and crossfade: the replacement when on, Shown as it is when kept */
+#flowcast[data-mode=preview] .fc-fswap{display:grid;min-width:0}
+#flowcast[data-mode=preview] .fc-fswap>*{grid-area:1/1;transition:opacity .25s,transform .25s cubic-bezier(.3,.7,.2,1)}
+#flowcast[data-mode=preview] .fc-fkeep{align-self:center;font-size:11.5px;color:var(--ui-muted);opacity:0;transform:translateY(4px);pointer-events:none}
+#flowcast[data-mode=preview] .fc-frow.fc-kept .fc-fnew{opacity:0;transform:translateY(-4px);pointer-events:none}
+#flowcast[data-mode=preview] .fc-frow.fc-kept .fc-fkeep{opacity:1;transform:none}
+#flowcast[data-mode=preview] .fc-fic,#flowcast[data-mode=preview] .fc-fwas{transition:background .25s,color .25s,font-size .25s}
+#flowcast[data-mode=preview] .fc-tools .fc-fundo[hidden]{display:grid!important;visibility:hidden}
+#flowcast[data-mode=preview] .fc-frow.fc-kept .fc-fundo{visibility:hidden}
+#flowcast[data-mode=preview] .fc-tools .fc-fundo,#flowcast[data-mode=preview] .fc-tools .fc-fdel{width:24px;height:24px;padding:0;display:grid;place-items:center;border-radius:7px;background:none;border-color:transparent;color:var(--ui-accent)}
+#flowcast[data-mode=preview] .fc-tools .fc-fdel{grid-column:4;color:var(--ui-muted)}
+#flowcast[data-mode=preview] .fc-fundo .fc-i,#flowcast[data-mode=preview] .fc-fdel .fc-i{width:13px;height:13px}
+#flowcast[data-mode=preview] .fc-tools .fc-fuse{width:32px;height:20px;padding:0;border-radius:999px;border:0;background:color-mix(in srgb,var(--ui-muted) 45%,transparent) radial-gradient(circle at 10px 10px,#fff 7px,transparent 7.5px);transition:background .2s}
+#flowcast[data-mode=preview] .fc-tools .fc-fuse.on{background:var(--ui-accent) radial-gradient(circle at 22px 10px,#fff 7px,transparent 7.5px)}
+#flowcast[data-mode=preview] .fc-fnone{padding:12px;margin:0}
+
+/* anything that comes and goes in the drawer slides open and closed instead of jumping */
+#flowcast[data-mode=preview] .fc-anim{overflow:hidden;transition:block-size .3s cubic-bezier(.3,.7,.2,1),opacity .25s,margin .3s cubic-bezier(.3,.7,.2,1)}
+#flowcast[data-mode=preview] .fc-anim[hidden]{display:var(--fc-d,block)!important;block-size:0;opacity:0;margin-top:calc(-1 * var(--fc-gap,6px));pointer-events:none}
+@keyframes fc-row-in{from{block-size:0;opacity:0;padding-block:0}}
+@keyframes fc-row-out{to{block-size:0;opacity:0;padding-block:0}}
+#flowcast[data-mode=preview] .fc-frow{overflow:hidden}
+#flowcast[data-mode=preview] .fc-frow.fc-enter{animation:fc-row-in .3s cubic-bezier(.3,.7,.2,1)}
+#flowcast[data-mode=preview] .fc-frow.fc-leave{animation:fc-row-out .22s cubic-bezier(.3,.7,.2,1) forwards}
+@media (prefers-reduced-motion:reduce){#flowcast[data-mode=preview] .fc-anim{transition:none}#flowcast[data-mode=preview] .fc-frow.fc-enter,#flowcast[data-mode=preview] .fc-frow.fc-leave{animation:none}}
+/* inside a phone's screen the tag keeps clear of the rounded corners and the status bar */
+.fc-screen>.fc-made{right:18px;bottom:16px;font-size:11.5px}
+.fc-screen[data-credit-pos^=top]>.fc-made{top:52px;bottom:auto}
+.fc-screen[data-credit-pos$=left]>.fc-made{left:18px;right:auto}
+.fc-screen>.fc-made svg{width:18px;height:18px}
+.fc-screen>.fc-outro{border-radius:inherit}
+/* in a phone the tag stacks: the mark beside two lines, so the link never runs past the screen */
+.fc-with-credit.fc-screen>.fc-made{display:grid;grid-template-columns:auto auto;column-gap:7px;row-gap:1px;align-items:center;max-width:calc(100% - 36px);padding:5px 10px 5px 5px}
+.fc-screen>.fc-made svg{grid-row:1 / span 2}
+.fc-screen>.fc-made .fc-made-link{grid-column:2;border-left:0;padding-left:0;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fc-screen>.fc-made .fc-made-link[hidden]{display:none}

@@ -7,10 +7,12 @@ An intro is one HTML file that loads the shared player, `player.css` and `player
 - **One continuous scene.** The same elements stay on screen and change state per beat. Steps flip classes; CSS transitions do the motion. No keyframe timelines, no Lottie, no video as the source.
 - **Cause then effect.** Wait, show the actor, then the effect. `s.tap('#el')` moves the actor there, presses, lifts. The actor is a finger by default; `data-actor="pointer"` on `#flowcast` makes it a Mac pointer for desktop apps. Timings live in `T` at the top.
 - **Steps stop on their own.** When the viewer skips or the next beat starts, the player stops the old beat's steps at their next wait. Write steps straight through; never add your own guards.
-- **Real parts, real data.** Rebuild the product's actual components with its tokens and strings. Plausible values, never lorem ipsum. Read the project's logo SVG for the end card.
+- **Real parts, real data.** Rebuild the product's actual components with its tokens and strings. Plausible values, never lorem ipsum.
+- **One logo per project.** It lives at `flowcast/logo.svg` (or `.png`, `.jpg`, `.webp`), shared by every intro in the project. Use it as `<img class="fc-logo" src="../logo.svg" alt="">` in the end card and anywhere the app shows its mark; the player copies it to the canvas logo slot. Inline the SVG only when its colour must follow the theme.
 - **Surfaces behave like the real thing.** A chat pins to the bottom and each new message pushes the older ones up. A list grows from the top. A notification drops in from the top edge. A terminal scrolls. Anything not on screen yet takes no space: give it `class="fc-in"` and add `show` when its moment comes; it grows in smoothly and pushes the rest. Space such items with `margin-top` on the item, not `gap` on the parent, so the push is smooth. Never pre-place hidden elements with `opacity:0` inside a surface that flows.
 - **State is history inside a device, a moment outside it.** `apply(i)` shows everything a real screen would still show: a chat at the last beat holds every message. On the canvas, an object that finished its step is gone or shrunk to a chip, and the space goes to the next object. Collapse with `fc-in` (remove `show`) or a `.done` class that shrinks it.
 - **Declare UTF-8.** Every intro starts with `<meta charset="utf-8">`, so its own text reads right when the file is opened straight from disk.
+- **Anchor to the edge it belongs to.** The stage changes height with the frame, the status bar and the captions, so a bottom sheet, tab bar, toolbar, button row or toast uses `bottom:`, and only things that belong at the top use `top:`. Never place a bottom part with a `top` in pixels.
 - **Nothing jumps.** Panels that swap are stacked absolutely in a fixed area. Rows that may be wider than the screen are grids with `minmax(0,1fr)`, never fixed-width flex items.
 - **`apply(i)` sets the full state a beat starts from,** so back, next, replay and the contact sheet all land on the right screen. `scene[i]` only animates that beat's change.
 - **Not an app? Split the scene.** `<template id="scene">` is what the device's user sees. `<template id="around">` is the rest, placed beside the device on the canvas: an inbox, workflow nodes, the systems that answer. Both move on the same beats. The around part is sized at about 360px wide and grows into the column it gets. Without a canvas it sits beside the phone in the preview too.
@@ -44,7 +46,7 @@ An intro is one HTML file that loads the shared player, `player.css` and `player
   <div class="appbar">Feature</div>
   <div class="row" id="fajr">Fajr</div>
 </template>
-<template id="endcard"><svg class="fc-logo" viewBox="0 0 24 24">…the app's logo, fill currentColor…</svg><p>One line.</p></template>
+<template id="endcard"><img class="fc-logo" src="../logo.svg" alt=""><p>One line.</p></template>
 </div>
 
 <script>
@@ -101,14 +103,17 @@ A full-canvas scene (`data-frame="none"` with a size) on a canvas of its own sha
 
 ## Check
 
-One contact sheet, every beat and the end card in one image. Render it once in the theme the app shows first, at a beat timing near the end of each beat:
+Words first, one picture only when needed.
+
+1. `node scripts/check.mjs intro.html` plays every beat with captions on and off and says in plain words what is cut off, what text does not fit, and which bottom bar floats. Fix everything it reports and run it again until it says All clear. It costs no image.
+2. Then one contact sheet, every beat and the end card in one small image, in the theme the app shows first:
 
 ```bash
-node scripts/sheet.mjs intro.html sheet.png --at 0.95 --theme dark
+node scripts/sheet.mjs intro.html sheet.jpg --at 0.95 --theme dark
 ```
 
-Read it once. When it shows a problem, fix it, then confirm with one frame of that beat only, cropped to the spot: `node scripts/frames.mjs` and `ffmpeg -vf crop=…`. Never re-render the whole sheet to confirm a single fix. Check the other theme only when colours changed.
+The sheet shows each beat's finished picture, the same as PNG and PDF export. Read it once, for what words cannot judge: the look, the motion's end state, the brand. Confirm a fix with `check.mjs` again; when only a picture can confirm it, one frame of that beat, cropped to the spot. Never a second sheet. Check the other theme only when colours changed.
 
 ## Show
 
-In Claude Code, the studio: one server for the whole `flowcast/` folder, `node scripts/studio.mjs flowcast --port 7788` in the background, started only if `curl -s localhost:7788/__ping` gets no answer. History is at `/`, each intro at `/<feature>/`. A claude.ai artifact only when the user wants a link to share, with the two player files alongside: `files: {"player.css": "<skill>/player/player.css", "player.js": "<skill>/player/player.js"}`.
+In Claude Code, the studio: one server for every project, on port 7788. If `curl -s localhost:7788/__ping` gets no answer, start `node scripts/studio.mjs flowcast --port 7788` in the background; if it answers, add this project with `curl -s -X POST localhost:7788/__add -d '{"root":"<absolute path>/flowcast"}'`. History is at `/`, grouped by project, each intro at `/<project>/<feature>/`. The list of projects lives in `~/.flowcast/projects.json`; each project's intros stay in its own `flowcast/` folder. A claude.ai artifact only when the user wants a link to share, with the two player files alongside: `files: {"player.css": "<skill>/player/player.css", "player.js": "<skill>/player/player.js"}`.
