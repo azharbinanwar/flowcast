@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed: the beat dots vanished and crept sideways in intros with their own `.done` style, such as CleanKit. Every class the player puts on the dots, finger, end card, outro, splash and Export button now starts with `fc-`, so an intro's own names can never reach them.
 - The Export button shows the export itself: the animated mark and Exporting MP4 while the file is made, then Saved to exports for a moment; Open exports folder is the one place to find the file, and a failure says why under the button.
 - One animated Flowcast mark, `player/motion.svg` (fold and press): it plays in the studio splash, loops on the Export button (without its tile) and on History cards while their covers load, and closes the credit outro. PNG and PDF use a still mark.
 - The beat dots and the play bar stay in one place at the foot of the stage, whatever the video's size from beat to beat or canvas to canvas.

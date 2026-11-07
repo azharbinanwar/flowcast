@@ -153,7 +153,7 @@ const s = {
   wait: (ms) => new Promise(r => setTimeout(r, ms / rate())),
   cls: (q, c, on = true) => $(q).classList.toggle(c, on),
   text: (q, t) => { $(q).textContent = t; },
-  finger: (show, press = false) => { const f = $('#fc-finger'); f.classList.toggle('show', show); f.classList.toggle('press', press); },
+  finger: (show, press = false) => { const f = $('#fc-finger'); f.classList.toggle('fc-show', show); f.classList.toggle('fc-press', press); },
   moveTo: (q) => { const r = $(q).getBoundingClientRect(), st = $('#fc-stage').getBoundingClientRect(), k = st.width / $('#fc-stage').offsetWidth; const f = $('#fc-finger'); f.style.left = (r.left - st.left + r.width / 2) / k + 'px'; f.style.top = (r.top - st.top + r.height / 2) / k + 'px'; },
   tap: async (q) => { s.moveTo(q); s.finger(true); await s.wait(T.press ?? 550); s.finger(true, true); await s.wait(T.lift ?? 150); s.finger(false); },
   type: async (q, text) => { for (let k = 1; k <= text.length; k++) { $(q).textContent = text.slice(0, k); await s.wait(T.type ?? 30); } },
@@ -175,15 +175,15 @@ function render() {
   if (rows !== $('#fc-beats').dataset.html) { $('#fc-beats').innerHTML = rows; $('#fc-beats').dataset.html = rows; }
   document.querySelectorAll('.fc-brow').forEach((r, k) => r.classList.toggle('on', k === i));
   if ($('#fc-dots').children.length !== beats.length) $('#fc-dots').innerHTML = beats.map((_, k) => `<div class="fc-dot" data-k="${k}"><i></i></div>`).join('');
-  document.querySelectorAll('.fc-dot').forEach((d, k) => { d.classList.toggle('on', k === i); d.classList.toggle('done', k < i); d.querySelector('i').style.width = k < i ? '100%' : '0'; });
+  document.querySelectorAll('.fc-dot').forEach((d, k) => { d.classList.toggle('fc-on', k === i); d.classList.toggle('fc-done', k < i); d.querySelector('i').style.width = k < i ? '100%' : '0'; });
 }
 function go(n) {
   window.flowcastDone = false; i = Math.max(0, Math.min(beats.length - 1, n)); run++; elapsed = 0; paused = false; paintPause();
   const isOutro = !!beats[i].outro;
-  s.cls('#fc-end', 'show', false); s.finger(false); render();
+  s.cls('#fc-end', 'fc-show', false); s.finger(false); render();
   // the outro beat lays its slide over the whole canvas in the intro's own colours; the scene underneath keeps its last state
   // the outro restarts the animated mark, so it always plays from the storyboard to the press
-  if (isOutro) { const o = $('#fc-outro'); o.style.fontSize = $('#fc-canvas').offsetWidth * 0.034 + 'px'; o.querySelector('.fc-motion').src = MOTION + '?' + Date.now(); o.classList.remove('show'); void o.offsetWidth; o.classList.add('show'); } else { s.cls('#fc-outro', 'show', false); apply(i); }
+  if (isOutro) { const o = $('#fc-outro'); o.style.fontSize = $('#fc-canvas').offsetWidth * 0.034 + 'px'; o.querySelector('.fc-motion').src = MOTION + '?' + Date.now(); o.classList.remove('fc-show'); void o.offsetWidth; o.classList.add('fc-show'); } else { s.cls('#fc-outro', 'fc-show', false); apply(i); }
   // the beat's steps run with their own wait, which stops them the moment another beat starts
   const mine = run, own = { ...s, wait: async (ms) => { await s.wait(ms); if (mine !== run) throw STALE; } };
   for (const k of ['tap', 'type']) own[k] = async (...a) => { if (mine !== run) throw STALE; return s[k].apply(own, a); };
@@ -200,17 +200,17 @@ async function still(k) {
   slide = Math.max(0, Math.min(slideCount() - 1, k)); run++; const mine = run; cancelAnimationFrame(raf); paused = true; window.flowcastDone = false;
   const isEnd = endCard && slide === REAL, isOutro = slide > REAL || (!endCard && slide === REAL);
   i = isOutro ? beats.length - 1 : isEnd ? REAL - 1 : slide;
-  s.cls('#fc-end', 'show', false); s.cls('#fc-outro', 'show', false); s.finger(false); render(); paintPause();
-  if (isOutro) { const o = $('#fc-outro'); o.style.fontSize = $('#fc-canvas').offsetWidth * 0.034 + 'px'; o.classList.add('show'); }
+  s.cls('#fc-end', 'fc-show', false); s.cls('#fc-outro', 'fc-show', false); s.finger(false); render(); paintPause();
+  if (isOutro) { const o = $('#fc-outro'); o.style.fontSize = $('#fc-canvas').offsetWidth * 0.034 + 'px'; o.classList.add('fc-show'); }
   else {
     apply(i);
     // the steps run straight through: no waiting, no finger, typed text lands whole
     const own = { ...s, wait: async () => { if (mine !== run) throw STALE; }, tap: async () => { if (mine !== run) throw STALE; }, type: async (q, t) => { if (mine !== run) throw STALE; $(q).textContent = t; } };
     try { await scene[i](own); } catch (e) { if (e !== STALE) console.error(e); }
-    if (isEnd) s.cls('#fc-end', 'show');
+    if (isEnd) s.cls('#fc-end', 'fc-show');
   }
   if (mine !== run) return; s.finger(false); await settle(); if (mine !== run) return;
-  document.querySelectorAll('.fc-dot').forEach(d => { d.querySelector('i').style.width = d.classList.contains('on') || d.classList.contains('done') ? '100%' : '0'; });
+  document.querySelectorAll('.fc-dot').forEach(d => { d.querySelector('i').style.width = d.classList.contains('fc-on') || d.classList.contains('fc-done') ? '100%' : '0'; });
   paintStatus();
 }
 const show = (n) => stills ? still(n) : go(n);
@@ -238,7 +238,7 @@ function finish(mine) {
   const end = () => { if (mode === 'embed' || (mode === 'preview' && endCard)) go(0); else window.flowcastDone = true; };
   // after the outro beat the end card has already played
   if (!endCard || beats[i].outro) return end();
-  s.cls('#fc-end', 'show'); setTimeout(() => { if (mine === run) end(); }, T.endCard / speed);
+  s.cls('#fc-end', 'fc-show'); setTimeout(() => { if (mine === run) end(); }, T.endCard / speed);
 }
 function tick(mine) {
   cancelAnimationFrame(raf); startAt = performance.now() - elapsed;
@@ -248,12 +248,12 @@ function tick(mine) {
     const r = rate(); document.getAnimations().forEach(a => { if (a.playbackRate !== r) a.playbackRate = r; });
     if (performance.now() - (step.painted || 0) > 200) { paintStatus(); step.painted = performance.now(); }
     elapsed = performance.now() - startAt; const p = Math.min(1, elapsed / beats[i].ms);
-    $('.fc-dot.on i').style.width = p * 100 + '%';
+    $('.fc-dot.fc-on i').style.width = p * 100 + '%';
     if (p < 1 || !stepsDone) raf = requestAnimationFrame(step);
     // a beat being retimed stays put once it ends, so the next press changes the same beat
     else if (hold === i) { paused = true; paintPause(); elapsed = 0; }
     // the end card comes between the intro's last beat and the outro
-    else if (i === REAL - 1 && beats.length > REAL && endCard) { s.cls('#fc-end', 'show'); setTimeout(() => { if (mine === run) go(REAL); }, T.endCard / speed); }
+    else if (i === REAL - 1 && beats.length > REAL && endCard) { s.cls('#fc-end', 'fc-show'); setTimeout(() => { if (mine === run) go(REAL); }, T.endCard / speed); }
     else if (i < beats.length - 1) go(i + 1); else finish(mine);
   }; raf = requestAnimationFrame(step);
 }
@@ -437,7 +437,7 @@ if (STUDIO && mode === 'preview') {
   sp.innerHTML = motionImg('fc-splash-mark');
   document.body.append(sp);
   // long enough for the mark to fold and press once
-  const leave = () => { setTimeout(() => sp.classList.add('out'), 1800); setTimeout(() => sp.remove(), 2200); };
+  const leave = () => { setTimeout(() => sp.classList.add('fc-out'), 1800); setTimeout(() => sp.remove(), 2200); };
   document.readyState === 'complete' ? leave() : addEventListener('load', leave, { once: true });
 }
 if (STUDIO) {
@@ -466,13 +466,13 @@ if (STUDIO) {
     const q = { format, project: document.title, ...state(), theme: isDark() ? 'dark' : 'light' };
     const go = $('#fc-go'), status = $('#fc-status'), tiles = document.querySelectorAll('#fc-fmts button'); let done = false;
     pick.disabled = go.disabled = true; tiles.forEach(t => { t.disabled = true; }); status.hidden = true;
-    go.classList.add('busy'); go.innerHTML = motionImg('fc-busy', true) + `<span>Exporting ${name}\u2026</span>`;
+    go.classList.add('fc-exporting'); go.innerHTML = motionImg('fc-busy', true) + `<span>Exporting ${name}\u2026</span>`;
     try { const r = await fetch('export', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(q) }).then(r => r.json());
       if (r.ok) { $('#fc-folder').hidden = false; done = true; }
       else { status.hidden = false; status.textContent = `Export failed: ${r.error}`; } }
     catch (err) { status.hidden = false; status.textContent = 'Export failed: ' + err.message; }
     // a moment of Saved on the button, then back to Export; the folder button below opens the file
-    go.classList.remove('busy'); go.innerHTML = `${I(done ? 'check' : 'export')}<span>${done ? 'Saved to exports' : ''}</span>`; if (!done) exportLabel();
+    go.classList.remove('fc-exporting'); go.innerHTML = `${I(done ? 'check' : 'export')}<span>${done ? 'Saved to exports' : ''}</span>`; if (!done) exportLabel();
     else setTimeout(() => { go.innerHTML = `${I('export')}<span></span>`; exportLabel(); }, 2000);
     pick.disabled = go.disabled = false; tiles.forEach(t => { t.disabled = false; });
   };

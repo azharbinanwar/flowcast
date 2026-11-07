@@ -13,7 +13,7 @@ body{margin:0;background:var(--bg);color:var(--on);font-family:var(--font);font-
 .fc-bar{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
 .fc-dots{display:flex;gap:6px;justify-content:center}
 .fc-dot{width:8px;height:8px;border-radius:4px;background:var(--card);border:1px solid var(--border);overflow:hidden;transition:width .3s;cursor:pointer}
-.fc-dot.on{width:24px}.fc-dot i{display:block;height:100%;width:0;background:var(--accent)}
+.fc-dot.fc-on{width:24px}.fc-dot i{display:block;height:100%;width:0;background:var(--accent)}
 
 /* canvas: the exported picture. The phone and the slots live on it. */
 .fc-tools select{font:inherit;border-radius:999px;padding:8px 12px;background:var(--card);color:var(--on);border:1px solid var(--border)}
@@ -97,15 +97,15 @@ html:not([data-mode=record]) .fc-canvas:not([data-preset=none]),html:not([data-m
 
 /* the actor */
 .fc-finger{position:absolute;z-index:9;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:var(--accent);opacity:0;transform:scale(1);transition:opacity .25s,transform .15s,left .35s,top .35s;pointer-events:none}
-.fc-finger.show{opacity:.4}.fc-finger.press{transform:scale(.75);opacity:.7}
+.fc-finger.fc-show{opacity:.4}.fc-finger.fc-press{transform:scale(.75);opacity:.7}
 
 /* the pointer actor, for desktop apps: the tip lands on the target */
 .fc-finger.fc-pointer{width:22px;height:22px;margin:-2px 0 0 -4px;border-radius:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 2l14 11-6.5 1 3.8 7.2-2.6 1.3-3.8-7.3L5 20z' fill='%23000' stroke='%23fff' stroke-width='1.4' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center/contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35));transition:opacity .2s,transform .12s,left .5s cubic-bezier(.4,0,.2,1),top .5s cubic-bezier(.4,0,.2,1)}
-.fc-finger.fc-pointer.show{opacity:1}.fc-finger.fc-pointer.press{transform:scale(.86);opacity:1}
+.fc-finger.fc-pointer.fc-show{opacity:1}.fc-finger.fc-pointer.fc-press{transform:scale(.86);opacity:1}
 
 /* end card */
 .fc-end{position:absolute;inset:0;z-index:10;background:var(--accent);color:var(--on-accent);display:grid;place-content:center;text-align:center;gap:8px;opacity:0;visibility:hidden;transition:opacity .6s}
-.fc-end.show{opacity:1;visibility:visible}
+.fc-end.fc-show{opacity:1;visibility:visible}
 .fc-end .fc-logo{width:96px;height:auto;margin:0 auto 6px;color:var(--on-accent)}
 .fc-end b{font-size:34px;font-weight:700;letter-spacing:-.5px}.fc-end p{margin:0;font-size:15px;opacity:.9}
 
@@ -123,7 +123,7 @@ html[data-mode=record] .fc-cwrap,html[data-mode=record] .fc-canvas,html[data-mod
 #fc-splash{position:fixed;inset:0;z-index:100;background:#FF6B4A;display:grid;place-items:center;transition:opacity .4s}
 #fc-splash svg{width:112px;height:112px;}
 #fc-splash .fc-splash-mark{width:168px;height:168px;animation:fc-splash-in .5s cubic-bezier(.4,0,.2,1) both}
-#fc-splash.out{opacity:0}
+#fc-splash.fc-out{opacity:0}
 @keyframes fc-splash-in{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){#fc-splash svg,#fc-splash .fc-splash-mark{animation:none}}
 
@@ -211,7 +211,7 @@ html:has(#flowcast[data-mode=preview]) body{background:var(--ui-bg)!important;fo
 /* under the stage: progress and one transport pill */
 #flowcast[data-mode=preview] .fc-dots{gap:6px;margin-top:6px}
 #flowcast[data-mode=preview] .fc-dot{width:26px;height:4px;border-radius:2px;border:0;background:var(--ui-line)}
-#flowcast[data-mode=preview] .fc-dot.on{width:48px}
+#flowcast[data-mode=preview] .fc-dot.fc-on{width:48px}
 #flowcast[data-mode=preview] .fc-dot i{background:var(--ui-accent)}
 .fc-i .fc-fill{fill:currentColor;stroke:none}
 .fc-pill{display:inline-flex;align-items:center;gap:2px}
@@ -288,7 +288,7 @@ html:has(#flowcast[data-mode=preview]){interpolate-size:allow-keywords}
 #flowcast[data-mode=preview] .fc-brow{transition:background .3s,border-color .3s}
 #flowcast[data-mode=preview] .fc-brow::before{transition:background .3s,border-color .3s,color .3s}
 #flowcast[data-mode=preview] .fc-dot{transition:width .4s cubic-bezier(.3,.7,.2,1),background .3s}
-#flowcast[data-mode=preview] .fc-dot.done i{transition:width .3s}
+#flowcast[data-mode=preview] .fc-dot.fc-done i{transition:width .3s}
 #flowcast[data-mode=preview] .fc-tools .fc-creset{width:26px;height:26px;padding:0;display:grid;place-items:center;border-radius:7px;background:none;border-color:transparent;color:var(--ui-accent)}
 #flowcast[data-mode=preview] .fc-creset[hidden]{display:grid!important;visibility:hidden;opacity:0}
 #flowcast[data-mode=preview] .fc-tools .fc-creset{transition:opacity .2s}
@@ -355,14 +355,14 @@ html:has(#flowcast[data-mode=preview]) .fc-crumbs>a:first-child{padding:0;margin
 .fc-canvas[data-credit-when=outro] .fc-made{display:none}
 /* the outro beat: the intro's own background, text and accent, the mark springs in and the words rise after it */
 .fc-outro{position:absolute;inset:0;z-index:8;display:grid;place-content:center;justify-items:center;gap:.8em;background:var(--screen,#fff);color:var(--on,#111);font:700 16px/1.2 var(--font,-apple-system,system-ui,sans-serif);text-align:center;opacity:0;visibility:hidden;transition:opacity .35s,visibility .35s}
-.fc-outro.show{opacity:1;visibility:visible}
+.fc-outro.fc-show{opacity:1;visibility:visible}
 .fc-outro::after{content:'';position:absolute;left:50%;top:calc(50% + 6.6em);width:3.2em;height:.22em;border-radius:1em;background:var(--accent,#FF6B4A);transform:translateX(-50%) scaleX(0);transition:transform .5s cubic-bezier(.3,.7,.2,1) .45s}
-.fc-outro.show::after{transform:translateX(-50%) scaleX(1)}
+.fc-outro.fc-show::after{transform:translateX(-50%) scaleX(1)}
 .fc-outro svg{width:5.5em;height:5.5em;border-radius:1.3em;transform:scale(.6);opacity:0;transition:transform .55s cubic-bezier(.3,1.5,.4,1),opacity .3s}
-.fc-outro.show svg{transform:none;opacity:1}
+.fc-outro.fc-show svg{transform:none;opacity:1}
 .fc-outro b{font-size:1.6em;letter-spacing:-.02em;transform:translateY(.6em);opacity:0;transition:transform .45s cubic-bezier(.3,.7,.2,1) .15s,opacity .35s .15s}
 .fc-outro-link{font-weight:500;font-size:.95em;color:var(--muted,#777);transform:translateY(.6em);opacity:0;transition:transform .45s cubic-bezier(.3,.7,.2,1) .28s,opacity .35s .28s}
-.fc-outro.show b,.fc-outro.show .fc-outro-link{transform:none;opacity:1}
+.fc-outro.fc-show b,.fc-outro.fc-show .fc-outro-link{transform:none;opacity:1}
 .fc-outro-link:empty{display:none}
 #flowcast[data-mode=preview] .fc-when{grid-template-columns:repeat(2,1fr)}
 #flowcast[data-mode=preview] .fc-tools .fc-when button{font-size:12.5px}
@@ -388,6 +388,6 @@ html.fc-full #flowcast[data-mode=preview] .fc-bar{left:50%}
 #flowcast.fc-stills .fc-outro .fc-motion{display:none}#flowcast.fc-stills .fc-outro .fc-outro-still{display:block}
 .fc-busy{width:40px;height:40px;margin:-10px -4px;flex:none}
 /* while exporting the button keeps its place and colour, shows the mark, and cannot be pressed twice */
-#flowcast[data-mode=preview] .fc-tools #fc-go.busy{opacity:1;cursor:progress;background:color-mix(in srgb,var(--ui-accent) 85%,#000)}
+#flowcast[data-mode=preview] .fc-tools #fc-go.fc-exporting{opacity:1;cursor:progress;background:color-mix(in srgb,var(--ui-accent) 85%,#000)}
 #flowcast[data-mode=preview] .fc-tools .fc-fmts button:disabled{opacity:.55;cursor:default}
 #flowcast[data-mode=preview] #fc-status{display:block;width:100%;color:#e5484d;font-size:12.5px;line-height:1.4}
