@@ -81,6 +81,7 @@ const ICON = {
   full: '<path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>',
   credit: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/>',
   link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  folder: '<path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
 };
 const I = (n) => `<svg class="fc-i" viewBox="0 0 24 24">${ICON[n]}</svg>`;
@@ -104,7 +105,7 @@ host.innerHTML = `
     <span class="fc-tag">${{ phone: 'Phone \u00b7 390\u00d7844', browser: 'Browser \u00b7 1280\u00d7800', none: SIZE[1] ? `Canvas \u00b7 ${SIZE[0]}\u00d7${SIZE[1]}` : 'In-app' }[frame]}</span>
   </div></details>
   ${head('timing', 'Timing', { icon: 'timing', open: true })}<div class="fc-label">Speed</div><div class="fc-row"><div class="fc-seg" id="fc-speed">${[0.75, 1, 1.25, 1.5].map(v => `<button data-v="${v}">${v}\u00d7</button>`).join('')}</div></div><div class="fc-label">Beats</div><div class="fc-beats" id="fc-beats"></div></details>
-  ${head('export', 'Export', { icon: 'export', open: true, reset: false }).replace('<details ', '<details id="fc-export-sec" hidden ')}<div class="fc-row"><div class="fc-fmts" id="fc-fmts">${FORMATS.map(([v, n, d], k) => `<button data-f="${v}" class="${k ? '' : 'on'}">${I(v)}<b>${n}</b><small>${d}</small></button>`).join('')}</div><select id="fc-export" hidden>${FORMATS.map(([v, n, d]) => `<option value="${v}">${n} ${d}</option>`).join('')}</select><button id="fc-go">${I('export')}<span>Export \u00b7 ${(total / 1000).toFixed(1)}s</span></button><span class="fc-tag" id="fc-status" hidden></span><button id="fc-saved" hidden></button></div></details>
+  ${head('export', 'Export', { icon: 'export', open: true, reset: false }).replace('<details ', '<details id="fc-export-sec" hidden ')}<div class="fc-row"><div class="fc-fmts" id="fc-fmts">${FORMATS.map(([v, n, d], k) => `<button data-f="${v}" class="${k ? '' : 'on'}">${I(v)}<b>${n}</b><small>${d}</small></button>`).join('')}</div><select id="fc-export" hidden>${FORMATS.map(([v, n, d]) => `<option value="${v}">${n} ${d}</option>`).join('')}</select><button id="fc-go">${I('export')}<span>Export \u00b7 ${(total / 1000).toFixed(1)}s</span></button><span class="fc-tag" id="fc-status" hidden></span><button id="fc-saved" hidden></button><button id="fc-folder" hidden>${I('folder')}<span>Open exports folder</span></button></div></details>
 </div>
 <div class="fc-cwrap" id="fc-cwrap"><div class="fc-canvas" id="fc-canvas">
   <div class="fc-slots fc-top" id="fc-top">
@@ -420,6 +421,8 @@ if (STUDIO) {
     document.body.prepend(crumbs);
   }
   $('#fc-export-sec').hidden = false;
+  // once anything is exported, the folder is always one click away
+  $('#fc-folder').hidden = !pre.exported; $('#fc-folder').onclick = () => fetch('open', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"folder":true}' });
   $('#fc-saved').onclick = () => { if (lastFile) fetch('open', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ file: lastFile }) }); };
   const pick = $('#fc-export');
   // pick a format, then Export makes it
@@ -429,7 +432,7 @@ if (STUDIO) {
     const status = $('#fc-status'), saved = $('#fc-saved');
     pick.disabled = $('#fc-go').disabled = true; status.hidden = false; saved.hidden = true; status.textContent = `Exporting ${label}\u2026`; lastFile = '';
     try { const r = await fetch('export', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(q) }).then(r => r.json());
-      if (r.ok) { lastFile = r.file; status.hidden = true; saved.textContent = r.file.split('/').pop() + (r.file.includes('.') && !r.file.endsWith('-frames') ? '' : '/') + ' \u2197'; saved.hidden = false; } else status.textContent = `Failed: ${r.error}`; }
+      if (r.ok) { lastFile = r.file; status.hidden = true; $('#fc-folder').hidden = false; saved.textContent = r.file.split('/').pop() + (r.file.includes('.') && !r.file.endsWith('-frames') ? '' : '/') + ' \u2197'; saved.hidden = false; } else status.textContent = `Failed: ${r.error}`; }
     catch (err) { status.textContent = 'Failed: ' + err.message; }
     pick.disabled = $('#fc-go').disabled = false;
   };

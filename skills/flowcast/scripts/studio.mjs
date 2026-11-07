@@ -19,7 +19,8 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 
 const MARK = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg>';
 
 // every project that has intros, kept in one list in the home folder; each project's intros stay in its own flowcast/ folder
-const REGISTRY = join(homedir(), '.flowcast', 'projects.json');
+// FLOWCAST_HOME moves the list elsewhere, so the tests never touch the user's own
+const REGISTRY = join(process.env.FLOWCAST_HOME || join(homedir(), '.flowcast'), 'projects.json');
 // { version, projects: [{ root, added, opened }] }: one entry per project, new fields can be added later without breaking older readers
 async function readRegistry() {
   try { const data = JSON.parse(await readFile(REGISTRY, 'utf8'));
@@ -168,7 +169,7 @@ async function history(only) {
     return `<a class="card" href="${u}" data-url="${u}" data-name="${esc(entry.name)}" data-title="${esc(entry.title.toLowerCase())}" data-edited="${entry.edited}">
   <span class="cv"><img src="${u}cover.png" alt="" loading="lazy"><span class="live"></span><span class="play"><svg viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg></span></span>
   <span class="body"><b>${esc(entry.title)}</b><span class="facts"><span class="meta"></span><span>${ago(entry.edited)}</span></span>
-  ${entry.kinds.length ? `<span class="kinds">${entry.kinds.map(k => `<i>${k}</i>`).join('')}</span>` : '<span class="kinds none">Not exported yet</span>'}</span></a>`; };
+  ${entry.kinds.length ? `<span class="kinds">${entry.kinds.map(k => `<i>${k}</i>`).join('')}<button class="open" title="Open the exports folder"><svg viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg>Open folder</button></span>` : '<span class="kinds none">Not exported yet</span>'}</span></a>`; };
   const cards = groups.map(group => `<section class="proj" id="p-${group.slug}" data-slug="${group.slug}"><h2><button class="pi${group.logo ? ' has' : ''}" title="${group.logo ? 'Change' : 'Add'} the logo: click or drop an image">${group.logo ? `<img src="/${group.slug}/${group.logo}?v=${Date.now()}" alt="">` : esc(group.name.slice(0, 1).toUpperCase())}</button>${only ? `<b>${esc(group.name)}</b>` : `<a href="/${group.slug}/"><b>${esc(group.name)}</b></a>`}<small>${group.projectIntros.length} intro${group.projectIntros.length === 1 ? '' : 's'} \u00b7 ${esc(group.root.replace(homedir(), '~'))}</small></h2><div class="grid">${group.projectIntros.map(entry => cardOf(group, entry)).join('')}</div></section>`).join('');
   return `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Flowcast</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${encodeURIComponent(MARK)}">
@@ -213,6 +214,9 @@ p.sub{color:var(--muted);margin:0 0 24px}
 .kinds{display:flex;gap:5px;flex-wrap:wrap;margin-top:2px}
 .kinds i{font:700 10.5px/1 var(--font);font-style:normal;letter-spacing:.04em;padding:5px 7px;border-radius:6px;background:color-mix(in srgb,var(--accent) 12%,var(--field));color:var(--accent)}
 .kinds.none{font-size:12px;color:var(--muted)}
+.kinds .open{margin-left:auto;display:inline-flex;align-items:center;gap:5px;font:600 11.5px/1 var(--font);color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:7px;padding:4px 8px;cursor:pointer}
+.kinds .open:hover{border-color:var(--accent);color:var(--accent)}
+.kinds .open svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .empty,.nomatch{padding:72px 0;text-align:center;color:var(--muted)}
 .empty code{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
 @media (max-width:640px){.tools input{width:140px}}
@@ -222,6 +226,8 @@ p.sub{color:var(--muted);margin:0 0 24px}
 ${count ? `<div id="grid">${cards}</div><div class="nomatch" id="nomatch" hidden>No intro matches that search.</div>` : `<div class="empty">No intros yet. Run <code>/flowcast</code> with a feature or a story to make the first one.</div>`}</main>
 <script>
 // facts arrive per card once its cover is ready; a hover plays the intro itself, scaled into the card
+// Open folder sits inside the card's link: it opens the folder instead of the intro
+document.querySelectorAll('.card .open').forEach(b => b.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); fetch(b.closest('.card').dataset.url + 'open', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"folder":true}' }); }));
 document.querySelectorAll('.card').forEach(c => {
   const u = c.dataset.url; let meta = null;
   fetch(u + 'meta.json').then(r => r.ok ? r.json() : null).then(m => { if (!m) return; meta = m; c.querySelector('.meta').textContent = m.label + ' \\u00b7 ' + m.seconds + 's'; }).catch(() => {});
@@ -231,7 +237,7 @@ document.querySelectorAll('.card').forEach(c => {
 });
 // a project's logo: click its square or drop an image on it; it is saved in that project's flowcast folder
 document.querySelectorAll('.proj .pi').forEach(b => {
-  const slug = b.closest('.proj').dataset.slug, save = async (file) => { if (!file || !/image\/(svg\+xml|png|jpeg|webp)/.test(file.type)) return;
+  const slug = b.closest('.proj').dataset.slug, save = async (file) => { if (!file || !['image/svg+xml', 'image/png', 'image/jpeg', 'image/webp'].includes(file.type)) return;
     const r = await fetch('/' + slug + '/logo', { method: 'POST', headers: { 'content-type': file.type }, body: file }); if (r.ok) location.reload(); };
   b.addEventListener('click', () => { const i = Object.assign(document.createElement('input'), { type: 'file', accept: 'image/svg+xml,image/png,image/jpeg,image/webp' }); i.onchange = () => save(i.files[0]); i.click(); });
   b.addEventListener('dragover', (e) => { e.preventDefault(); b.classList.add('drop'); }); b.addEventListener('dragleave', () => b.classList.remove('drop'));
@@ -280,7 +286,7 @@ createServer(async (req, res) => {
     if (req.method === 'POST') {
       let body = ''; for await (const c of req) body += c; const q = JSON.parse(body || '{}');
       if (sub === 'state') { await writeFile(stateOf(root, name), body); return send(200, 'application/json', '{"ok":true}'); }
-      if (sub === 'open') { if (q.file && q.file.startsWith(join(root, name))) reveal(q.file); return send(200, 'application/json', '{"ok":true}'); }
+      if (sub === 'open') { if (q.folder) reveal(join(root, name, 'exports')); else if (q.file && q.file.startsWith(join(root, name))) reveal(q.file); return send(200, 'application/json', '{"ok":true}'); }
       if (sub === 'export') { await writeFile(stateOf(root, name), JSON.stringify(q)); const file = await exportIt(root, name, q); reveal(file); return send(200, 'application/json', JSON.stringify({ ok: true, file })); }
       return send(404, 'text/plain', 'not found');
     }
@@ -289,7 +295,7 @@ createServer(async (req, res) => {
       // the intro opens with what the user last set on it
       let st = {}; try { st = JSON.parse(await readFile(stateOf(root, name), 'utf8')); } catch {}
       // ?mode=record plays it bare, for the History cover and the hover preview
-      const pre = { ...(url.searchParams.get('mode') === 'record' ? { mode: 'record' } : {}), project: proj.name, canvas: st.canvas, phone: st.phone, theme: st.theme, slots: st.slots, words: st.words, speed: st.speed, durations: st.durations, colors: st.colors, credit: st.credit, ...(st.captions === 'off' ? { captions: 'off' } : st.captions ? { captionsAt: st.captions } : {}) };
+      const pre = { ...(url.searchParams.get('mode') === 'record' ? { mode: 'record' } : {}), project: proj.name, exported: await readdir(join(root, name, 'exports')).then(fs => fs.some(f => !f.startsWith('.') && !f.endsWith('.webm') && !f.endsWith('.json')), () => false), canvas: st.canvas, phone: st.phone, theme: st.theme, slots: st.slots, words: st.words, speed: st.speed, durations: st.durations, colors: st.colors, credit: st.credit, ...(st.captions === 'off' ? { captions: 'off' } : st.captions ? { captionsAt: st.captions } : {}) };
       const html = String(await readFile(intro(root, name))).replace('<script', `<script>window.__flowcast=${JSON.stringify(pre)}</script><script`);
       return send(200, TYPES['.html'], html);
     }

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Open folder: on every History card that has exports, and as Open exports folder under the studio's Export button.
+- Fixed: the History page's script failed to load after the logo upload was added, which stopped search, hover previews and logo drops; a test now checks the page's script.
 - Exports never overwrite: each is named for the project and the minute it was made, `flowcast-<project>-2026-11-07-15-42.mp4`, with `-2` on a clash. The raw recording is removed once converted.
 - Credit section, off by default: Made with Flowcast, with Flowcast's own repo link if you want it (it cannot be changed). Outro slide: a real beat after the end card, animated, in the intro's own colours, with its own seconds in Timing and a frame in PNG and PDF exports. Watermark: a small tag for the whole video in any of six spots.
 - Exports start on the intro's first real frame: the recorder waits for fonts, pictures and your own words, and the page loading in front is cut, so changed text never flashes the old version.

@@ -63,6 +63,17 @@ r = node([join(here, 'check.mjs'), sample]); ok('check passes the sample', r.sta
   writeFileSync(bad, readFileSync(sample, 'utf8').replace('data-frame="none" data-width="1080" data-height="1080" data-captions="off"', 'data-frame="phone" data-captions-at="inside"').replace('<template id="scene">', '<template id="scene"><div style="position:absolute;left:0;right:0;top:520px;height:120px;background:#ccc"></div>').replaceAll('../player/', `${join(root, 'player')}/`));
   r = node([join(here, 'check.mjs'), bad]); ok('check catches a sheet placed from the top', /Anchor it with bottom/.test(r.stdout), r.stdout.trim().slice(0, 120)); }
 
+// 5c. the studio's History page: its own script must parse, or search, previews, logos and Open folder all stop
+{ const home = join(out, 'home'), proj = join(out, 'proj', 'flowcast', 'demo'); mkdirSync(proj, { recursive: true }); mkdirSync(home, { recursive: true });
+  writeFileSync(join(proj, 'intro.html'), readFileSync(sample, 'utf8').replaceAll('../player/', `${join(root, 'player')}/`));
+  const { spawn } = await import('node:child_process');
+  const studio = spawn(process.execPath, [join(here, 'studio.mjs'), join(out, 'proj', 'flowcast'), '--port', '7799'], { env: { ...process.env, FLOWCAST_HOME: home }, stdio: 'ignore' });
+  let page = ''; for (let k = 0; k < 40 && !page; k++) { await new Promise(r => setTimeout(r, 150)); page = await fetch('http://127.0.0.1:7799/').then(r => r.text(), () => ''); }
+  const scripts = [...page.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
+  let parses = scripts.length > 0; for (const s of scripts) { try { new Function(s); } catch (e) { parses = false; console.log('   ', e.message); } }
+  ok('History page lists the intro and its script parses', page.includes('data-name="demo"') && parses);
+  studio.kill(); }
+
 // 6. optional: record and convert
 if (process.argv.includes('--video')) {
   r = node([join(here, 'record.mjs'), sample, join(out, 'v.webm'), '--canvas', 'square']); ok('records webm', r.status === 0);

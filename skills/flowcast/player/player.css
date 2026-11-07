@@ -360,3 +360,5 @@ html:has(#flowcast[data-mode=preview]) .fc-crumbs>a:first-child{padding:0;margin
 .fc-outro-link:empty{display:none}
 #flowcast[data-mode=preview] .fc-when{grid-template-columns:repeat(2,1fr)}
 #flowcast[data-mode=preview] .fc-tools .fc-when button{font-size:12.5px}
+#flowcast[data-mode=preview] .fc-tools #fc-folder{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--ui-panel)}
+#flowcast[data-mode=preview] #fc-folder .fc-i{color:var(--ui-muted)}
