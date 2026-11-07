@@ -96,6 +96,7 @@ if (process.argv.includes('--video')) {
   r = node([join(here, 'record.mjs'), sample, join(out, 'v.webm'), '--canvas', 'square']); ok('records webm', r.status === 0);
   ok('notes where the intro starts, so the loading is cut', existsSync(join(out, 'v.webm.json')) && JSON.parse(readFileSync(join(out, 'v.webm.json'), 'utf8')).start > 0);
   r = node([join(here, 'convert.mjs'), join(out, 'v.webm'), join(out, 'v.mp4')]); ok('converts to mp4', r.status === 0 && existsSync(join(out, 'v.mp4')));
+  r = node([join(here, 'convert.mjs'), join(out, 'v.webm'), join(out, 'v.gif')]); ok('converts to gif', r.status === 0 && existsSync(join(out, 'v.gif')), r.stderr.trim().split('\n').pop());
 }
 
 rmSync(out, { recursive: true, force: true });

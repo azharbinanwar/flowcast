@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed: converting to MP4 failed on Linux after the loading cut was added, and the GIF lost its colours; the cut now happens after the recording is read, and inside the filter for GIFs.
 - Fixed: Privacy took the numbers inside icon drawings for phone numbers. It now reads only text the intro shows on screen, including text its steps type in later.
 - Skill: every run shows a short plan first (who it is for, the steps, look, logo, which earlier intro it starts from) and waits for Build it, Make it shorter or Change something.
 - Skill: planning and building run in their own sub-agents, so a long chat is not re-read on every step; the main guide is a third of its old size, with the know-how moved into `plan.md` and `build.md`.
