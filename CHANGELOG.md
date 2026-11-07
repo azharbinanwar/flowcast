@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- The beat dots and the play bar stay in one place at the foot of the stage, whatever the video's size from beat to beat or canvas to canvas.
+- Full screen: the controls float over the video and show while the mouse moves, then hide with the cursor after two still seconds; arrows step, Space plays or pauses, the full-screen button leaves it. A phone keeps its rounded corners, on black.
+- Slides preview: picking PNG or PDF turns the preview into slides, each beat's finished picture with no motion, then the end card and the outro, stepped with the arrows, dots or beat rows and counted as 3 / 7. PNG frames, PDF slides and the contact sheet export exactly those pictures, and much faster. Timing says it only changes video and GIF.
 - Open folder: on every History card that has exports, and as Open exports folder under the studio's Export button.
 - Fixed: the History page's script failed to load after the logo upload was added, which stopped search, hover previews and logo drops; a test now checks the page's script.
 - Exports never overwrite: each is named for the project and the minute it was made, `flowcast-<project>-2026-11-07-15-42.mp4`, with `-2` on a clash. The raw recording is removed once converted.

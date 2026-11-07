@@ -1,5 +1,4 @@
 // One contact sheet of every beat, so a check costs one small image. Usage: node sheet.mjs intro.html sheet.jpg [--theme dark] [--captions off] [--at 0.85]
-// --at is where in each beat the frame is taken (0.85 = near its end, after the cause and the effect).
 import { chromium } from 'playwright';
 import { resolve } from 'node:path';
 
@@ -24,22 +23,16 @@ const at = +(opt.at || 0.85);
 const browser = await chromium.launch();
 // record mode: no drawer or controls, so the frame renders at full size whatever the window
 const page = await browser.newPage({ viewport: { width: 1280, height: 1280 }, colorScheme: opt.theme || 'light' });
-await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', theme: opt.theme, captions: opt.captions === 'off' ? 'off' : undefined, captionsAt: opt.captions === 'below' ? 'below' : undefined, ...extra });
+await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', stills: true, theme: opt.theme, captions: opt.captions === 'off' ? 'off' : undefined, captionsAt: opt.captions === 'below' ? 'below' : undefined, ...extra });
 await page.goto('file://' + resolve(input));
 await page.waitForFunction(() => window.flowcast && window.flowcast.beats); await page.evaluate(() => document.fonts.ready);
-const beats = await page.evaluate(() => flowcast.beats.map(b => b.ms));
-const outro = await page.evaluate(() => !!flowcast.beats[flowcast.beats.length - 1].outro), real = beats.length - (outro ? 1 : 0);
+// every slide's finished picture, the way PNG and PDF export them
+const count = await page.evaluate(() => flowcast.slides()), real = await page.evaluate(() => flowcast.beats.filter(b => !b.outro).length), outro = await page.evaluate(() => flowcast.beats.some(b => b.outro));
 const shots = [], labels = [];
-for (let i = 0; i < real; i++) {
-  await page.evaluate((n) => flowcast.go(n), i);
-  await page.waitForTimeout(Math.max(300, beats[i] * at));
-  shots.push((await page.locator('#fc-canvas').screenshot()).toString('base64')); labels.push('beat ' + (i + 1));
+for (let k = 0; k < count; k++) {
+  await page.evaluate((n) => flowcast.still(n), k);
+  shots.push((await page.locator('#fc-canvas').screenshot()).toString('base64')); labels.push(k < real ? 'beat ' + (k + 1) : outro && k === count - 1 ? 'outro' : 'end');
 }
-// the end card, if the intro has one, then the outro if the credit adds one
-await page.evaluate((n) => flowcast.go(n), real - 1);
-await page.waitForTimeout(beats[real - 1] + 900);
-shots.push((await page.locator('#fc-canvas').screenshot()).toString('base64')); labels.push('end');
-if (outro) { await page.evaluate((n) => flowcast.go(n), real); await page.waitForTimeout(Math.max(900, beats[real] * at)); shots.push((await page.locator('#fc-canvas').screenshot()).toString('base64')); labels.push('outro'); }
 const box = await page.locator('#fc-canvas').boundingBox();
 
 // one small image: every frame side by side within 1500px, so reading it costs about a thousand tokens

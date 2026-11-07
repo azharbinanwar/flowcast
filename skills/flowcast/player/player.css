@@ -303,9 +303,15 @@ html:has(#flowcast[data-mode=preview]){interpolate-size:allow-keywords}
 #flowcast[data-mode=preview] #fc-skip{display:none}
 #flowcast[data-mode=preview] #fc-full{display:grid}
 html.fc-full body{padding:0!important;background:#000!important;display:grid;place-items:center;min-height:100vh}
-html.fc-full .fc-tools,html.fc-full .fc-crumbs,html.fc-full .fc-dots,html.fc-full .fc-bar{display:none!important}
+html.fc-full .fc-tools,html.fc-full .fc-crumbs,html.fc-full .fc-dots{display:none!important}
+/* in full screen the controls float over the video like a player's: shown while the mouse moves, gone when it rests */
+html.fc-full .fc-bar{position:fixed;left:50%;bottom:max(28px,env(safe-area-inset-bottom,0px));transform:translate(-50%,12px);z-index:50;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+html.fc-full.fc-awake .fc-bar,html.fc-full .fc-bar:hover{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+html.fc-full:not(.fc-awake) body{cursor:none}
 html.fc-full #flowcast{display:grid;place-items:center;width:100vw;height:100vh}
-html.fc-full .fc-canvas,html.fc-full .fc-frame,html.fc-full .fc-screen{box-shadow:none!important;border-radius:0!important}
+html.fc-full .fc-canvas,html.fc-full .fc-frame.fc-none .fc-screen{box-shadow:none!important;border-radius:0!important}
+/* a device keeps its own shape in full screen; only the space around it turns black */
+html.fc-full:has(#flowcast) body{background:#000!important}
 html.fc-full #flowcast{gap:0}
 
 /* breadcrumb: the mark and Flowcast lead home, then the intro you are in */
@@ -362,3 +368,16 @@ html:has(#flowcast[data-mode=preview]) .fc-crumbs>a:first-child{padding:0;margin
 #flowcast[data-mode=preview] .fc-tools .fc-when button{font-size:12.5px}
 #flowcast[data-mode=preview] .fc-tools #fc-folder{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--ui-panel)}
 #flowcast[data-mode=preview] #fc-folder .fc-i{color:var(--ui-muted)}
+
+/* slides: the play button turns into a counter and Timing steps back, since seconds do not change a picture */
+#flowcast[data-mode=preview] .fc-pill #fc-pause[data-state=slide]{width:auto;min-width:64px;padding:0 12px;font:600 13px/1 var(--ui-font);font-variant-numeric:tabular-nums;cursor:default;background:var(--ui-field);color:var(--ui-text)}
+.fc-note{display:none;margin:0 0 12px;padding:10px 12px;border-radius:10px;background:var(--ui-field,#f4f4f7);color:var(--ui-muted,#777);font-size:12px;line-height:1.4}
+#flowcast.fc-stills .fc-note{display:block}
+#flowcast.fc-stills [data-sec=timing] .fc-seg,#flowcast.fc-stills [data-sec=timing] .fc-beats .fc-brow button,#flowcast.fc-stills [data-sec=timing] .fc-label{opacity:.45;pointer-events:none}
+/* the dots and the bar stay put at the foot of the stage area, whatever size the video is from beat to beat */
+@media (min-width:901px){
+  #flowcast[data-mode=preview] .fc-dots,#flowcast[data-mode=preview] .fc-bar{position:fixed;left:calc((100vw - 340px) / 2);transform:translateX(-50%);z-index:20}
+  #flowcast[data-mode=preview] .fc-bar{bottom:max(20px,env(safe-area-inset-bottom,0px));margin:0}
+  #flowcast[data-mode=preview] .fc-dots{bottom:calc(max(20px,env(safe-area-inset-bottom,0px)) + 62px);margin:0}
+}
+html.fc-full #flowcast[data-mode=preview] .fc-bar{left:50%}

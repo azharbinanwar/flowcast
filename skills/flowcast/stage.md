@@ -112,7 +112,7 @@ Words first, one picture only when needed.
 node scripts/sheet.mjs intro.html sheet.jpg --at 0.95 --theme dark
 ```
 
-Read it once, for what words cannot judge: the look, the motion's end state, the brand. Confirm a fix with `check.mjs` again; when only a picture can confirm it, one frame of that beat, cropped to the spot. Never a second sheet. Check the other theme only when colours changed.
+The sheet shows each beat's finished picture, the same as PNG and PDF export. Read it once, for what words cannot judge: the look, the motion's end state, the brand. Confirm a fix with `check.mjs` again; when only a picture can confirm it, one frame of that beat, cropped to the spot. Never a second sheet. Check the other theme only when colours changed.
 
 ## Show
 

@@ -27,26 +27,22 @@ mkdirSync(resolve(outdir), { recursive: true });
 const browser = await chromium.launch();
 // a first pass at a neutral size tells us the frame's own size when no canvas is asked for
 const probe = await browser.newPage({ viewport: { width: 1280, height: 1280 } });
-await probe.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', theme, canvas: opt.canvas, phone: opt.phone, captions: opt.captions === 'off' ? 'off' : undefined, captionsAt: opt.captions === 'below' ? 'below' : undefined, ...extra });
+await probe.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', stills: true, theme, canvas: opt.canvas, phone: opt.phone, captions: opt.captions === 'off' ? 'off' : undefined, captionsAt: opt.captions === 'below' ? 'below' : undefined, ...extra });
 await probe.goto('file://' + resolve(input)); await probe.waitForFunction(() => window.flowcast && window.flowcast.beats);
 const [w, h] = PRESET[opt.canvas] || await probe.evaluate(() => flowcast.frame === 'none' && flowcast.size[1] ? flowcast.size : (() => { const r = document.getElementById('fc-canvas').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; })());
 await probe.close();
 
 const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1, colorScheme: theme });
-await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', theme, canvas: opt.canvas, phone: opt.phone, captions: opt.captions === 'off' ? 'off' : undefined, captionsAt: opt.captions === 'below' ? 'below' : undefined, ...extra });
+await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', stills: true, theme, canvas: opt.canvas, phone: opt.phone, captions: opt.captions === 'off' ? 'off' : undefined, captionsAt: opt.captions === 'below' ? 'below' : undefined, ...extra });
 await page.goto('file://' + resolve(input)); await page.waitForFunction(() => window.flowcast && window.flowcast.beats); await page.evaluate(() => document.fonts.ready);
 await page.evaluate(() => { const host = document.getElementById('flowcast'); const r = document.getElementById('fc-canvas').getBoundingClientRect(); if (r.width < innerWidth - 1 || r.height < innerHeight - 1) { host.style.display = 'grid'; host.style.placeItems = 'center'; host.style.minHeight = innerHeight + 'px'; } });
-const beats = await page.evaluate(() => flowcast.beats.map(b => b.ms));
-// a Flowcast outro is the last beat but plays after the end card, so the pictures go: beats, end card, outro
-const outro = await page.evaluate(() => !!flowcast.beats[flowcast.beats.length - 1].outro), real = beats.length - (outro ? 1 : 0);
+// each slide is a beat's finished picture, then the end card, then the outro: the same pictures the studio shows when PNG or PDF is picked
+const count = await page.evaluate(() => flowcast.slides());
 const files = [];
-for (let i = 0; i < real; i++) {
-  await page.evaluate((n) => flowcast.go(n), i); await page.waitForTimeout(Math.max(300, beats[i] * at));
-  const f = join(resolve(outdir), `flowcast-${i + 1}.png`); await page.screenshot({ path: f }); files.push(f);
+for (let k = 0; k < count; k++) {
+  await page.evaluate((n) => flowcast.still(n), k);
+  const f = join(resolve(outdir), `flowcast-${k + 1}.png`); await page.screenshot({ path: f }); files.push(f);
 }
-await page.evaluate((n) => flowcast.go(n), real - 1); await page.waitForTimeout(beats[real - 1] + 900);
-const endFile = join(resolve(outdir), `flowcast-${real + 1}.png`); await page.screenshot({ path: endFile }); files.push(endFile);
-if (outro) { await page.evaluate((n) => flowcast.go(n), real); await page.waitForTimeout(Math.max(900, beats[real] * at)); const f = join(resolve(outdir), `flowcast-${real + 2}.png`); await page.screenshot({ path: f }); files.push(f); }
 
 if (opt.pdf) {
   // the frames as pages, each the size of the frame

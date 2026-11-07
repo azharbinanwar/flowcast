@@ -104,7 +104,7 @@ host.innerHTML = `
     <span class="fc-slot-toggles">${Object.keys(slots).filter(k => k === 'logo' ? !!endTpl?.content.querySelector('.fc-logo') : !!cv[k]).map(k => `<button data-slot="${k}" class="${slots[k] ? 'on' : ''}">${k}</button>`).join('')}</span>
     <span class="fc-tag">${{ phone: 'Phone \u00b7 390\u00d7844', browser: 'Browser \u00b7 1280\u00d7800', none: SIZE[1] ? `Canvas \u00b7 ${SIZE[0]}\u00d7${SIZE[1]}` : 'In-app' }[frame]}</span>
   </div></details>
-  ${head('timing', 'Timing', { icon: 'timing', open: true })}<div class="fc-label">Speed</div><div class="fc-row"><div class="fc-seg" id="fc-speed">${[0.75, 1, 1.25, 1.5].map(v => `<button data-v="${v}">${v}\u00d7</button>`).join('')}</div></div><div class="fc-label">Beats</div><div class="fc-beats" id="fc-beats"></div></details>
+  ${head('timing', 'Timing', { icon: 'timing', open: true })}<p class="fc-note" id="fc-still-note">Timing only changes video and GIF. Slides show each beat's finished picture.</p><div class="fc-label">Speed</div><div class="fc-row"><div class="fc-seg" id="fc-speed">${[0.75, 1, 1.25, 1.5].map(v => `<button data-v="${v}">${v}\u00d7</button>`).join('')}</div></div><div class="fc-label">Beats</div><div class="fc-beats" id="fc-beats"></div></details>
   ${head('export', 'Export', { icon: 'export', open: true, reset: false }).replace('<details ', '<details id="fc-export-sec" hidden ')}<div class="fc-row"><div class="fc-fmts" id="fc-fmts">${FORMATS.map(([v, n, d], k) => `<button data-f="${v}" class="${k ? '' : 'on'}">${I(v)}<b>${n}</b><small>${d}</small></button>`).join('')}</div><select id="fc-export" hidden>${FORMATS.map(([v, n, d]) => `<option value="${v}">${n} ${d}</option>`).join('')}</select><button id="fc-go">${I('export')}<span>Export \u00b7 ${(total / 1000).toFixed(1)}s</span></button><span class="fc-tag" id="fc-status" hidden></span><button id="fc-saved" hidden></button><button id="fc-folder" hidden>${I('folder')}<span>Open exports folder</span></button></div></details>
 </div>
 <div class="fc-cwrap" id="fc-cwrap"><div class="fc-canvas" id="fc-canvas">
@@ -157,7 +157,7 @@ const s = {
 
 const STALE = Symbol('stale beat');
 // play and pause share one button whose icon shows what a press will do
-const paintPause = () => { const b = $('#fc-pause'); b.innerHTML = I(paused ? 'play' : 'pause'); b.dataset.state = paused ? 'paused' : 'playing'; b.title = b.ariaLabel = paused ? 'Play' : 'Pause'; };
+const paintPause = () => { const b = $('#fc-pause'); if (stills) { b.textContent = `${slide + 1} / ${slideCount()}`; b.dataset.state = 'slide'; b.title = b.ariaLabel = 'Slide'; return; } b.innerHTML = I(paused ? 'play' : 'pause'); b.dataset.state = paused ? 'paused' : 'playing'; b.title = b.ariaLabel = paused ? 'Play' : 'Pause'; };
 let i = 0, paused = false, run = 0, raf, startAt, elapsed = 0, stepsDone = false, hold = -1;
 // a beat set shorter or longer plays its steps and transitions faster or slower to fit, on top of the overall speed
 const rate = () => speed * base[i] / dur[i];
@@ -187,6 +187,29 @@ function go(n) {
   Promise.resolve().then(() => isOutro ? null : scene[i](own)).catch(e => { if (e !== STALE) console.error(e); }).finally(() => { if (mine === run) stepsDone = true; });
   tick(run);
 }
+// slides: what PNG frames and PDF slides export. Each beat's finished picture, then the end card, then the outro; no motion, stepped by hand
+let stills = !!pre.stills, slide = 0;
+const slideCount = () => REAL + (endCard ? 1 : 0) + (beats.length > REAL ? 1 : 0);
+const settle = async () => { for (let k = 0; k < 3; k++) { void document.body.offsetWidth; document.getAnimations().forEach(a => { try { a.finish(); } catch {} }); await new Promise(r => requestAnimationFrame(() => r())); } };
+async function still(k) {
+  slide = Math.max(0, Math.min(slideCount() - 1, k)); run++; const mine = run; cancelAnimationFrame(raf); paused = true; window.flowcastDone = false;
+  const isEnd = endCard && slide === REAL, isOutro = slide > REAL || (!endCard && slide === REAL);
+  i = isOutro ? beats.length - 1 : isEnd ? REAL - 1 : slide;
+  s.cls('#fc-end', 'show', false); s.cls('#fc-outro', 'show', false); s.finger(false); render(); paintPause();
+  if (isOutro) { const o = $('#fc-outro'); o.style.fontSize = $('#fc-canvas').offsetWidth * 0.034 + 'px'; o.classList.add('show'); }
+  else {
+    apply(i);
+    // the steps run straight through: no waiting, no finger, typed text lands whole
+    const own = { ...s, wait: async () => { if (mine !== run) throw STALE; }, tap: async () => { if (mine !== run) throw STALE; }, type: async (q, t) => { if (mine !== run) throw STALE; $(q).textContent = t; } };
+    try { await scene[i](own); } catch (e) { if (e !== STALE) console.error(e); }
+    if (isEnd) s.cls('#fc-end', 'show');
+  }
+  if (mine !== run) return; s.finger(false); await settle(); if (mine !== run) return;
+  document.querySelectorAll('.fc-dot').forEach(d => { d.querySelector('i').style.width = d.classList.contains('on') || d.classList.contains('done') ? '100%' : '0'; });
+  paintStatus();
+}
+const show = (n) => stills ? still(n) : go(n);
+const setStills = (on) => { if (on === stills) return; stills = on; host.classList.toggle('fc-stills', on); if (on) still(i); else go(Math.min(i, beats.length - 1)); };
 // the status bar takes the colour at the top of the app and the text that reads on it, like a real phone
 const statusBar = () => $('#fc-status-bar');
 const topColour = () => {
@@ -229,14 +252,21 @@ function tick(mine) {
     else if (i < beats.length - 1) go(i + 1); else finish(mine);
   }; raf = requestAnimationFrame(step);
 }
-$('#fc-pause').onclick = () => { if (paused && hold === i && elapsed === 0) { hold = -1; return go(i + 1 < beats.length ? i + 1 : 0); } hold = -1; paused = !paused; paintPause(); if (!paused) tick(run); };
-$('#fc-prev').onclick = () => { hold = -1; go(i - 1); }; $('#fc-next').onclick = () => { hold = -1; go(i + 1); }; $('#fc-replay').onclick = () => { hold = -1; go(0); };
-$('#fc-skip').onclick = () => { hold = -1; go(beats.length - 1); };
-$('#fc-full').onclick = () => { document.documentElement.classList.add('fc-full'); document.documentElement.requestFullscreen?.().catch(() => {}); layout(); };
+$('#fc-pause').onclick = () => { if (stills) return; if (paused && hold === i && elapsed === 0) { hold = -1; return go(i + 1 < beats.length ? i + 1 : 0); } hold = -1; paused = !paused; paintPause(); if (!paused) tick(run); };
+$('#fc-prev').onclick = () => { hold = -1; stills ? still(slide - 1) : go(i - 1); }; $('#fc-next').onclick = () => { hold = -1; stills ? still(slide + 1) : go(i + 1); }; $('#fc-replay').onclick = () => { hold = -1; show(0); };
+$('#fc-skip').onclick = () => { hold = -1; stills ? still(slideCount() - 1) : go(beats.length - 1); };
+// the same button leaves full screen; inside it the bar wakes on mouse movement and sleeps after two still seconds
+const leaveFull = () => { if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {}); document.documentElement.classList.remove('fc-full', 'fc-awake'); paintFull(); layout(); };
+const paintFull = () => { const on = full(); $('#fc-full').title = $('#fc-full').ariaLabel = on ? 'Leave full screen' : 'Full screen'; };
+let sleepTimer; const wake = () => { if (!full()) return; document.documentElement.classList.add('fc-awake'); clearTimeout(sleepTimer); sleepTimer = setTimeout(() => document.documentElement.classList.remove('fc-awake'), 2000); };
+addEventListener('mousemove', wake); addEventListener('touchstart', wake, { passive: true });
+$('#fc-full').onclick = () => { if (full()) return leaveFull(); document.documentElement.classList.add('fc-full'); document.documentElement.requestFullscreen?.().catch(() => {}); paintFull(); layout(); wake(); };
+// keys in full screen: arrows step, space plays or pauses, each showing the bar for a moment
+addEventListener('keydown', (e) => { if (!full()) return; if (e.key === 'ArrowRight') { $('#fc-next').click(); wake(); } else if (e.key === 'ArrowLeft') { $('#fc-prev').click(); wake(); } else if (e.key === ' ') { e.preventDefault(); $('#fc-pause').click(); wake(); } });
 // Esc, or leaving full screen any other way, brings the studio back
-document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) { document.documentElement.classList.remove('fc-full'); layout(); } });
-addEventListener('keydown', (e) => { if (e.key !== 'Escape' || !full()) return; if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {}); document.documentElement.classList.remove('fc-full'); layout(); });
-$('#fc-dots').onclick = (e) => { const d = e.target.closest('.fc-dot'); if (d) { hold = -1; go(+d.dataset.k); } };
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && full()) leaveFull(); });
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && full()) leaveFull(); });
+$('#fc-dots').onclick = (e) => { const d = e.target.closest('.fc-dot'); if (!d) return; hold = -1; const k = +d.dataset.k; stills ? still(beats[k].outro ? slideCount() - 1 : k) : go(k); };
 
 // toolbar
 const isDark = () => document.documentElement.dataset.theme === 'dark' || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
@@ -260,7 +290,7 @@ const exportLabel = () => { const f = $('#fc-export').value, n = beats.length + 
 const retimed = () => { exportLabel(); paintSpeed(); render(); layout(); saveState(); };
 const paintSpeed = () => document.querySelectorAll('#fc-speed button').forEach(b => b.classList.toggle('on', +b.dataset.v === speed));
 paintSpeed(); $('#fc-speed').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; speed = +b.dataset.v; retime(); retimed(); };
-$('#fc-fmts').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; document.querySelectorAll('#fc-fmts button').forEach(x => x.classList.toggle('on', x === b)); $('#fc-export').value = b.dataset.f; exportLabel(); };
+$('#fc-fmts').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; document.querySelectorAll('#fc-fmts button').forEach(x => x.classList.toggle('on', x === b)); $('#fc-export').value = b.dataset.f; exportLabel(); setStills(b.dataset.f === 'frames' || b.dataset.f === 'slides'); };
 // half a second at a time, as the viewer sees it, from a third of the written time to double; past that the motion blurs or stalls.
 // It replays the beat at its new length and holds there, so every press changes the same beat.
 const nudge = (k, d) => { dur[k] = Math.min(base[k] * 2, Math.max(base[k] / 3, dur[k] + d * 500 * speed)); retime(); retimed(); hold = k; go(k); };
@@ -282,7 +312,7 @@ const paintResets = () => document.querySelectorAll('.fc-sreset').forEach(b => {
 $('.fc-tools').addEventListener('click', (e) => { const b = e.target.closest('.fc-sreset'); if (!b) return; e.preventDefault(); RESETS[b.dataset.reset]?.(); paintResets(); saveState(); });
 // a row's buttons retime or reset that beat; a click elsewhere on the row plays it
 $('#fc-beats').onclick = (e) => { const row = e.target.closest('.fc-brow'); if (!row) return; const k = +row.dataset.k, b = e.target.closest('button');
-  if (b?.dataset.r) { dur[k] = base[k]; retime(); retimed(); hold = k; go(k); } else if (b) nudge(k, +b.dataset.d); else { hold = -1; go(k); } };
+  if (b?.dataset.r) { dur[k] = base[k]; retime(); retimed(); hold = k; go(k); } else if (b) nudge(k, +b.dataset.d); else { hold = -1; stills ? still(beats[k].outro ? slideCount() - 1 : k) : go(k); } };
 // Colours: every colour token the intro defines, light and dark, grouped the way the intro's `palette` says (one group per product or part)
 const tokens = { light: {}, dark: {} };
 { const walk = (list, dark) => { for (const r of list) {
@@ -438,5 +468,5 @@ if (STUDIO) {
   };
 }
 paintResets();
-window.flowcast = { get total() { return totalMs(); }, go, beats, layout, frame, size: SIZE, canvas: () => PRESET[canvasName] };
-go(0);
+window.flowcast = { get total() { return totalMs(); }, go, still, slides: slideCount, beats, layout, frame, size: SIZE, canvas: () => PRESET[canvasName] };
+host.classList.toggle('fc-stills', stills); stills ? still(0) : go(0);
