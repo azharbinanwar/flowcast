@@ -12,5 +12,7 @@ jobs:
         with:
           node-version: 20
       - run: npm install --ignore-scripts
+      # --ignore-scripts skips ffmpeg-static's own download of ffmpeg, so fetch it here
+      - run: node node_modules/ffmpeg-static/install.js
       - run: npx playwright install --with-deps chromium
       - run: npm test -- --video

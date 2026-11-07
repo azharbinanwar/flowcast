@@ -59,7 +59,7 @@ Claude runs this for you the first time you export.
 /flowcast                                 History: every intro you made here
 ```
 
-Flowcast answers with the beats and opens the studio in your browser. `/flowcast-history`, or "open flowcast", reopens History any time, and starts the studio if it isn't running.
+Flowcast first shows a short plan: who it is for, the steps, the look, and which earlier intro it starts from. Pick **Build it**, **Make it shorter** or **Change something**. Once you build it, the intro opens in the studio in your browser. Planning and building run in their own helpers, so it costs least in a fresh Claude Code session. `/flowcast-history`, or "open flowcast", reopens History any time, and starts the studio if it isn't running.
 
 ### Where things are saved
 
@@ -78,6 +78,8 @@ Keep the folder and you can export any intro again, in any format, later.
 A local page with the intro playing on the left and every option in a drawer on the right. Each section opens and closes on its own and has a reset in its header when something in it has changed.
 
 - **Look:** dark mode and captions, as switches.
+- **Privacy:** Hide personal details lists the emails, phone numbers and card numbers it finds. Switch each one on or off and change what shows instead.
+- **Credit:** off until you turn it on. Made with Flowcast, with the Flowcast repo link if you want it. Show it as an outro slide after your end card, in your intro's own colours, with its own seconds in Timing, or as a small watermark for the whole video in any corner.
 - **Colours:** every colour in the intro, its light and dark shade side by side, grouped by product or part. Reset one colour, one group, or all.
 - **Canvas:** no canvas, 1080×1080 for LinkedIn and Instagram feed, 1080×1350 for Instagram portrait, 1080×1920 for Reels, Stories, TikTok and Shorts, 1920×1080 for YouTube and websites. Device or scene left, centre or right, and the slots around it: headline, line, CTA, tags and logo. Click any of them on the page to change the words.
 - **Timing:** a speed for the whole intro, and each beat's own seconds. A shorter beat plays its animation faster to fit, a longer one slower, from a third of its time to double.
@@ -101,10 +103,10 @@ change beat 2 to say ...
 
 | Export | Name |
 |---|---|
-| Video | `exports/flowcast-<project>.mp4` |
-| GIF | `exports/flowcast-<project>.gif` |
-| Slides | `exports/flowcast-<project>.pdf` |
-| Frames | `exports/flowcast-<project>-frames/flowcast-1.png`, `flowcast-2.png`, … with the end card last |
+| Video | `exports/flowcast-<project>-<date>-<time>.mp4` |
+| GIF | `exports/flowcast-<project>-<date>-<time>.gif` |
+| Slides | `exports/flowcast-<project>-<date>-<time>.pdf` |
+| Frames | `exports/flowcast-<project>-<date>-<time>/flowcast-1.png`, `flowcast-2.png`, … with the end card last |
 
 ## Requirements
 
@@ -127,6 +129,23 @@ docs/samples/            example exports
   scripts/               studio, recorder, converter, frames and slides, contact sheet
 ```
 
+## Roadmap
+
+New in 2.0.0:
+
+- **Hide personal details.** One switch in the studio's Privacy section turns emails, phone numbers and card numbers into safe samples in the preview and every export. Names can't be told apart from other words, so keep real names out of the story.
+- **Manage intros in History.** Rename, duplicate or delete an intro from the ⋯ menu on its card. Delete moves it to the Trash, so it can be put back.
+- **A plan before every build.** Flowcast shows the steps first and waits for Build it, Make it shorter or Change something. A new intro starts from your earlier one's look, and the work runs in helpers so it costs less.
+
+Planned:
+
+- **Edit text by beat.** Every line of text in the intro, grouped by beat, to pick and change, names included.
+- **Export everything in one click.** MP4, GIF, PDF and PNG, in square, reel and wide, all at once into the exports folder.
+- **A post to go with it.** The LinkedIn, X and Instagram caption written from the beats, with a copy button.
+- **Background music.** A short track mixed into the MP4 at the right length, or none.
+- **Brand kit per project.** The project's logo, colours and font saved once and used by every new intro in it.
+- **More languages.** The same video with its headlines and captions in other languages, exported side by side.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Run the tests from `skills/flowcast` with `npm test`.
@@ -137,4 +156,4 @@ MIT. See [LICENSE](LICENSE).
 
 ## Version
 
-1.0.0. See [CHANGELOG.md](CHANGELOG.md).
+2.0.0. See [CHANGELOG.md](CHANGELOG.md).
