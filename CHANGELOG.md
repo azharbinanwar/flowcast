@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Exports never overwrite: each is named for the project and the minute it was made, `flowcast-<project>-2026-11-07-15-42.mp4`, with `-2` on a clash. The raw recording is removed once converted.
+- Credit section, off by default: Made with Flowcast, with Flowcast's own repo link if you want it (it cannot be changed). Outro slide: a real beat after the end card, animated, in the intro's own colours, with its own seconds in Timing and a frame in PNG and PDF exports. Watermark: a small tag for the whole video in any of six spots.
+- Exports start on the intro's first real frame: the recorder waits for fonts, pictures and your own words, and the page loading in front is cut, so changed text never flashes the old version.
+- The studio's top bar is the same bar as History's, so moving between them never jumps.
+- A project with no logo gets its app's own icon, found in the iOS icon set, the Android launcher icon or a logo file.
+- Project pages: each project has its own page at `/<project>/`, and the breadcrumb's project leads there.
+- One logo per project at `flowcast/logo.<ext>`, shown on History and used by every intro as `../logo.svg`; add or replace it by clicking or dropping an image on the project in History.
 - `check.mjs`: a layout check in words, every beat with captions on and off, for parts cut off, text that does not fit, and bottom bars placed from the top. Most checks now need no image.
 - Contact sheet renders in record mode at full size and comes out as one small image; it no longer goes blank or blurry with the drawer.
 - Skill: bottom parts anchor to the bottom; checks in words before pictures; never print the skill, never write inside it, screenshots read small.

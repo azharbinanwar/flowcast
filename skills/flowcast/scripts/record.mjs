@@ -1,7 +1,7 @@
 // Records a flowcast intro to WebM. Usage: node record.mjs intro.html out.webm [--width 1080] [--height 1920] [--theme dark|light] [--captions off]
 import { chromium } from 'playwright';
 import { resolve, dirname } from 'node:path';
-import { rename } from 'node:fs/promises';
+import { rename, writeFile } from 'node:fs/promises';
 
 const [,, input, output, ...rest] = process.argv;
 if (!input || !output) { console.error('usage: node record.mjs intro.html out.webm [--width W] [--height H] [--canvas square|portrait|story|landscape] [--phone center|left|right] [--theme dark|light] [--captions off|inside|below]'); process.exit(1); }
@@ -18,7 +18,7 @@ const stateFile = opt.state || resolve(input).replace(/\.html$/, '.state.json');
 const saved = existsSync(stateFile) ? JSON.parse(readFileSync(stateFile, 'utf8')) : {};
 for (const k of ['canvas', 'phone', 'theme', 'captions']) if (opt[k] === undefined && saved[k] !== undefined) opt[k] = saved[k];
 if (opt.canvas === 'none') delete opt.canvas;
-const extra = { slots: saved.slots, words: saved.words, speed: saved.speed, durations: saved.durations, colors: saved.colors };
+const extra = { slots: saved.slots, words: saved.words, speed: saved.speed, durations: saved.durations, colors: saved.colors, credit: saved.credit };
 const PRESET = { square: [1080, 1080], portrait: [1080, 1350], story: [1080, 1920], landscape: [1920, 1080] };
 const [pw, ph] = PRESET[opt.canvas] || [];
 const theme = opt.theme || 'light';
@@ -33,6 +33,8 @@ if (!width || !height) {
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, colorScheme: theme, recordVideo: { dir: dirname(resolve(output)), size: { width, height } } });
+// the video starts when the page opens; what plays before the intro is ready is cut off afterwards
+const opened = Date.now();
 const page = await ctx.newPage();
 // record mode: no controls, plays once, ends on the end card. Set before the page's scripts run.
 await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', theme, canvas: opt.canvas, phone: opt.phone, captions: opt.captions === 'off' ? 'off' : undefined, captionsAt: opt.captions === 'below' ? 'below' : undefined, ...extra });
@@ -42,11 +44,20 @@ await page.evaluate(() => {
   // a free-size composition sits at 0,0 at 1:1; a device is centred on the canvas
   const host = document.getElementById('flowcast'); const r = document.getElementById('fc-canvas').getBoundingClientRect();
   if (r.width < innerWidth - 1 || r.height < innerHeight - 1) { host.style.display = 'grid'; host.style.placeItems = 'center'; host.style.minHeight = innerHeight + 'px'; }
+});
+// fonts, pictures and the user's own words in place, and two frames painted, before the first beat starts
+await page.evaluate(async () => {
+  await document.fonts.ready;
+  await Promise.all([...document.images].map(i => i.decode().catch(() => {})));
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
   flowcast.go(0);
 });
+const started = (Date.now() - opened) / 1000;
 await page.waitForFunction(() => window.flowcastDone, null, { timeout: 120000 });
 await page.waitForTimeout(300);
 const video = page.video();
 await ctx.close(); await browser.close();
 await rename(await video.path(), resolve(output));
+// where the intro really starts in the recording, for convert.mjs to cut the loading in front of it
+await writeFile(resolve(output) + '.json', JSON.stringify({ start: started }));
 console.log(resolve(output));

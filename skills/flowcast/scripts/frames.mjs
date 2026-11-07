@@ -19,7 +19,7 @@ const stateFile = opt.state || resolve(input).replace(/\.html$/, '.state.json');
 const saved = existsSync(stateFile) ? JSON.parse(readFileSync(stateFile, 'utf8')) : {};
 for (const k of ['canvas', 'phone', 'theme', 'captions']) if (opt[k] === undefined && saved[k] !== undefined) opt[k] = saved[k];
 if (opt.canvas === 'none') delete opt.canvas;
-const extra = { slots: saved.slots, words: saved.words, speed: saved.speed, durations: saved.durations, colors: saved.colors };
+const extra = { slots: saved.slots, words: saved.words, speed: saved.speed, durations: saved.durations, colors: saved.colors, credit: saved.credit };
 const PRESET = { square: [1080, 1080], portrait: [1080, 1350], story: [1080, 1920], landscape: [1920, 1080] };
 const at = +(opt.at || 0.9), theme = opt.theme || 'light';
 mkdirSync(resolve(outdir), { recursive: true });
@@ -34,16 +34,19 @@ await probe.close();
 
 const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1, colorScheme: theme });
 await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', theme, canvas: opt.canvas, phone: opt.phone, captions: opt.captions === 'off' ? 'off' : undefined, captionsAt: opt.captions === 'below' ? 'below' : undefined, ...extra });
-await page.goto('file://' + resolve(input)); await page.waitForFunction(() => window.flowcast && window.flowcast.beats);
+await page.goto('file://' + resolve(input)); await page.waitForFunction(() => window.flowcast && window.flowcast.beats); await page.evaluate(() => document.fonts.ready);
 await page.evaluate(() => { const host = document.getElementById('flowcast'); const r = document.getElementById('fc-canvas').getBoundingClientRect(); if (r.width < innerWidth - 1 || r.height < innerHeight - 1) { host.style.display = 'grid'; host.style.placeItems = 'center'; host.style.minHeight = innerHeight + 'px'; } });
 const beats = await page.evaluate(() => flowcast.beats.map(b => b.ms));
+// a Flowcast outro is the last beat but plays after the end card, so the pictures go: beats, end card, outro
+const outro = await page.evaluate(() => !!flowcast.beats[flowcast.beats.length - 1].outro), real = beats.length - (outro ? 1 : 0);
 const files = [];
-for (let i = 0; i < beats.length; i++) {
+for (let i = 0; i < real; i++) {
   await page.evaluate((n) => flowcast.go(n), i); await page.waitForTimeout(Math.max(300, beats[i] * at));
   const f = join(resolve(outdir), `flowcast-${i + 1}.png`); await page.screenshot({ path: f }); files.push(f);
 }
-await page.evaluate((n) => flowcast.go(n), beats.length - 1); await page.waitForTimeout(beats[beats.length - 1] + 900);
-const endFile = join(resolve(outdir), `flowcast-${beats.length + 1}.png`); await page.screenshot({ path: endFile }); files.push(endFile);
+await page.evaluate((n) => flowcast.go(n), real - 1); await page.waitForTimeout(beats[real - 1] + 900);
+const endFile = join(resolve(outdir), `flowcast-${real + 1}.png`); await page.screenshot({ path: endFile }); files.push(endFile);
+if (outro) { await page.evaluate((n) => flowcast.go(n), real); await page.waitForTimeout(Math.max(900, beats[real] * at)); const f = join(resolve(outdir), `flowcast-${real + 2}.png`); await page.screenshot({ path: f }); files.push(f); }
 
 if (opt.pdf) {
   // the frames as pages, each the size of the frame

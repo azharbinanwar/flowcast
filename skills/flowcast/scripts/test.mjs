@@ -66,6 +66,7 @@ r = node([join(here, 'check.mjs'), sample]); ok('check passes the sample', r.sta
 // 6. optional: record and convert
 if (process.argv.includes('--video')) {
   r = node([join(here, 'record.mjs'), sample, join(out, 'v.webm'), '--canvas', 'square']); ok('records webm', r.status === 0);
+  ok('notes where the intro starts, so the loading is cut', existsSync(join(out, 'v.webm.json')) && JSON.parse(readFileSync(join(out, 'v.webm.json'), 'utf8')).start > 0);
   r = node([join(here, 'convert.mjs'), join(out, 'v.webm'), join(out, 'v.mp4')]); ok('converts to mp4', r.status === 0 && existsSync(join(out, 'v.mp4')));
 }
 

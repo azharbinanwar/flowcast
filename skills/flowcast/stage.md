@@ -7,7 +7,8 @@ An intro is one HTML file that loads the shared player, `player.css` and `player
 - **One continuous scene.** The same elements stay on screen and change state per beat. Steps flip classes; CSS transitions do the motion. No keyframe timelines, no Lottie, no video as the source.
 - **Cause then effect.** Wait, show the actor, then the effect. `s.tap('#el')` moves the actor there, presses, lifts. The actor is a finger by default; `data-actor="pointer"` on `#flowcast` makes it a Mac pointer for desktop apps. Timings live in `T` at the top.
 - **Steps stop on their own.** When the viewer skips or the next beat starts, the player stops the old beat's steps at their next wait. Write steps straight through; never add your own guards.
-- **Real parts, real data.** Rebuild the product's actual components with its tokens and strings. Plausible values, never lorem ipsum. Read the project's logo SVG for the end card.
+- **Real parts, real data.** Rebuild the product's actual components with its tokens and strings. Plausible values, never lorem ipsum.
+- **One logo per project.** It lives at `flowcast/logo.svg` (or `.png`, `.jpg`, `.webp`), shared by every intro in the project. Use it as `<img class="fc-logo" src="../logo.svg" alt="">` in the end card and anywhere the app shows its mark; the player copies it to the canvas logo slot. Inline the SVG only when its colour must follow the theme.
 - **Surfaces behave like the real thing.** A chat pins to the bottom and each new message pushes the older ones up. A list grows from the top. A notification drops in from the top edge. A terminal scrolls. Anything not on screen yet takes no space: give it `class="fc-in"` and add `show` when its moment comes; it grows in smoothly and pushes the rest. Space such items with `margin-top` on the item, not `gap` on the parent, so the push is smooth. Never pre-place hidden elements with `opacity:0` inside a surface that flows.
 - **State is history inside a device, a moment outside it.** `apply(i)` shows everything a real screen would still show: a chat at the last beat holds every message. On the canvas, an object that finished its step is gone or shrunk to a chip, and the space goes to the next object. Collapse with `fc-in` (remove `show`) or a `.done` class that shrinks it.
 - **Declare UTF-8.** Every intro starts with `<meta charset="utf-8">`, so its own text reads right when the file is opened straight from disk.
@@ -45,7 +46,7 @@ An intro is one HTML file that loads the shared player, `player.css` and `player
   <div class="appbar">Feature</div>
   <div class="row" id="fajr">Fajr</div>
 </template>
-<template id="endcard"><svg class="fc-logo" viewBox="0 0 24 24">…the app's logo, fill currentColor…</svg><p>One line.</p></template>
+<template id="endcard"><img class="fc-logo" src="../logo.svg" alt=""><p>One line.</p></template>
 </div>
 
 <script>

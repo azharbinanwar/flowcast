@@ -21,7 +21,7 @@ const runs = {};
 for (const captions of ['on', 'off']) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 1280 }, colorScheme: opt.theme || 'light' });
   await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', theme: opt.theme, captions: captions === 'off' ? 'off' : undefined });
-  await page.goto('file://' + html); await page.waitForFunction(() => window.flowcast && window.flowcast.beats);
+  await page.goto('file://' + html); await page.waitForFunction(() => window.flowcast && window.flowcast.beats); await page.evaluate(() => document.fonts.ready);
   const beats = await page.evaluate(() => flowcast.beats.map(b => b.ms));
   runs[captions] = [];
   for (let i = 0; i < beats.length; i++) {

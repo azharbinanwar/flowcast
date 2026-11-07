@@ -2,7 +2,7 @@
 // Usage: node studio.mjs [flowcast-folder | intro.html] [--port 7788]
 // Layout per project: flowcast/<name>/intro.html, intro.state.json (what the user set on the page), exports/ (the files they made).
 import { createServer } from 'node:http';
-import { readFile, writeFile, stat, mkdir, readdir, rename } from 'node:fs/promises';
+import { readFile, writeFile, stat, mkdir, readdir, rename, unlink, copyFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { resolve, dirname, join, extname, basename } from 'node:path';
 import { homedir } from 'node:os';
@@ -46,6 +46,38 @@ async function projects() {
   return list;
 }
 
+// one logo per project, kept in its flowcast/ folder: History shows it and every intro in the project can use it as ../logo.<ext>
+const LOGO_TYPES = { svg: 'image/svg+xml', png: 'image/png', jpg: 'image/jpeg', webp: 'image/webp' };
+const logoOf = async (root) => { for (const ext of Object.keys(LOGO_TYPES)) { try { await stat(join(root, `logo.${ext}`)); return `logo.${ext}`; } catch {} } return null; };
+// a project with no logo yet gets the app's own icon, found by a short search and copied to flowcast/logo.<ext> once
+const SKIP = new Set(['node_modules', 'build', '.git', 'Pods', '.gradle', 'DerivedData', 'dist', '.next', 'flowcast', 'vendor', 'target']);
+async function findAppLogo(dir) {
+  const found = []; let seen = 0;
+  const rank = (p) => (/[/\\](dev|debug|test|preview|staging)[/\\]/i.test(p) ? 10 : 0) + p.split('/').length / 100;
+  const walk = async (d, depth) => {
+    if (depth > 6 || seen > 40000) return; let entries = []; try { entries = await readdir(d, { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+      seen++; const full = join(d, e.name);
+      if (e.isDirectory()) {
+        if (e.name.endsWith('AppIcon.appiconset')) {
+          // the largest picture in the icon set is the 1024px one
+          let best = null, size = 0; for (const f of await readdir(full).catch(() => [])) { if (!f.endsWith('.png')) continue; const s = (await stat(join(full, f))).size; if (s > size) { size = s; best = join(full, f); } }
+          if (best) found.push({ file: best, score: 2 + rank(best) });
+        } else if (!SKIP.has(e.name)) await walk(full, depth + 1);
+      } else if (/^logo\.svg$/i.test(e.name)) found.push({ file: full, score: 1 + rank(full) });
+      else if (e.name === 'ic_launcher.png' && d.endsWith('mipmap-xxxhdpi')) found.push({ file: full, score: 3 + rank(full) });
+      else if (/^(logo\.png|icon\.svg|app[_-]?icon\.png|favicon\.svg)$/i.test(e.name)) found.push({ file: full, score: 4 + rank(full) });
+    }
+  };
+  await walk(dir, 0);
+  return found.sort((a, b) => a.score - b.score)[0]?.file || null;
+}
+const searched = new Set();
+async function ensureLogo(root) {
+  const have = await logoOf(root); if (have || searched.has(root)) return have; searched.add(root);
+  const app = await findAppLogo(basename(root) === 'flowcast' ? dirname(root) : root); if (!app) return null;
+  const ext = extname(app).slice(1).toLowerCase(); await copyFile(app, join(root, `logo.${ext}`)); return `logo.${ext}`;
+}
 const intro = (root, name) => join(root, name, 'intro.html');
 const stateOf = (root, name) => join(root, name, 'intro.state.json');
 const safe = (name) => /^[a-z0-9][a-z0-9._-]*$/i.test(name);
@@ -59,16 +91,30 @@ const flags = (root, name, q) => ['--theme', q.theme || 'light', ...(q.canvas &&
 // show the file in the system's file manager
 const reveal = (file) => { const isDir = !extname(file); if (process.platform === 'darwin') spawn('open', isDir ? [file] : ['-R', file]); else if (process.platform === 'win32') spawn('explorer', isDir ? [file] : ['/select,', file]); else spawn('xdg-open', [isDir ? file : dirname(file)]); };
 
+// every export is a new file: flowcast-<project>.<ext>, then -2, -3, so an earlier one is never overwritten
+async function nextFree(base, ext) {
+  const taken = async (p) => stat(p).then(() => true, () => false);
+  for (let n = 1; ; n++) { const b = n === 1 ? base : `${base}-${n}`; if (!(await taken(ext ? `${b}.${ext}` : b))) return b; }
+}
+// every export is a new file named for the project and the minute it was made, so an earlier one is never overwritten
+const stamp = (d = new Date()) => [d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes()].map((n, k) => String(n).padStart(k ? 2 : 4, '0')).join('-');
+async function freeName(stem, ext) {
+  for (let n = 1; ; n++) { const b = n === 1 ? stem : `${stem}-${n}`; if (!(await stat(ext ? `${b}.${ext}` : b).then(() => true, () => false))) return b; }
+}
 async function exportIt(root, name, q) {
   const outDir = join(root, name, 'exports'); await mkdir(outDir, { recursive: true });
   const project = (q.project || name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  const base = join(outDir, `flowcast-${project}`);
+  const stem = join(outDir, `flowcast-${project}-${stamp()}`);
   if (q.format === 'frames' || q.format === 'slides') {
-    const fdir = `${base}-frames`; const args = [intro(root, name), fdir, ...flags(root, name, q)]; if (q.format === 'slides') args.push('--pdf', `${base}.pdf`);
+    const base = await freeName(stem, q.format === 'slides' ? 'pdf' : null), fdir = q.format === 'slides' ? `${base}-frames` : base;
+    const args = [intro(root, name), fdir, ...flags(root, name, q)]; if (q.format === 'slides') args.push('--pdf', `${base}.pdf`);
     const files = (await run('frames.mjs', args)).split('\n'); return q.format === 'slides' ? files[files.length - 1] : fdir;
   }
+  const ext = q.format === 'gif' ? 'gif' : 'mp4', base = await freeName(stem, ext);
   const webm = `${base}.webm`; await run('record.mjs', [intro(root, name), webm, ...flags(root, name, q)]);
-  const out = `${base}.${q.format === 'gif' ? 'gif' : 'mp4'}`; await run('convert.mjs', [webm, out, ...(q.format === 'gif' ? ['--width', '720'] : [])]);
+  const out = `${base}.${ext}`; await run('convert.mjs', [webm, out, ...(ext === 'gif' ? ['--width', '720'] : [])]);
+  // the raw recording is only a step on the way
+  await unlink(webm).catch(() => {}); await unlink(`${webm}.json`).catch(() => {});
   return out;
 }
 
@@ -79,7 +125,7 @@ async function intros(root) {
   for (const n of names) {
     try { const st = await stat(intro(root, n)); const html = await readFile(intro(root, n), 'utf8');
       let files = []; try { files = await readdir(join(root, n, 'exports')); } catch {}
-      const kinds = [...new Set(files.map(f => f.endsWith('-frames') ? 'PNG' : { mp4: 'MP4', gif: 'GIF', pdf: 'PDF' }[f.split('.').pop()]).filter(Boolean))];
+      const kinds = [...new Set(files.map(f => !f.includes('.') ? 'PNG' : { mp4: 'MP4', gif: 'GIF', pdf: 'PDF' }[f.split('.').pop()]).filter(Boolean))];
       list.push({ name: n, title: (html.match(/<title>([^<]*)<\/title>/) || [, n])[1], edited: st.mtimeMs, kinds });
     } catch {}
   }
@@ -113,16 +159,17 @@ async function card({ slug, root }, name) {
 
 const ago = (ms) => { const m = (Date.now() - ms) / 60000; return m < 1 ? 'just now' : m < 60 ? `${Math.round(m)} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`; };
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-async function history() {
-  const groups = []; for (const project of await projects()) { const projectIntros = await intros(project.root); if (projectIntros.length) groups.push({ ...project, projectIntros, latest: projectIntros[0].edited }); }
+// History: every project, or with `only`, one project's own page
+async function history(only) {
+  const groups = []; for (const project of await projects()) { if (only && project.slug !== only.slug) continue; const projectIntros = await intros(project.root); if (projectIntros.length || only) groups.push({ ...project, projectIntros, logo: await ensureLogo(project.root), latest: projectIntros[0]?.edited || 0 }); }
   groups.sort((a, b) => b.latest - a.latest);
   const count = groups.reduce((n, group) => n + group.projectIntros.length, 0);
   const cardOf = (group, entry) => { const u = `/${group.slug}/${encodeURIComponent(entry.name)}/`;
     return `<a class="card" href="${u}" data-url="${u}" data-name="${esc(entry.name)}" data-title="${esc(entry.title.toLowerCase())}" data-edited="${entry.edited}">
   <span class="cv"><img src="${u}cover.png" alt="" loading="lazy"><span class="live"></span><span class="play"><svg viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg></span></span>
-  <span class="body"><b>${esc(entry.title)}</b><span class="facts"><span class="meta"> </span><span>${ago(entry.edited)}</span></span>
+  <span class="body"><b>${esc(entry.title)}</b><span class="facts"><span class="meta"></span><span>${ago(entry.edited)}</span></span>
   ${entry.kinds.length ? `<span class="kinds">${entry.kinds.map(k => `<i>${k}</i>`).join('')}</span>` : '<span class="kinds none">Not exported yet</span>'}</span></a>`; };
-  const cards = groups.map(group => `<section class="proj" id="p-${group.slug}"><h2><span class="pi">${esc(group.name.slice(0, 1).toUpperCase())}</span><b>${esc(group.name)}</b><small>${group.projectIntros.length} intro${group.projectIntros.length === 1 ? '' : 's'} \u00b7 ${esc(group.root.replace(homedir(), '~'))}</small></h2><div class="grid">${group.projectIntros.map(entry => cardOf(group, entry)).join('')}</div></section>`).join('');
+  const cards = groups.map(group => `<section class="proj" id="p-${group.slug}" data-slug="${group.slug}"><h2><button class="pi${group.logo ? ' has' : ''}" title="${group.logo ? 'Change' : 'Add'} the logo: click or drop an image">${group.logo ? `<img src="/${group.slug}/${group.logo}?v=${Date.now()}" alt="">` : esc(group.name.slice(0, 1).toUpperCase())}</button>${only ? `<b>${esc(group.name)}</b>` : `<a href="/${group.slug}/"><b>${esc(group.name)}</b></a>`}<small>${group.projectIntros.length} intro${group.projectIntros.length === 1 ? '' : 's'} \u00b7 ${esc(group.root.replace(homedir(), '~'))}</small></h2><div class="grid">${group.projectIntros.map(entry => cardOf(group, entry)).join('')}</div></section>`).join('');
   return `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Flowcast</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${encodeURIComponent(MARK)}">
 <style>
@@ -130,7 +177,7 @@ async function history() {
 @media (prefers-color-scheme:dark){:root{--bg:#0e0d11;--panel:#18171c;--field:#222127;--line:rgba(255,255,255,.08);--text:#f1f0f3;--muted:#9a96a0;--hover:rgba(255,255,255,.05);--accent:#FF7A5C;color-scheme:dark}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 var(--font)}
-header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:14px max(24px,env(safe-area-inset-left,0px));background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;height:64px;box-sizing:border-box;padding:0 max(24px,env(safe-area-inset-left,0px));background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
 .crumb{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16px;color:var(--text);text-decoration:none}
 .crumb svg{width:28px;height:28px}
 .tools{margin-left:auto;display:flex;gap:8px}
@@ -142,6 +189,9 @@ h1{font-size:26px;letter-spacing:-.4px;margin:0 0 4px}
 p.sub{color:var(--muted);margin:0 0 24px}
 .proj{margin-bottom:40px;scroll-margin-top:84px}
 .proj h2{display:flex;align-items:center;gap:10px;margin:0 0 14px;font-size:16px;letter-spacing:-.2px}
+.proj h2 a{color:inherit;text-decoration:none}.proj h2 a:hover{text-decoration:underline}
+.crumb+.sep{color:var(--muted);opacity:.6;font-weight:400;font-size:16px}.here{font-weight:600;font-size:14px;color:var(--muted)}
+.proj h2 .pi{font:inherit;cursor:pointer;padding:0;overflow:hidden;transition:border-color .15s,transform .15s}.proj h2 .pi:hover,.proj h2 .pi.drop{border-color:var(--accent);transform:scale(1.06)}.proj h2 .pi img{width:100%;height:100%;object-fit:contain}.proj h2 .pi.has{background:transparent}
 .proj h2 .pi{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:var(--panel);border:1px solid var(--line);font-size:13px;color:var(--muted)}
 .proj h2 small{font-size:12.5px;font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
@@ -159,7 +209,7 @@ p.sub{color:var(--muted);margin:0 0 24px}
 .body b{font-size:15px;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .facts{display:flex;gap:8px;color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
 .facts span+span::before{content:'\\00b7';margin-right:8px}
-.facts .meta:empty{display:none}
+.facts .meta:empty,.facts .meta:empty+span::before{display:none}
 .kinds{display:flex;gap:5px;flex-wrap:wrap;margin-top:2px}
 .kinds i{font:700 10.5px/1 var(--font);font-style:normal;letter-spacing:.04em;padding:5px 7px;border-radius:6px;background:color-mix(in srgb,var(--accent) 12%,var(--field));color:var(--accent)}
 .kinds.none{font-size:12px;color:var(--muted)}
@@ -167,8 +217,8 @@ p.sub{color:var(--muted);margin:0 0 24px}
 .empty code{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
 @media (max-width:640px){.tools input{width:140px}}
 </style>
-<header><a class="crumb" href="/">${MARK}Flowcast</a>${count ? `<div class="tools"><input id="q" type="search" placeholder="Search intros" aria-label="Search intros"><select id="sort" aria-label="Sort"><option value="edited">Last edited</option><option value="name">Name</option></select></div>` : ''}</header>
-<main><h1>Your intros</h1><p class="sub">${count} intro${count === 1 ? '' : 's'} across ${groups.length} project${groups.length === 1 ? '' : 's'}. Open one to play, change or export it again.</p>
+<header><a class="crumb" href="/">${MARK}Flowcast</a>${only ? `<span class="sep">/</span><span class="here">${esc(only.name)}</span>` : ''}${count ? `<div class="tools"><input id="q" type="search" placeholder="Search intros" aria-label="Search intros"><select id="sort" aria-label="Sort"><option value="edited">Last edited</option><option value="name">Name</option></select></div>` : ''}</header>
+<main><h1>${only ? esc(only.name) : 'Your intros'}</h1><p class="sub">${only ? `${count} intro${count === 1 ? '' : 's'} in ${esc(only.root.replace(homedir(), '~'))}.` : `${count} intro${count === 1 ? '' : 's'} across ${groups.length} project${groups.length === 1 ? '' : 's'}.`} Open one to play, change or export it again.</p>
 ${count ? `<div id="grid">${cards}</div><div class="nomatch" id="nomatch" hidden>No intro matches that search.</div>` : `<div class="empty">No intros yet. Run <code>/flowcast</code> with a feature or a story to make the first one.</div>`}</main>
 <script>
 // facts arrive per card once its cover is ready; a hover plays the intro itself, scaled into the card
@@ -178,6 +228,14 @@ document.querySelectorAll('.card').forEach(c => {
   let t; c.addEventListener('mouseenter', () => { t = setTimeout(() => { if (!meta) return; const live = c.querySelector('.live'), [w, h] = meta.view, box = c.querySelector('.cv').getBoundingClientRect(), k = Math.min(box.width / w, box.height / h);
     live.innerHTML = '<iframe src="' + u + '?mode=record" width="' + w + '" height="' + h + '" style="transform:scale(' + k + ') translate(-50%,-50%)" tabindex="-1" aria-hidden="true"></iframe>'; c.classList.add('playing'); }, 250); });
   c.addEventListener('mouseleave', () => { clearTimeout(t); c.classList.remove('playing'); setTimeout(() => { if (!c.classList.contains('playing')) c.querySelector('.live').innerHTML = ''; }, 300); });
+});
+// a project's logo: click its square or drop an image on it; it is saved in that project's flowcast folder
+document.querySelectorAll('.proj .pi').forEach(b => {
+  const slug = b.closest('.proj').dataset.slug, save = async (file) => { if (!file || !/image\/(svg\+xml|png|jpeg|webp)/.test(file.type)) return;
+    const r = await fetch('/' + slug + '/logo', { method: 'POST', headers: { 'content-type': file.type }, body: file }); if (r.ok) location.reload(); };
+  b.addEventListener('click', () => { const i = Object.assign(document.createElement('input'), { type: 'file', accept: 'image/svg+xml,image/png,image/jpeg,image/webp' }); i.onchange = () => save(i.files[0]); i.click(); });
+  b.addEventListener('dragover', (e) => { e.preventDefault(); b.classList.add('drop'); }); b.addEventListener('dragleave', () => b.classList.remove('drop'));
+  b.addEventListener('drop', (e) => { e.preventDefault(); b.classList.remove('drop'); save(e.dataTransfer.files[0]); });
 });
 const grid = document.getElementById('grid'), q = document.getElementById('q'), sort = document.getElementById('sort');
 if (grid) {
@@ -207,7 +265,16 @@ createServer(async (req, res) => {
     // an old /<intro>/ link still lands, on the project that has that intro
     if (!proj) { for (const p of all) { try { await stat(intro(p.root, parts[0])); res.writeHead(302, { location: `/${p.slug}/${parts.join('/')}${path.endsWith('/') ? '/' : ''}` }); return res.end(); } catch {} } return send(404, 'text/plain', 'not found'); }
     const { root } = proj, name = parts[1];
-    if (!name) { res.writeHead(302, { location: `/#p-${proj.slug}` }); return res.end(); }
+    if (!name) { if (!path.endsWith('/')) { res.writeHead(302, { location: `/${proj.slug}/` }); return res.end(); } return send(200, TYPES['.html'], await history(proj)); }
+    // the project's logo, saved from History as flowcast/logo.<ext>, replacing any earlier one
+    if (name === 'logo' && req.method === 'POST') {
+      const ext = { 'image/svg+xml': 'svg', 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' }[req.headers['content-type']];
+      if (!ext) return send(415, 'application/json', JSON.stringify({ ok: false, error: 'Use an SVG, PNG, JPG or WebP image.' }));
+      const chunks = []; let size = 0; for await (const c of req) { size += c.length; if (size > 4e6) return send(413, 'application/json', JSON.stringify({ ok: false, error: 'Use an image under 4 MB.' })); chunks.push(c); }
+      for (const e of Object.keys(LOGO_TYPES)) await unlink(join(root, `logo.${e}`)).catch(() => {});
+      await writeFile(join(root, `logo.${ext}`), Buffer.concat(chunks)); return send(200, 'application/json', JSON.stringify({ ok: true, file: `logo.${ext}` }));
+    }
+    if (/^logo\.(svg|png|jpg|webp)$/.test(name)) return send(200, LOGO_TYPES[name.split('.').pop()], await readFile(join(root, name)));
     if (!safe(name)) return send(404, 'text/plain', 'not found');
     const sub = parts[2];
     if (req.method === 'POST') {
@@ -222,7 +289,7 @@ createServer(async (req, res) => {
       // the intro opens with what the user last set on it
       let st = {}; try { st = JSON.parse(await readFile(stateOf(root, name), 'utf8')); } catch {}
       // ?mode=record plays it bare, for the History cover and the hover preview
-      const pre = { ...(url.searchParams.get('mode') === 'record' ? { mode: 'record' } : {}), project: proj.name, canvas: st.canvas, phone: st.phone, theme: st.theme, slots: st.slots, words: st.words, speed: st.speed, durations: st.durations, colors: st.colors, ...(st.captions === 'off' ? { captions: 'off' } : st.captions ? { captionsAt: st.captions } : {}) };
+      const pre = { ...(url.searchParams.get('mode') === 'record' ? { mode: 'record' } : {}), project: proj.name, canvas: st.canvas, phone: st.phone, theme: st.theme, slots: st.slots, words: st.words, speed: st.speed, durations: st.durations, colors: st.colors, credit: st.credit, ...(st.captions === 'off' ? { captions: 'off' } : st.captions ? { captionsAt: st.captions } : {}) };
       const html = String(await readFile(intro(root, name))).replace('<script', `<script>window.__flowcast=${JSON.stringify(pre)}</script><script`);
       return send(200, TYPES['.html'], html);
     }

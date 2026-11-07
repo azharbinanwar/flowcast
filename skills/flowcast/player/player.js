@@ -30,10 +30,24 @@ const endCard = mode !== 'intro' && !!endTpl;
 if (typeof T !== 'object') window.T = {};
 T.endCard ??= 2000;
 // timing the user set in the studio: a speed for the whole intro and seconds per beat; beats[k].ms is always what plays
+const REAL = beats.length;   // the intro's own beats; a Flowcast outro may follow them as one more
 const base = beats.map(b => b.ms), dur = base.map((m, k) => +pre.durations?.[k] || m);
 let speed = +pre.speed || 1;
 const retime = () => beats.forEach((b, k) => { b.ms = Math.round(dur[k] / speed); });
 retime();
+// the credit: off unless the user turns it on. When: the last beat and end card (default), the whole video, or a fixed Flowcast outro slide added after the end
+const CREDIT_LINK = 'github.com/azharbinanwar/flowcast', OUTRO = 2000;
+const credit = { on: false, showLink: false, pos: 'bottom-right', when: 'outro', ...(pre.credit === true ? { on: true } : pre.credit || {}), link: CREDIT_LINK };
+if (credit.when !== 'outro') credit.when = 'always';
+const outroOn = () => credit.on && credit.when === 'outro';
+// the outro is a real beat: in the dots, in Timing with its own seconds, in every export; it comes after the end card
+const syncOutro = () => {
+  const has = beats.length > REAL;
+  if (outroOn() && !has) { beats.push({ title: 'Made with Flowcast', body: '', outro: true, ms: OUTRO }); base.push(OUTRO); dur.push(+pre.durations?.[REAL] || OUTRO); }
+  if (!outroOn() && has) { beats.pop(); base.pop(); dur.pop(); }
+  retime();
+};
+syncOutro();
 const totalMs = () => beats.reduce((a, b) => a + b.ms, 0) + (endCard ? T.endCard / speed : 0);
 const total = totalMs();
 const cv = typeof canvas === 'object' ? canvas : {};   // the content around the phone on a social canvas
@@ -65,16 +79,24 @@ const ICON = {
   pause: '<rect class="fc-fill" x="6" y="4" width="4" height="16" rx="1"/><rect class="fc-fill" x="14" y="4" width="4" height="16" rx="1"/>',
   prev: '<path d="m15 18-6-6 6-6"/>', next: '<path d="m9 18 6-6-6-6"/>',
   full: '<path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>',
+  credit: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
 };
 const I = (n) => `<svg class="fc-i" viewBox="0 0 24 24">${ICON[n]}</svg>`;
 // every section opens the same way: icon, title, its own reset when something in it changed, the chevron
 const head = (key, title, { icon, open, reset = true } = {}) => `<details ${open ? 'open ' : ''}data-sec="${key}"><summary><span>${icon ? I(icon) : ''}${title}</span>${reset ? `<button class="fc-sreset" data-reset="${key}" title="Reset ${title.toLowerCase()}" hidden>${I('reset')}</button>` : ''}</summary>`;
 const FORMATS = [['mp4', 'MP4', 'Video'], ['gif', 'GIF', 'Loops anywhere'], ['frames', 'PNG', 'One per beat'], ['slides', 'PDF', 'Carousel']];
+// a phone's status bar: time on the left, signal, wifi and battery on the right, drawn like the real ones
+const STATUS = '<div class="fc-status" id="fc-status-bar"><span class="fc-time">9:41</span><span class="fc-sys">'
+  + '<svg viewBox="0 0 18 12" width="18" height="12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>'
+  + '<svg viewBox="0 0 16 12" width="16" height="12"><path d="M8 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3A10.6 10.6 0 0 0 8 .8C5.1.8 2.5 1.9.5 3.8l1.2 1.3A8.8 8.8 0 0 1 8 2.6Zm0 3.6c1.4 0 2.7.5 3.7 1.4l1.2-1.3A7.2 7.2 0 0 0 8 4.4c-1.9 0-3.6.7-4.9 1.9l1.2 1.3c1-.9 2.3-1.4 3.7-1.4Zm0 3.5c.5 0 1 .2 1.3.5L8 11.6l-1.3-1.4c.3-.3.8-.5 1.3-.5Z"/></svg>'
+  + '<svg viewBox="0 0 27 13" width="27" height="13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2"/><path d="M25 4.5v4a2 2 0 0 0 0-4Z" opacity=".4"/></svg></span></div>';
 const captionHTML = '<div class="fc-caption"><h2 id="fc-title"></h2><p id="fc-body"></p></div>';
 host.innerHTML = `
 <div class="fc-tools">
   ${head('look', 'Look', { icon: 'look', open: true })}<div class="fc-row"><button id="fc-theme">${I('moon')}<span>Dark mode</span></button><button id="fc-captions" class="on">${I('captions')}<span>Captions</span></button></div></details>
+  ${head('credit', 'Credit', { icon: 'credit' })}<div class="fc-row fc-switches"><button id="fc-credit" title="A small tag in the corner of the video">${I('credit')}<span>Made with Flowcast</span></button><button id="fc-credit-link" title="Adds github.com/azharbinanwar/flowcast to the tag">${I('link')}<span>Show repo link</span></button><div class="fc-label" id="fc-credit-when-label">When it shows</div><div class="fc-seg fc-when" id="fc-credit-when">${[['outro', 'Outro slide'], ['always', 'Watermark']].map(([v, n]) => `<button data-when="${v}">${n}</button>`).join('')}</div><div class="fc-label" id="fc-credit-where">Position</div><div class="fc-pos" id="fc-credit-pos">${['top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right'].map(v => `<button data-pos="${v}" title="${v.replace('-', ' ').replace('center', 'centre')}" aria-label="${v.replace('-', ' ').replace('center', 'centre')}"><i></i></button>`).join('')}</div></div></details>
   ${head('canvas', 'Canvas', { icon: 'canvas' })}<div class="fc-row">
     <select id="canvas-pick">${Object.entries(PRESETS).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select><span class="fc-tag" id="fc-length" hidden></span>
     <select id="phone-pick"><option value="center">Device centre</option><option value="left">Device left</option><option value="right">Device right</option></select>
@@ -97,7 +119,7 @@ host.innerHTML = `
   <div class="fc-around" id="fc-around"></div>
   <div class="fc-phone">
     <div class="fc-fit" id="fc-fit"><div class="fc-frame fc-${frame}" id="fc-frame">${frame === 'browser' ? `<div class="fc-url">${host.dataset.url || ''}</div>` : ''}
-      <div class="fc-screen">${frame === 'phone' ? '<div class="fc-status"><span>9:41</span><span><i></i></span></div>' : ''}
+      <div class="fc-screen">${frame === 'phone' ? STATUS : ''}
         <div class="fc-stage" id="fc-stage"><div class="fc-finger" id="fc-finger"></div></div>
         ${captionsAt === 'inside' ? captionHTML : ''}
         <div class="fc-end" id="fc-end"></div></div></div></div>
@@ -109,7 +131,13 @@ host.innerHTML = `
 host.dataset.mode = mode;
 $('#fc-stage').append(sceneTpl.content);
 if (aroundTpl) $('#fc-around').append(aroundTpl.content);
+const paintCredit = () => { $('#fc-canvas').classList.toggle('fc-with-credit', credit.on); $('#fc-canvas').dataset.creditPos = credit.pos; $('#fc-canvas').dataset.creditWhen = credit.when;
+  const ol = $('#fc-outro .fc-outro-link'); if (ol) ol.textContent = credit.showLink ? credit.link : '';
+  document.querySelectorAll('#fc-credit-when button').forEach(b => b.classList.toggle('on', b.dataset.when === credit.when)); if ($('#fc-credit-when')) $('#fc-credit-when').hidden = $('#fc-credit-when-label').hidden = !credit.on;
+  document.querySelectorAll('#fc-credit-pos button').forEach(b => b.classList.toggle('on', b.dataset.pos === credit.pos)); if ($('#fc-credit-pos')) $('#fc-credit-pos').hidden = $('#fc-credit-where').hidden = !credit.on || credit.when === 'outro'; const l = $('#fc-canvas .fc-made-link'); if (l) { l.textContent = credit.showLink && credit.link ? credit.link : ''; l.hidden = !l.textContent; }
+  if ($('#fc-credit')) { $('#fc-credit').classList.toggle('on', credit.on); $('#fc-credit-link').classList.toggle('on', credit.showLink); $('#fc-credit-link').disabled = !credit.on; } };
 if (endTpl) { $('#fc-end').append(endTpl.content); const logo = $('#fc-end .fc-logo'); if (logo) $('#fc-slot-logo').append(logo.cloneNode(true)); }
+$('#fc-canvas').insertAdjacentHTML('beforeend', '<div class="fc-made"><svg viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg>Made with Flowcast<span class="fc-made-link" hidden></span></div><div class="fc-outro" id="fc-outro"><svg viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg><b>Made with Flowcast</b><span class="fc-outro-link"></span></div>'); paintCredit();
 if (host.dataset.actor === 'pointer') $('#fc-finger').classList.add('fc-pointer');
 if (frame === 'none') { $('#fc-frame').style.width = SIZE[0] + 'px'; if (SIZE[1]) $('#fc-frame').style.height = SIZE[1] + 'px'; else $('#fc-stage').style.height = '440px'; }
 $('#fc-canvas').dataset.bg = cv.bg || 'tint';
@@ -146,19 +174,42 @@ function render() {
 }
 function go(n) {
   window.flowcastDone = false; i = Math.max(0, Math.min(beats.length - 1, n)); run++; elapsed = 0; paused = false; paintPause();
-  s.cls('#fc-end', 'show', false); s.finger(false); apply(i); render();
+  const isOutro = !!beats[i].outro;
+  s.cls('#fc-end', 'show', false); s.finger(false); render();
+  // the outro beat lays its slide over the whole canvas in the intro's own colours; the scene underneath keeps its last state
+  if (isOutro) { const o = $('#fc-outro'); o.style.fontSize = $('#fc-canvas').offsetWidth * 0.034 + 'px'; o.classList.remove('show'); void o.offsetWidth; o.classList.add('show'); } else { s.cls('#fc-outro', 'show', false); apply(i); }
   // the beat's steps run with their own wait, which stops them the moment another beat starts
   const mine = run, own = { ...s, wait: async (ms) => { await s.wait(ms); if (mine !== run) throw STALE; } };
   for (const k of ['tap', 'type']) own[k] = async (...a) => { if (mine !== run) throw STALE; return s[k].apply(own, a); };
   // a beat never ends before its own steps do, so a shorter beat cannot cut off its climax
   stepsDone = false;
-  Promise.resolve().then(() => scene[i](own)).catch(e => { if (e !== STALE) console.error(e); }).finally(() => { if (mine === run) stepsDone = true; });
+  Promise.resolve().then(() => isOutro ? null : scene[i](own)).catch(e => { if (e !== STALE) console.error(e); }).finally(() => { if (mine === run) stepsDone = true; });
   tick(run);
 }
+// the status bar takes the colour at the top of the app and the text that reads on it, like a real phone
+const statusBar = () => $('#fc-status-bar');
+const topColour = () => {
+  const st = $('#fc-stage'), r = st.getBoundingClientRect();
+  for (const el of document.elementsFromPoint(r.left + r.width / 2, r.top + 2)) {
+    if (!st.contains(el) || el.id === 'fc-finger') continue;
+    for (let n = el; n && n !== st.parentElement; n = n.parentElement) {
+      const cs = getComputedStyle(n), m = cs.backgroundImage !== 'none' && cs.backgroundImage.match(/rgba?\([^)]+\)/);
+      if (m) return m[0];
+      if (!/rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor)) return cs.backgroundColor;
+    }
+  }
+  return getComputedStyle($('.fc-screen')).backgroundColor;
+};
+const paintStatus = () => {
+  const bar = statusBar(); if (!bar) return; const c = topColour(), v = (c.match(/[\d.]+/g) || [255, 255, 255]).map(Number);
+  const light = (0.299 * v[0] + 0.587 * v[1] + 0.114 * v[2]) > 150;
+  bar.style.background = c; bar.style.color = light ? '#000' : '#fff';
+};
 function finish(mine) {
-  if (!endCard) { if (mode === 'embed') go(0); else window.flowcastDone = true; return; }
-  s.cls('#fc-end', 'show');
-  setTimeout(() => { if (mine !== run) return; if (mode === 'embed' || mode === 'preview') go(0); else window.flowcastDone = true; }, T.endCard / speed);
+  const end = () => { if (mode === 'embed' || (mode === 'preview' && endCard)) go(0); else window.flowcastDone = true; };
+  // after the outro beat the end card has already played
+  if (!endCard || beats[i].outro) return end();
+  s.cls('#fc-end', 'show'); setTimeout(() => { if (mine === run) end(); }, T.endCard / speed);
 }
 function tick(mine) {
   cancelAnimationFrame(raf); startAt = performance.now() - elapsed;
@@ -166,11 +217,14 @@ function tick(mine) {
     if (mine !== run || paused) return;
     // the scene's own transitions run at the same speed as its steps
     const r = rate(); document.getAnimations().forEach(a => { if (a.playbackRate !== r) a.playbackRate = r; });
+    if (performance.now() - (step.painted || 0) > 200) { paintStatus(); step.painted = performance.now(); }
     elapsed = performance.now() - startAt; const p = Math.min(1, elapsed / beats[i].ms);
     $('.fc-dot.on i').style.width = p * 100 + '%';
     if (p < 1 || !stepsDone) raf = requestAnimationFrame(step);
     // a beat being retimed stays put once it ends, so the next press changes the same beat
     else if (hold === i) { paused = true; paintPause(); elapsed = 0; }
+    // the end card comes between the intro's last beat and the outro
+    else if (i === REAL - 1 && beats.length > REAL && endCard) { s.cls('#fc-end', 'show'); setTimeout(() => { if (mine === run) go(REAL); }, T.endCard / speed); }
     else if (i < beats.length - 1) go(i + 1); else finish(mine);
   }; raf = requestAnimationFrame(step);
 }
@@ -186,6 +240,13 @@ $('#fc-dots').onclick = (e) => { const d = e.target.closest('.fc-dot'); if (d) {
 // toolbar
 const isDark = () => document.documentElement.dataset.theme === 'dark' || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
 const paintTheme = () => { $('#fc-theme').classList.toggle('on', isDark()); };
+// adding or removing the outro beat changes the beats themselves, so the timeline and the running time follow
+const creditChanged = () => { const was = beats.length; paintCredit(); syncOutro(); if (beats.length !== was) { $('#fc-dots').innerHTML = ''; hold = -1; if (i >= beats.length) i = beats.length - 1; } retimed(); };
+$('#fc-credit').onclick = () => { credit.on = !credit.on; creditChanged(); };
+$('#fc-credit-link').onclick = () => { credit.showLink = !credit.showLink; paintCredit(); };
+// six places to put it, so it never sits on top of something that matters
+$('#fc-credit-when').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; credit.when = b.dataset.when; creditChanged(); };
+$('#fc-credit-pos').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; credit.pos = b.dataset.pos; paintCredit(); };
 $('#fc-theme').onclick = () => { document.documentElement.dataset.theme = isDark() ? 'light' : 'dark'; paintTheme(); };
 $('#fc-captions').classList.toggle('on', document.documentElement.dataset.captions !== 'off');
 $('#fc-captions').onclick = () => { const off = document.documentElement.dataset.captions !== 'off'; document.documentElement.dataset.captions = off ? 'off' : 'on'; $('#fc-captions').classList.toggle('on', !off); layout(); };
@@ -208,6 +269,8 @@ const slotsDefault = { logo: !!endTpl, headline: !!cv.headline, line: !!cv.line,
 CHANGED.look = () => !!document.documentElement.dataset.theme || (document.documentElement.dataset.captions === 'off' ? 'off' : 'on') !== DEF.captions;
 RESETS.look = () => { delete document.documentElement.dataset.theme; document.documentElement.dataset.captions = DEF.captions; $('#fc-captions').classList.toggle('on', DEF.captions !== 'off'); paintTheme(); layout(); };
 const canvasDefault = PRESET[DEF.canvas] !== undefined ? DEF.canvas : 'none', phoneDefault = DEF.phone || (aroundTpl ? 'left' : 'center');
+CHANGED.credit = () => credit.on || credit.showLink || credit.pos !== 'bottom-right' || credit.when !== 'outro';
+RESETS.credit = () => { Object.assign(credit, { on: false, showLink: false, pos: 'bottom-right', when: 'outro' }); creditChanged(); };
 CHANGED.canvas = () => canvasName !== canvasDefault || phonePos !== phoneDefault || Object.keys(slots).some(k => slots[k] !== slotsDefault[k]);
 RESETS.canvas = () => { canvasName = canvasDefault; phonePos = phoneDefault; Object.assign(slots, slotsDefault); $('#canvas-pick').value = canvasName; $('#phone-pick').value = phonePos;
   document.querySelectorAll('.fc-slot-toggles [data-slot]').forEach(b => b.classList.toggle('on', !!slots[b.dataset.slot])); layout(); };
@@ -272,7 +335,7 @@ function setFrame(k) {
 const full = () => document.documentElement.classList.contains('fc-full');
 const side = () => mode === 'preview' && innerWidth > 900 && !full();
 // the room the toolbar, dots and transport take, measured, so the stage never pushes them off screen
-const chrome = () => mode === 'record' || full() ? 0 : [side() ? '' : '.fc-tools', '.fc-dots', '.fc-bar'].filter(Boolean).reduce((a, q) => a + ($(q)?.offsetHeight || 0), 0) + 12 * 4 + 24 + (mode === 'preview' ? 44 : 0);
+const chrome = () => mode === 'record' || full() ? 0 : [side() ? '' : '.fc-tools', '.fc-dots', '.fc-bar'].filter(Boolean).reduce((a, q) => a + ($(q)?.offsetHeight || 0), 0) + 12 * 4 + 24 + (mode === 'preview' ? 68 : 0);
 const roomW = () => innerWidth - (full() ? 0 : 32) - (side() ? 356 : 0);
 // the canvas is what gets exported: a preset size, the phone placed on it, the slots around it. Preview scales the whole canvas to the window.
 function layout() {
@@ -318,11 +381,13 @@ function layout() {
   cvEl.style.transform = `scale(${K})`; wrap.style.width = cw * K + 'px'; wrap.style.height = ch * K + 'px';
 }
 addEventListener('resize', layout); layout();
+paintStatus(); matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', paintStatus);
 
 // what the user set on the page: every export, by button or by asking Claude, uses exactly this
 const state = () => ({
   canvas: canvasName, phone: phonePos, theme: document.documentElement.dataset.theme || undefined, captions: document.documentElement.dataset.captions === 'off' ? 'off' : captionsAt,
   speed, durations: dur.some((m, k) => m !== base[k]) ? [...dur] : undefined,
+  credit: CHANGED.credit() ? { on: credit.on, showLink: credit.showLink, pos: credit.pos, when: credit.when } : undefined,
   colors: Object.keys(colors.light).length || Object.keys(colors.dark).length ? colors : undefined,
   slots: { ...slots }, words: Object.fromEntries(['headline', 'line', 'cta', 'tags'].map(k => [k, $(`#fc-slot-${k}`).textContent.trim()])),
 });
@@ -348,9 +413,9 @@ if (STUDIO) {
   if (mode === 'preview') {
     const crumbs = document.createElement('nav'); crumbs.className = 'fc-crumbs'; crumbs.ariaLabel = 'Breadcrumb';
     crumbs.innerHTML = '<a href="/" title="All intros"><svg viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg><b>Flowcast</b></a><span class="fc-sep" aria-hidden="true">/</span><a class="fc-proj" href="/"></a><span class="fc-sep" aria-hidden="true">/</span><span class="fc-here" aria-current="page"></span>';
-    // the project this intro belongs to links to its group on the History page
+    // the project this intro belongs to links to that project's own page
     const projectSlug = location.pathname.split('/').filter(Boolean)[0], projLink = crumbs.querySelector('.fc-proj');
-    if (pre.project && projectSlug) { projLink.textContent = pre.project; projLink.href = `/#p-${projectSlug}`; } else { projLink.nextElementSibling.remove(); projLink.remove(); }
+    if (pre.project && projectSlug) { projLink.textContent = pre.project; projLink.href = `/${projectSlug}/`; } else { projLink.nextElementSibling.remove(); projLink.remove(); }
     crumbs.querySelector('.fc-here').textContent = document.title;
     document.body.prepend(crumbs);
   }
