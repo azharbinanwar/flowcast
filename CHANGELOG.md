@@ -1,7 +1,10 @@
 # Changelog
 
-## Unreleased
+## 2.0.0 · 2026-11-07
 
+A new studio for every project, History, the drawer, Privacy, Credit and a plan before every build. Intros made with 1.0.0 still open; studio addresses now include the project (`/<project>/<intro>/`).
+
+- Fixed: the Outro slide / Watermark tabs in the drawer were cut off on the right.
 - Fixed: converting to MP4 failed on Linux after the loading cut was added, and the GIF lost its colours; the cut now happens after the recording is read, and inside the filter for GIFs.
 - Fixed: Privacy took the numbers inside icon drawings for phone numbers. It now reads only text the intro shows on screen, including text its steps type in later.
 - Skill: every run shows a short plan first (who it is for, the steps, look, logo, which earlier intro it starts from) and waits for Build it, Make it shorter or Change something.

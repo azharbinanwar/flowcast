@@ -240,7 +240,7 @@ html:has(#flowcast[data-mode=preview])
 #flowcast[data-mode=preview] .fc-tools summary .fc-i{width:15px;height:15px;color:var(--ui-accent)}
 #flowcast[data-mode=preview] #fc-theme .fc-i,#flowcast[data-mode=preview] #fc-captions .fc-i{color:var(--ui-muted)}
 #flowcast[data-mode=preview] .fc-label{display:flex;align-items:center;justify-content:space-between;font-size:11.5px;font-weight:600;color:var(--ui-muted);margin:2px 0 8px}
-#flowcast[data-mode=preview] .fc-seg{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;padding:3px;border-radius:11px;background:var(--ui-field);border:1px solid var(--ui-line);width:100%}
+#flowcast[data-mode=preview] .fc-seg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;padding:3px;border-radius:11px;background:var(--ui-field);border:1px solid var(--ui-line);width:100%;box-sizing:border-box}
 #flowcast[data-mode=preview] .fc-tools .fc-seg button{height:30px;border:0;border-radius:8px;background:none;color:var(--ui-muted);padding:0;font-variant-numeric:tabular-nums}
 #flowcast[data-mode=preview] .fc-tools .fc-seg button.on{background:var(--ui-panel);color:var(--ui-text);box-shadow:0 1px 3px rgba(0,0,0,.18)}
 #flowcast[data-mode=preview] .fc-fmts{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
@@ -364,7 +364,7 @@ html:has(#flowcast[data-mode=preview]) .fc-crumbs>a:first-child{padding:0;margin
 .fc-outro-link{font-weight:500;font-size:.95em;color:var(--muted,#777);transform:translateY(.6em);opacity:0;transition:transform .45s cubic-bezier(.3,.7,.2,1) .28s,opacity .35s .28s}
 .fc-outro.fc-show b,.fc-outro.fc-show .fc-outro-link{transform:none;opacity:1}
 .fc-outro-link:empty{display:none}
-#flowcast[data-mode=preview] .fc-when{grid-template-columns:repeat(2,1fr)}
+#flowcast[data-mode=preview] .fc-when{grid-template-columns:repeat(2,minmax(0,1fr))}
 #flowcast[data-mode=preview] .fc-tools .fc-when button{font-size:12.5px}
 #flowcast[data-mode=preview] .fc-tools #fc-folder{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--ui-panel)}
 #flowcast[data-mode=preview] #fc-folder .fc-i{color:var(--ui-muted)}

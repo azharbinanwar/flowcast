@@ -131,10 +131,11 @@ docs/samples/            example exports
 
 ## Roadmap
 
-Just added, not yet released:
+New in 2.0.0:
 
 - **Hide personal details.** One switch in the studio's Privacy section turns emails, phone numbers and card numbers into safe samples in the preview and every export. Names can't be told apart from other words, so keep real names out of the story.
 - **Manage intros in History.** Rename, duplicate or delete an intro from the ⋯ menu on its card. Delete moves it to the Trash, so it can be put back.
+- **A plan before every build.** Flowcast shows the steps first and waits for Build it, Make it shorter or Change something. A new intro starts from your earlier one's look, and the work runs in helpers so it costs less.
 
 Planned:
 
@@ -155,4 +156,4 @@ MIT. See [LICENSE](LICENSE).
 
 ## Version
 
-1.0.0. See [CHANGELOG.md](CHANGELOG.md).
+2.0.0. See [CHANGELOG.md](CHANGELOG.md).
