@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 96 96">
+  <!-- Flowcast's animated mark, "fold and press": the beats fan out like a storyboard while the story types on the front one, fold into one stack, the story becomes play, and play presses in. One copy, used by the splash, exports, loading and the credit outro. The frame leaves 16 units round the tile so the fanned beats are never cut off; the tile is two thirds of the picture. -->
+  <style>
+    * { transform-box: fill-box; transform-origin: center; }
+    .c1, .c2 { transform-origin: 20% 100%; }
+    .ln { transform-origin: left center; }
+    @media (prefers-reduced-motion: no-preference) {
+      .c1 { animation: f1 2.6s cubic-bezier(.3,.7,.2,1) infinite; }
+      .c2 { animation: f2 2.6s cubic-bezier(.3,.7,.2,1) infinite; }
+      .ln { animation: ln 2.6s cubic-bezier(.3,.7,.2,1) infinite; }
+      .ln2 { animation-delay: .1s; } .ln3 { animation-delay: .2s; }
+      .play { animation: play 2.6s ease-in-out infinite; }
+      @keyframes f1 { 0%, 22% { transform: rotate(-34deg) translateX(-8px); } 36%, 58% { transform: none; } 61% { transform: translate(3px, 2px); } 66%, 94% { transform: none; } 100% { transform: rotate(-34deg) translateX(-8px); } }
+      @keyframes f2 { 0%, 22% { transform: rotate(-17deg) translateX(-4px); } 36%, 58% { transform: none; } 61% { transform: translate(2px, 1.5px); } 66%, 94% { transform: none; } 100% { transform: rotate(-17deg) translateX(-4px); } }
+      @keyframes ln { 0%, 2% { transform: scaleX(0); opacity: 1; } 14%, 30% { transform: none; opacity: 1; } 38%, 100% { transform: none; opacity: 0; } }
+      @keyframes play { 0%, 36% { transform: scale(0); } 46%, 56% { transform: scale(1); } 61% { transform: scale(.72); } 67% { transform: scale(1.12); } 72%, 94% { transform: scale(1); } 100% { transform: scale(0); } }
+    }
+    @media (prefers-reduced-motion: reduce) { .ln { display: none; } }
+    /* motion.svg#bare shows the beats and play without the tile, for places that are already coral */
+    #bare:target { display: none; }
+  </style>
+  <rect id="bare" width="64" height="64" rx="15" fill="#FF6B4A"/>
+  <rect class="c1" x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/>
+  <rect class="c2" x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/>
+  <rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/>
+  <rect class="ln ln1" x="28.5" y="27" width="18" height="2.6" rx="1.3" fill="#FF6B4A"/>
+  <rect class="ln ln2" x="28.5" y="32.5" width="13" height="2.6" rx="1.3" fill="#FF6B4A"/>
+  <rect class="ln ln3" x="28.5" y="38" width="16" height="2.6" rx="1.3" fill="#FF6B4A"/>
+  <path class="play" d="M33 30v14l11-7z" fill="#FF6B4A"/>
+</svg>

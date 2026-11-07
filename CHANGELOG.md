@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- The Export button shows the export itself: the animated mark and Exporting MP4 while the file is made, then Saved to exports for a moment; Open exports folder is the one place to find the file, and a failure says why under the button.
+- One animated Flowcast mark, `player/motion.svg` (fold and press): it plays in the studio splash, loops on the Export button (without its tile) and on History cards while their covers load, and closes the credit outro. PNG and PDF use a still mark.
 - The beat dots and the play bar stay in one place at the foot of the stage, whatever the video's size from beat to beat or canvas to canvas.
 - Full screen: the controls float over the video and show while the mouse moves, then hide with the cursor after two still seconds; arrows step, Space plays or pauses, the full-screen button leaves it. A phone keeps its rounded corners, on black.
 - Slides preview: picking PNG or PDF turns the preview into slides, each beat's finished picture with no motion, then the end card and the outro, stepped with the arrows, dots or beat rows and counted as 3 / 7. PNG frames, PDF slides and the contact sheet export exactly those pictures, and much faster. Timing says it only changes video and GIF.

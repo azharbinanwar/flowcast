@@ -10,8 +10,9 @@ const [,, input, ...rest] = process.argv;
 if (!input) { console.error('usage: node check.mjs intro.html [--theme dark]'); process.exit(1); }
 const opt = Object.fromEntries(rest.map((a, k, arr) => a.startsWith('--') ? [a.slice(2), arr[k + 1]] : null).filter(Boolean));
 const html = resolve(input), src = readFileSync(html, 'utf8');
-for (const f of ['player.css', 'player.js']) {
-  if (!src.includes(`"${f}"`) && !src.includes(`"./${f}"`)) continue;
+for (const f of ['player.css', 'player.js', 'motion.svg']) {
+  const want = f === 'motion.svg' ? 'player.js' : f;
+  if (!src.includes(`"${want}"`) && !src.includes(`"./${want}"`)) continue;
   const to = join(dirname(html), f), from = join(dirname(fileURLToPath(import.meta.url)), '../player', f);
   if (!existsSync(to)) { try { symlinkSync(from, to); } catch { copyFileSync(from, to); } }
 }

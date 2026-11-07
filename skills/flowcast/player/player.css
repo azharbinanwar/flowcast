@@ -121,10 +121,11 @@ html[data-mode=record] .fc-cwrap,html[data-mode=record] .fc-canvas,html[data-mod
 
 /* the studio's opening splash */
 #fc-splash{position:fixed;inset:0;z-index:100;background:#FF6B4A;display:grid;place-items:center;transition:opacity .4s}
-#fc-splash svg{width:112px;height:112px;animation:fc-splash-in .5s cubic-bezier(.4,0,.2,1) both}
+#fc-splash svg{width:112px;height:112px;}
+#fc-splash .fc-splash-mark{width:168px;height:168px;animation:fc-splash-in .5s cubic-bezier(.4,0,.2,1) both}
 #fc-splash.out{opacity:0}
 @keyframes fc-splash-in{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){#fc-splash svg{animation:none}}
+@media (prefers-reduced-motion:reduce){#fc-splash svg,#fc-splash .fc-splash-mark{animation:none}}
 
 /* the studio's brand, top left like any web app */
 .fc-crumbs{position:fixed;top:max(14px,env(safe-area-inset-top,0px));left:max(18px,env(safe-area-inset-left,0px));z-index:40;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--on);font:700 16px/1 var(--font)}
@@ -205,7 +206,6 @@ html:has(#flowcast[data-mode=preview]) body{background:var(--ui-bg)!important;fo
 #flowcast[data-mode=preview] .fc-tools #fc-go:disabled{opacity:.6;cursor:wait}
 #flowcast[data-mode=preview] .fc-tools .fc-undo{color:var(--ui-accent);border-color:transparent;background:none}
 #flowcast[data-mode=preview] .fc-undo .fc-i{width:14px;height:14px}
-#flowcast[data-mode=preview] #fc-saved{width:100%;justify-content:flex-start;color:var(--ui-accent)}
 #flowcast[data-mode=preview] #fc-status{color:var(--ui-muted)}
 
 /* under the stage: progress and one transport pill */
@@ -381,3 +381,13 @@ html:has(#flowcast[data-mode=preview]) .fc-crumbs>a:first-child{padding:0;margin
   #flowcast[data-mode=preview] .fc-dots{bottom:calc(max(20px,env(safe-area-inset-bottom,0px)) + 62px);margin:0}
 }
 html.fc-full #flowcast[data-mode=preview] .fc-bar{left:50%}
+
+/* the animated mark: in the outro while it plays (a still one for PNG and PDF), and beside the export status */
+.fc-outro .fc-motion{width:8.25em;height:8.25em;margin:-1.375em;display:block}
+.fc-outro .fc-outro-still{display:none}
+#flowcast.fc-stills .fc-outro .fc-motion{display:none}#flowcast.fc-stills .fc-outro .fc-outro-still{display:block}
+.fc-busy{width:40px;height:40px;margin:-10px -4px;flex:none}
+/* while exporting the button keeps its place and colour, shows the mark, and cannot be pressed twice */
+#flowcast[data-mode=preview] .fc-tools #fc-go.busy{opacity:1;cursor:progress;background:color-mix(in srgb,var(--ui-accent) 85%,#000)}
+#flowcast[data-mode=preview] .fc-tools .fc-fmts button:disabled{opacity:.55;cursor:default}
+#flowcast[data-mode=preview] #fc-status{display:block;width:100%;color:#e5484d;font-size:12.5px;line-height:1.4}

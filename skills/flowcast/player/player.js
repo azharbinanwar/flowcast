@@ -2,6 +2,9 @@
 // <html data-mode>: preview | intro | embed | record.  #flowcast data-frame: phone | browser | none.
 // Canvas: data-canvas none | story | square | landscape, data-phone center | left | right, data-captions-at inside | below.
 const $ = (q) => document.querySelector(q);
+// the animated Flowcast mark: one file beside the player, used by the splash, exports and the credit outro
+const MOTION = new URL('motion.svg', document.currentScript?.src || location.href).href;
+const motionImg = (cls, bare) => `<img class="${cls}" src="${MOTION}${bare ? '#bare' : ''}" alt="">`;
 // the recorder and the sheet set window.__flowcast before the page exists; apply it here
 const pre = window.__flowcast || {};
 for (const k of ['mode', 'theme', 'captions']) if (pre[k]) document.documentElement.dataset[k] = pre[k];
@@ -82,6 +85,7 @@ const ICON = {
   credit: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/>',
   link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
   folder: '<path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
 };
 const I = (n) => `<svg class="fc-i" viewBox="0 0 24 24">${ICON[n]}</svg>`;
@@ -105,7 +109,7 @@ host.innerHTML = `
     <span class="fc-tag">${{ phone: 'Phone \u00b7 390\u00d7844', browser: 'Browser \u00b7 1280\u00d7800', none: SIZE[1] ? `Canvas \u00b7 ${SIZE[0]}\u00d7${SIZE[1]}` : 'In-app' }[frame]}</span>
   </div></details>
   ${head('timing', 'Timing', { icon: 'timing', open: true })}<p class="fc-note" id="fc-still-note">Timing only changes video and GIF. Slides show each beat's finished picture.</p><div class="fc-label">Speed</div><div class="fc-row"><div class="fc-seg" id="fc-speed">${[0.75, 1, 1.25, 1.5].map(v => `<button data-v="${v}">${v}\u00d7</button>`).join('')}</div></div><div class="fc-label">Beats</div><div class="fc-beats" id="fc-beats"></div></details>
-  ${head('export', 'Export', { icon: 'export', open: true, reset: false }).replace('<details ', '<details id="fc-export-sec" hidden ')}<div class="fc-row"><div class="fc-fmts" id="fc-fmts">${FORMATS.map(([v, n, d], k) => `<button data-f="${v}" class="${k ? '' : 'on'}">${I(v)}<b>${n}</b><small>${d}</small></button>`).join('')}</div><select id="fc-export" hidden>${FORMATS.map(([v, n, d]) => `<option value="${v}">${n} ${d}</option>`).join('')}</select><button id="fc-go">${I('export')}<span>Export \u00b7 ${(total / 1000).toFixed(1)}s</span></button><span class="fc-tag" id="fc-status" hidden></span><button id="fc-saved" hidden></button><button id="fc-folder" hidden>${I('folder')}<span>Open exports folder</span></button></div></details>
+  ${head('export', 'Export', { icon: 'export', open: true, reset: false }).replace('<details ', '<details id="fc-export-sec" hidden ')}<div class="fc-row"><div class="fc-fmts" id="fc-fmts">${FORMATS.map(([v, n, d], k) => `<button data-f="${v}" class="${k ? '' : 'on'}">${I(v)}<b>${n}</b><small>${d}</small></button>`).join('')}</div><select id="fc-export" hidden>${FORMATS.map(([v, n, d]) => `<option value="${v}">${n} ${d}</option>`).join('')}</select><button id="fc-go">${I('export')}<span>Export \u00b7 ${(total / 1000).toFixed(1)}s</span></button><span class="fc-tag" id="fc-status" hidden></span><button id="fc-folder" hidden>${I('folder')}<span>Open exports folder</span></button></div></details>
 </div>
 <div class="fc-cwrap" id="fc-cwrap"><div class="fc-canvas" id="fc-canvas">
   <div class="fc-slots fc-top" id="fc-top">
@@ -138,7 +142,7 @@ const paintCredit = () => { $('#fc-canvas').classList.toggle('fc-with-credit', c
   document.querySelectorAll('#fc-credit-pos button').forEach(b => b.classList.toggle('on', b.dataset.pos === credit.pos)); if ($('#fc-credit-pos')) $('#fc-credit-pos').hidden = $('#fc-credit-where').hidden = !credit.on || credit.when === 'outro'; const l = $('#fc-canvas .fc-made-link'); if (l) { l.textContent = credit.showLink && credit.link ? credit.link : ''; l.hidden = !l.textContent; }
   if ($('#fc-credit')) { $('#fc-credit').classList.toggle('on', credit.on); $('#fc-credit-link').classList.toggle('on', credit.showLink); $('#fc-credit-link').disabled = !credit.on; } };
 if (endTpl) { $('#fc-end').append(endTpl.content); const logo = $('#fc-end .fc-logo'); if (logo) $('#fc-slot-logo').append(logo.cloneNode(true)); }
-$('#fc-canvas').insertAdjacentHTML('beforeend', '<div class="fc-made"><svg viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg>Made with Flowcast<span class="fc-made-link" hidden></span></div><div class="fc-outro" id="fc-outro"><svg viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg><b>Made with Flowcast</b><span class="fc-outro-link"></span></div>'); paintCredit();
+$('#fc-canvas').insertAdjacentHTML('beforeend', '<div class="fc-made"><svg viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg>Made with Flowcast<span class="fc-made-link" hidden></span></div><div class="fc-outro" id="fc-outro">' + motionImg('fc-motion') + '<svg class="fc-outro-still" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg><b>Made with Flowcast</b><span class="fc-outro-link"></span></div>'); paintCredit();
 if (host.dataset.actor === 'pointer') $('#fc-finger').classList.add('fc-pointer');
 if (frame === 'none') { $('#fc-frame').style.width = SIZE[0] + 'px'; if (SIZE[1]) $('#fc-frame').style.height = SIZE[1] + 'px'; else $('#fc-stage').style.height = '440px'; }
 $('#fc-canvas').dataset.bg = cv.bg || 'tint';
@@ -178,7 +182,8 @@ function go(n) {
   const isOutro = !!beats[i].outro;
   s.cls('#fc-end', 'show', false); s.finger(false); render();
   // the outro beat lays its slide over the whole canvas in the intro's own colours; the scene underneath keeps its last state
-  if (isOutro) { const o = $('#fc-outro'); o.style.fontSize = $('#fc-canvas').offsetWidth * 0.034 + 'px'; o.classList.remove('show'); void o.offsetWidth; o.classList.add('show'); } else { s.cls('#fc-outro', 'show', false); apply(i); }
+  // the outro restarts the animated mark, so it always plays from the storyboard to the press
+  if (isOutro) { const o = $('#fc-outro'); o.style.fontSize = $('#fc-canvas').offsetWidth * 0.034 + 'px'; o.querySelector('.fc-motion').src = MOTION + '?' + Date.now(); o.classList.remove('show'); void o.offsetWidth; o.classList.add('show'); } else { s.cls('#fc-outro', 'show', false); apply(i); }
   // the beat's steps run with their own wait, which stops them the moment another beat starts
   const mine = run, own = { ...s, wait: async (ms) => { await s.wait(ms); if (mine !== run) throw STALE; } };
   for (const k of ['tap', 'type']) own[k] = async (...a) => { if (mine !== run) throw STALE; return s[k].apply(own, a); };
@@ -426,13 +431,13 @@ const state = () => ({
 const STUDIO = location.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(location.hostname);
 let saveTimer; const saveState = () => { paintResets(); if (!STUDIO) return; clearTimeout(saveTimer); saveTimer = setTimeout(() => fetch('state', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(state()) }).catch(() => {}), 300); };
 $('.fc-tools').addEventListener('change', saveState); $('.fc-tools').addEventListener('click', saveState); $('.fc-slots') && document.querySelectorAll('.fc-slots').forEach(el => el.addEventListener('input', saveState));
-let lastFile = '';
 // the studio opens on a splash: brand colour, the logo centred, then it fades to the studio
 if (STUDIO && mode === 'preview') {
   const sp = document.createElement('div'); sp.id = 'fc-splash';
-  sp.innerHTML = '<svg viewBox="0 0 64 64"><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg>';
+  sp.innerHTML = motionImg('fc-splash-mark');
   document.body.append(sp);
-  const leave = () => { setTimeout(() => sp.classList.add('out'), 900); setTimeout(() => sp.remove(), 1300); };
+  // long enough for the mark to fold and press once
+  const leave = () => { setTimeout(() => sp.classList.add('out'), 1800); setTimeout(() => sp.remove(), 2200); };
   document.readyState === 'complete' ? leave() : addEventListener('load', leave, { once: true });
 }
 if (STUDIO) {
@@ -453,18 +458,23 @@ if (STUDIO) {
   $('#fc-export-sec').hidden = false;
   // once anything is exported, the folder is always one click away
   $('#fc-folder').hidden = !pre.exported; $('#fc-folder').onclick = () => fetch('open', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"folder":true}' });
-  $('#fc-saved').onclick = () => { if (lastFile) fetch('open', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ file: lastFile }) }); };
   const pick = $('#fc-export');
   // pick a format, then Export makes it
+  // the Export button shows the export itself: the mark and what is being made, until the file is ready
   $('#fc-go').onclick = async () => {
-    const format = pick.value, label = pick.selectedOptions[0].textContent;
+    const format = pick.value, name = { mp4: 'MP4', gif: 'GIF', frames: 'PNG frames', slides: 'PDF slides' }[format] || format;
     const q = { format, project: document.title, ...state(), theme: isDark() ? 'dark' : 'light' };
-    const status = $('#fc-status'), saved = $('#fc-saved');
-    pick.disabled = $('#fc-go').disabled = true; status.hidden = false; saved.hidden = true; status.textContent = `Exporting ${label}\u2026`; lastFile = '';
+    const go = $('#fc-go'), status = $('#fc-status'), tiles = document.querySelectorAll('#fc-fmts button'); let done = false;
+    pick.disabled = go.disabled = true; tiles.forEach(t => { t.disabled = true; }); status.hidden = true;
+    go.classList.add('busy'); go.innerHTML = motionImg('fc-busy', true) + `<span>Exporting ${name}\u2026</span>`;
     try { const r = await fetch('export', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(q) }).then(r => r.json());
-      if (r.ok) { lastFile = r.file; status.hidden = true; $('#fc-folder').hidden = false; saved.textContent = r.file.split('/').pop() + (r.file.includes('.') && !r.file.endsWith('-frames') ? '' : '/') + ' \u2197'; saved.hidden = false; } else status.textContent = `Failed: ${r.error}`; }
-    catch (err) { status.textContent = 'Failed: ' + err.message; }
-    pick.disabled = $('#fc-go').disabled = false;
+      if (r.ok) { $('#fc-folder').hidden = false; done = true; }
+      else { status.hidden = false; status.textContent = `Export failed: ${r.error}`; } }
+    catch (err) { status.hidden = false; status.textContent = 'Export failed: ' + err.message; }
+    // a moment of Saved on the button, then back to Export; the folder button below opens the file
+    go.classList.remove('busy'); go.innerHTML = `${I(done ? 'check' : 'export')}<span>${done ? 'Saved to exports' : ''}</span>`; if (!done) exportLabel();
+    else setTimeout(() => { go.innerHTML = `${I('export')}<span></span>`; exportLabel(); }, 2000);
+    pick.disabled = go.disabled = false; tiles.forEach(t => { t.disabled = false; });
   };
 }
 paintResets();

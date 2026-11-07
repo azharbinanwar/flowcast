@@ -167,7 +167,7 @@ async function history(only) {
   const count = groups.reduce((n, group) => n + group.projectIntros.length, 0);
   const cardOf = (group, entry) => { const u = `/${group.slug}/${encodeURIComponent(entry.name)}/`;
     return `<a class="card" href="${u}" data-url="${u}" data-name="${esc(entry.name)}" data-title="${esc(entry.title.toLowerCase())}" data-edited="${entry.edited}">
-  <span class="cv"><img src="${u}cover.png" alt="" loading="lazy"><span class="live"></span><span class="play"><svg viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg></span></span>
+  <span class="cv"><img class="wait" src="/__flowcast/motion.svg" alt=""><img src="${u}cover.png" alt="" loading="lazy" onload="this.parentNode.classList.add('ready')"><span class="live"></span><span class="play"><svg viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg></span></span>
   <span class="body"><b>${esc(entry.title)}</b><span class="facts"><span class="meta"></span><span>${ago(entry.edited)}</span></span>
   ${entry.kinds.length ? `<span class="kinds">${entry.kinds.map(k => `<i>${k}</i>`).join('')}<button class="open" title="Open the exports folder"><svg viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg>Open folder</button></span>` : '<span class="kinds none">Not exported yet</span>'}</span></a>`; };
   const cards = groups.map(group => `<section class="proj" id="p-${group.slug}" data-slug="${group.slug}"><h2><button class="pi${group.logo ? ' has' : ''}" title="${group.logo ? 'Change' : 'Add'} the logo: click or drop an image">${group.logo ? `<img src="/${group.slug}/${group.logo}?v=${Date.now()}" alt="">` : esc(group.name.slice(0, 1).toUpperCase())}</button>${only ? `<b>${esc(group.name)}</b>` : `<a href="/${group.slug}/"><b>${esc(group.name)}</b></a>`}<small>${group.projectIntros.length} intro${group.projectIntros.length === 1 ? '' : 's'} \u00b7 ${esc(group.root.replace(homedir(), '~'))}</small></h2><div class="grid">${group.projectIntros.map(entry => cardOf(group, entry)).join('')}</div></section>`).join('');
@@ -200,6 +200,8 @@ p.sub{color:var(--muted);margin:0 0 24px}
 .card:hover{transform:translateY(-3px);box-shadow:0 14px 36px rgba(0,0,0,.14);border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
 .cv{position:relative;aspect-ratio:1/1;background:var(--field);display:grid;place-items:center;overflow:hidden;border-bottom:1px solid var(--line)}
 .cv img{width:100%;height:100%;object-fit:contain;transition:opacity .3s}
+.cv .wait{position:absolute;width:84px;height:84px;transition:opacity .3s}.cv.ready .wait{opacity:0}
+.cv:not(.ready) img:not(.wait){opacity:0}
 .live{position:absolute;inset:0;opacity:0;transition:opacity .3s;overflow:hidden}
 .live iframe{position:absolute;left:50%;top:50%;border:0;transform-origin:0 0;pointer-events:none;background:transparent}
 .card.playing .live{opacity:1}.card.playing .cv img{opacity:0}
@@ -266,6 +268,7 @@ createServer(async (req, res) => {
       await mkdir(root, { recursive: true }); await register(root);
       return send(200, 'application/json', JSON.stringify({ ok: true, project: (await projects()).find(p => p.root === root)?.slug }));
     }
+    if (path === '/__flowcast/motion.svg') return send(200, TYPES['.svg'], await readFile(join(playerDir, 'motion.svg')));
     if (path === '/') return send(200, TYPES['.html'], await history());
     const all = await projects(), proj = all.find(p => p.slug === parts[0]);
     // an old /<intro>/ link still lands, on the project that has that intro
@@ -303,7 +306,7 @@ createServer(async (req, res) => {
     if (sub === 'meta.json') return send(200, 'application/json', JSON.stringify(await card(proj, name)));
     // the player comes from the skill unless the intro folder has its own
     let file = join(root, ...parts.slice(1));
-    if (/^player\.(css|js)$/.test(sub)) { try { await stat(file); } catch { file = join(playerDir, sub); } }
+    if (/^(player\.(css|js)|motion\.svg)$/.test(sub)) { try { await stat(file); } catch { file = join(playerDir, sub); } }
     if (!file.startsWith(root) && !file.startsWith(playerDir)) return send(404, 'text/plain', 'not found');
     return send(200, TYPES[extname(file)] || 'application/octet-stream', await readFile(file));
   } catch (e) {
