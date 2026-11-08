@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- A GitHub link to the Flowcast repo at the top right of History and the studio.
+
 ## 2.0.0 · 2026-11-07
 
 A new studio for every project, History, the drawer, Privacy, Credit and a plan before every build. Intros made with 1.0.0 still open; studio addresses now include the project (`/<project>/<intro>/`).
