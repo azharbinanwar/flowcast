@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 2.0.1 · 2026-11-09
+
+Fixes for the credit outro and for exports with No canvas, plus a GitHub link in the studio.
 
 - A GitHub link to the Flowcast repo at the top right of History and the studio.
 - Fixed: with Credit set to Outro slide, intros in a browser or phone frame still showed the watermark chip on every slide.
