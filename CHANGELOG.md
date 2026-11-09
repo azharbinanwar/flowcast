@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.1.0 · 2026-11-09
+
+Export settings for every format, sharper video and pictures, PDFs with real text, and the Flowcast mark without its box.
+
+- Export settings for each format, under its tile: MP4 quality (Standard, High, Max), GIF width and frame rate, PNG sharpness (1×, 2×, 3×), and PDF as pictures or real text. Each shows the size it will make, and is saved with the intro.
+- Sharper video: Chrome's own frames, near lossless, encoded once with x264 instead of a 1 Mbit/s browser recording converted again. Max records at 60 fps, up to 4K on the long side.
+- PNG and PDF export at 2× by default, so they stay sharp after social sites shrink them.
+- PDF with real text: each slide printed straight from the intro, so text can be selected and stays sharp at any zoom. Soft shadows print as a thin outline, since Chrome's PDF printer cannot draw them.
+- The Flowcast mark stands on its own in the outro, the credit tag, the splash and the browser tab: coral beats with a white play, no tile. The app bars in History and the studio keep the coral tile, like an app icon. The mark has two colours, `--fc-mark` and `--fc-on-mark`, and the animated one comes in the same pair (`motion.svg#mark`, coral on white, and `#bare`, white on coral).
+- Fixed: in the outro animation the fanned-out beats ran past the tile's edge and looked cut off. They now fan inside it.
+- `record.mjs` writes MP4 directly (`--quality`), `convert.mjs` takes `--fps` and `--crf`, `frames.mjs` takes `--scale` and `--pdf-text`.
+
 ## 2.0.1 · 2026-11-09
 
 Fixes for the credit outro and for exports with No canvas, plus a GitHub link in the studio.
