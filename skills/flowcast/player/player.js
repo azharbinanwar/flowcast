@@ -4,7 +4,11 @@
 const $ = (q) => document.querySelector(q);
 // the animated Flowcast mark: one file beside the player, used by the splash, exports and the credit outro
 const MOTION = new URL('motion.svg', document.currentScript?.src || location.href).href;
-const motionImg = (cls, bare) => `<img class="${cls}" src="${MOTION}${bare ? '#bare' : ''}" alt="">`;
+const motionImg = (cls, look = 'mark') => `<img class="${cls}" src="${MOTION}#${look}" alt="">`;
+// the mark on its own, in two colours: --fc-mark for the beats and --fc-on-mark for the play on them (coral and white by default, white and coral on a coral surface). No tile, on pages, videos and the browser tab
+const MARK = '<svg viewBox="10 10 46 46"><rect x="14" y="12" width="28" height="36" rx="6" fill="var(--fc-mark,#FF6B4A)" opacity=".4"/><rect x="19" y="16" width="28" height="36" rx="6" fill="var(--fc-mark,#FF6B4A)" opacity=".65"/><rect x="24" y="20" width="28" height="34" rx="6" fill="var(--fc-mark,#FF6B4A)"/><path d="M33 30v14l11-7z" fill="var(--fc-on-mark,#fff)"/></svg>';
+// the app bar shows the mark on its coral tile, like an app icon
+const TILE = '<svg viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg>';
 // the recorder and the sheet set window.__flowcast before the page exists; apply it here
 const pre = window.__flowcast || {};
 for (const k of ['mode', 'theme', 'captions']) if (pre[k]) document.documentElement.dataset[k] = pre[k];
@@ -97,6 +101,15 @@ const I = (n) => `<svg class="fc-i" viewBox="0 0 24 24">${ICON[n]}</svg>`;
 // every section opens the same way: icon, title, its own reset when something in it changed, the chevron
 const head = (key, title, { icon, open, reset = true } = {}) => `<details ${open ? 'open ' : ''}data-sec="${key}"><summary><span>${icon ? I(icon) : ''}${title}</span>${reset ? `<button class="fc-sreset" data-reset="${key}" title="Reset ${title.toLowerCase()}" hidden>${I('reset')}</button>` : ''}</summary>`;
 const FORMATS = [['mp4', 'MP4', 'Video'], ['gif', 'GIF', 'Loops anywhere'], ['frames', 'PNG', 'One per beat'], ['slides', 'PDF', 'Carousel']];
+// each format's own settings, shown under its tile and saved with the intro: [key, label, choices, hint, shown when]
+const XOPTS = {
+  mp4: [['quality', 'Quality', [['standard', 'Standard'], ['high', 'High'], ['max', 'Max']], 'Social sites shrink to 1080, High is enough.']],
+  gif: [['width', 'Width', [[600, '600'], [800, '800'], [1080, '1080']]], ['fps', 'Frame rate', [[12, '12'], [15, '15'], [24, '24']], 'GIFs grow fast. 800 at 15 suits most READMEs.']],
+  frames: [['scale', 'Sharpness', [[1, '1\u00d7'], [2, '2\u00d7'], [3, '3\u00d7']], '2\u00d7 stays sharp after Instagram and LinkedIn shrink it.']],
+  slides: [['text', 'Text', [['picture', 'Picture'], ['real', 'Real text']], 'Picture looks exactly like the preview. Real text can be selected and stays sharp at any zoom, with simpler shadows.'], ['scale', 'Sharpness', [[1, '1\u00d7'], [2, '2\u00d7']], null, (o) => o.text !== 'real']],
+};
+const XDEF = { mp4: { quality: 'high' }, gif: { width: 800, fps: 15 }, frames: { scale: 2 }, slides: { text: 'picture', scale: 2 } };
+const xo = Object.fromEntries(Object.entries(XDEF).map(([f, d]) => [f, { ...d, ...(pre.exportOpts?.[f] || {}) }]));
 // a phone's status bar: time on the left, signal, wifi and battery on the right, drawn like the real ones
 const STATUS = '<div class="fc-status" id="fc-status-bar"><span class="fc-time">9:41</span><span class="fc-sys">'
   + '<svg viewBox="0 0 18 12" width="18" height="12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>'
@@ -115,7 +128,7 @@ host.innerHTML = `
     <span class="fc-tag">${{ phone: 'Phone \u00b7 390\u00d7844', browser: 'Browser \u00b7 1280\u00d7800', none: SIZE[1] ? `Canvas \u00b7 ${SIZE[0]}\u00d7${SIZE[1]}` : 'In-app' }[frame]}</span>
   </div></details>
   ${head('timing', 'Timing', { icon: 'timing', open: true })}<p class="fc-note" id="fc-still-note">Timing only changes video and GIF. Slides show each beat's finished picture.</p><div class="fc-label">Speed</div><div class="fc-row"><div class="fc-seg" id="fc-speed">${[0.75, 1, 1.25, 1.5].map(v => `<button data-v="${v}">${v}\u00d7</button>`).join('')}</div></div><div class="fc-label">Beats</div><div class="fc-beats" id="fc-beats"></div></details>
-  ${head('export', 'Export', { icon: 'export', open: true, reset: false }).replace('<details ', '<details id="fc-export-sec" hidden ')}<div class="fc-row"><div class="fc-fmts" id="fc-fmts">${FORMATS.map(([v, n, d], k) => `<button data-f="${v}" class="${k ? '' : 'on'}">${I(v)}<b>${n}</b><small>${d}</small></button>`).join('')}</div><select id="fc-export" hidden>${FORMATS.map(([v, n, d]) => `<option value="${v}">${n} ${d}</option>`).join('')}</select><button id="fc-go">${I('export')}<span>Export \u00b7 ${(total / 1000).toFixed(1)}s</span></button><span class="fc-tag" id="fc-status" hidden></span><button id="fc-folder" class="fc-anim" style="--fc-d:flex;--fc-gap:8px" hidden>${I('folder')}<span>Open exports folder</span></button></div></details>
+  ${head('export', 'Export', { icon: 'export', open: true, reset: false }).replace('<details ', '<details id="fc-export-sec" hidden ')}<div class="fc-row"><div class="fc-fmts" id="fc-fmts">${FORMATS.map(([v, n, d], k) => `<button data-f="${v}" class="${k ? '' : 'on'}">${I(v)}<b>${n}</b><small>${d}</small></button>`).join('')}</div><div class="fc-xopts" id="fc-xopts"></div><select id="fc-export" hidden>${FORMATS.map(([v, n, d]) => `<option value="${v}">${n} ${d}</option>`).join('')}</select><button id="fc-go">${I('export')}<span>Export \u00b7 ${(total / 1000).toFixed(1)}s</span></button><span class="fc-tag" id="fc-status" hidden></span><button id="fc-folder" class="fc-anim" style="--fc-d:flex;--fc-gap:8px" hidden>${I('folder')}<span>Open exports folder</span></button></div></details>
 </div>
 <div class="fc-cwrap" id="fc-cwrap"><div class="fc-canvas" id="fc-canvas">
   <div class="fc-slots fc-top" id="fc-top">
@@ -148,7 +161,7 @@ const paintCredit = () => { if ($('#fc-outro')) placeCredit();
   document.querySelectorAll('#fc-credit-pos button').forEach(b => b.classList.toggle('on', b.dataset.pos === credit.pos)); if ($('#fc-credit-pos')) $('#fc-credit-pos').hidden = $('#fc-credit-where').hidden = !credit.on || credit.when === 'outro'; const l = $('.fc-made .fc-made-link'); if (l) { l.textContent = credit.showLink && credit.link ? credit.link : ''; l.hidden = !l.textContent; }
   if ($('#fc-credit')) { $('#fc-credit').classList.toggle('on', credit.on); $('#fc-credit-link').classList.toggle('on', credit.showLink); $('#fc-credit-link').disabled = !credit.on; } };
 if (endTpl) { $('#fc-end').append(endTpl.content); const logo = $('#fc-end .fc-logo'); if (logo) $('#fc-slot-logo').append(logo.cloneNode(true)); }
-$('#fc-canvas').insertAdjacentHTML('beforeend', '<div class="fc-made"><svg viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg>Made with Flowcast<span class="fc-made-link" hidden></span></div><div class="fc-outro" id="fc-outro">' + motionImg('fc-motion') + '<svg class="fc-outro-still" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg><b>Made with Flowcast</b><span class="fc-outro-link"></span></div>'); paintCredit();
+$('#fc-canvas').insertAdjacentHTML('beforeend', '<div class="fc-made">' + MARK + 'Made with Flowcast<span class="fc-made-link" hidden></span></div><div class="fc-outro" id="fc-outro">' + motionImg('fc-motion') + '' + MARK.replace('<svg ', '<svg class="fc-outro-still" ') + '<b>Made with Flowcast</b><span class="fc-outro-link"></span></div>'); paintCredit();
 if (host.dataset.actor === 'pointer') $('#fc-finger').classList.add('fc-pointer');
 if (frame === 'none') { $('#fc-frame').style.width = SIZE[0] + 'px'; if (SIZE[1]) $('#fc-frame').style.height = SIZE[1] + 'px'; else $('#fc-stage').style.height = '440px'; }
 $('#fc-canvas').dataset.bg = cv.bg || 'tint';
@@ -189,7 +202,7 @@ function go(n) {
   s.cls('#fc-end', 'fc-show', false); s.finger(false); render();
   // the outro beat lays its slide over the whole canvas in the intro's own colours; the scene underneath keeps its last state
   // the outro restarts the animated mark, so it always plays from the storyboard to the press
-  if (isOutro) { const o = $('#fc-outro'); o.style.fontSize = creditHost().offsetWidth * 0.034 + 'px'; o.querySelector('.fc-motion').src = MOTION + '?' + Date.now(); o.classList.remove('fc-show'); void o.offsetWidth; o.classList.add('fc-show'); } else { s.cls('#fc-outro', 'fc-show', false); apply(i); }
+  if (isOutro) { const o = $('#fc-outro'); o.style.fontSize = creditHost().offsetWidth * 0.034 + 'px'; o.querySelector('.fc-motion').src = MOTION + '?' + Date.now() + '#mark'; o.classList.remove('fc-show'); void o.offsetWidth; o.classList.add('fc-show'); } else { s.cls('#fc-outro', 'fc-show', false); apply(i); }
   // the beat's steps run with their own wait, which stops them the moment another beat starts
   const mine = run, own = { ...s, wait: async (ms) => { await s.wait(ms); if (mine !== run) throw STALE; } };
   for (const k of ['tap', 'type']) own[k] = async (...a) => { if (mine !== run) throw STALE; return s[k].apply(own, a); };
@@ -370,16 +383,41 @@ $('#fc-credit-pos').onclick = (e) => { const b = e.target.closest('button'); if 
 $('#fc-theme').onclick = () => { document.documentElement.dataset.theme = isDark() ? 'light' : 'dark'; paintTheme(); };
 $('#fc-captions').classList.toggle('on', document.documentElement.dataset.captions !== 'off');
 $('#fc-captions').onclick = () => { const off = document.documentElement.dataset.captions !== 'off'; document.documentElement.dataset.captions = off ? 'off' : 'on'; $('#fc-captions').classList.toggle('on', !off); layout(); };
-$('#canvas-pick').value = canvasName; $('#canvas-pick').onchange = (e) => { canvasName = e.target.value; layout(); };
+$('#canvas-pick').value = canvasName; $('#canvas-pick').onchange = (e) => { canvasName = e.target.value; layout(); paintXopts(); };
 $('#phone-pick').value = phonePos; $('#phone-pick').onchange = (e) => { phonePos = e.target.value; layout(); };
 $('.fc-slot-toggles').onclick = (e) => { const b = e.target.closest('[data-slot]'); if (!b) return; slots[b.dataset.slot] = !slots[b.dataset.slot]; b.classList.toggle('on', slots[b.dataset.slot]); layout(); };
 paintTheme();
 // a video is measured in seconds, frames and slides in how many pictures they make: one per beat and the end card
 const exportLabel = () => { const f = $('#fc-export').value, n = beats.length + 1; $('#fc-go span').textContent = f === 'frames' ? `Export \u00b7 ${n} images` : f === 'slides' ? `Export \u00b7 ${n} pages` : `Export \u00b7 ${(totalMs() / 1000).toFixed(1)}s`; };
-const retimed = () => { exportLabel(); paintSpeed(); render(); layout(); saveState(); };
+const retimed = () => { exportLabel(); paintXopts(); paintSpeed(); render(); layout(); saveState(); };
 const paintSpeed = () => document.querySelectorAll('#fc-speed button').forEach(b => b.classList.toggle('on', +b.dataset.v === speed));
 paintSpeed(); $('#fc-speed').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; speed = +b.dataset.v; retime(); retimed(); };
-$('#fc-fmts').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; document.querySelectorAll('#fc-fmts button').forEach(x => x.classList.toggle('on', x === b)); $('#fc-export').value = b.dataset.f; exportLabel(); setStills(b.dataset.f === 'frames' || b.dataset.f === 'slides'); };
+$('#fc-fmts').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; document.querySelectorAll('#fc-fmts button').forEach(x => x.classList.toggle('on', x === b)); $('#fc-export').value = b.dataset.f; exportLabel(); paintXopts(); setStills(b.dataset.f === 'frames' || b.dataset.f === 'slides'); };
+// the picture each export makes, as the scripts make it: a canvas at its size, a free-size scene at its own, a device at twice its size in video
+// and fitted to 1280 in pictures; Max video at up to twice that, about 4K on the long side
+const exportFacts = (f) => {
+  const o = xo[f], [w, h] = SIZE, c = PRESET[canvasName], n = beats.length + 1, secs = totalMs() / 1000;
+  const fit = Math.min(1280 / w, 1280 / (h || w)), pic = c || (frame === 'none' && h ? SIZE : [Math.round(w * fit), Math.round(h * fit)]);
+  const vid = c || (frame === 'none' && h ? SIZE : [w * 2, h * 2]), x = (a, k = 1) => `${Math.round(a[0] * k)}\u00d7${Math.round(a[1] * k)}`;
+  if (f === 'mp4') { const k = o.quality === 'max' ? Math.max(1, Math.min(2, 3840 / Math.max(...vid))) : 1, fps = o.quality === 'max' ? 60 : 30;
+    const mb = secs * vid[0] * vid[1] * k * k / 1e6 * { standard: 0.016, high: 0.027, max: 0.02 }[o.quality];
+    return `${x(vid, k)} \u00b7 ${fps} fps \u00b7 about ${Math.max(1, Math.round(mb))} MB`; }
+  if (f === 'gif') return `${o.width}\u00d7${Math.round(o.width * vid[1] / vid[0])} \u00b7 ${o.fps} fps`;
+  if (f === 'frames') return `${n} images \u00b7 ${x(pic, o.scale)} each`;
+  return `${n} pages \u00b7 ${x(pic)}${o.text === 'real' ? ' \u00b7 real text' : ''}`;
+};
+// every format's settings are built once; picking a format or a choice only shows, hides and marks, so the panel glides instead of jumping
+$('#fc-xopts').innerHTML = Object.entries(XOPTS).map(([f, rows]) => `<div class="fc-xgroup fc-anim" style="--fc-d:grid;--fc-gap:0px" data-f="${f}" hidden>${rows.map(([k, label, choices, hint, when]) => `<div class="fc-xrow${when ? ' fc-anim' : ''}" style="--fc-d:grid;--fc-gap:8px" data-k="${k}"${when ? ' data-when' : ''}><div class="fc-label">${label}</div><div class="fc-seg" style="grid-template-columns:repeat(${choices.length},minmax(0,1fr))">${choices.map(([v, t]) => `<button data-v="${v}">${t}</button>`).join('')}</div>${hint ? `<p class="fc-xhint">${hint}</p>` : ''}</div>`).join('')}<div class="fc-xfacts"></div></div>`).join('');
+function paintXopts() {
+  const now = $('#fc-export').value;
+  document.querySelectorAll('#fc-xopts .fc-xgroup').forEach(g => { const f = g.dataset.f, o = xo[f]; g.hidden = f !== now;
+    g.querySelectorAll('.fc-xrow').forEach(r => { const row = XOPTS[f].find(x => x[0] === r.dataset.k); if (r.hasAttribute('data-when')) r.hidden = !row[4](o);
+      r.querySelectorAll('button').forEach(b => b.classList.toggle('on', String(o[r.dataset.k]) === b.dataset.v)); });
+    g.querySelector('.fc-xfacts').textContent = exportFacts(f); });
+}
+$('#fc-xopts').onclick = (e) => { const b = e.target.closest('button'), row = b?.closest('[data-k]'); if (!b || b.disabled) return; const f = row.closest('[data-f]').dataset.f, v = b.dataset.v;
+  xo[f][row.dataset.k] = isNaN(+v) ? v : +v; paintXopts(); saveState(); };
+paintXopts();
 // half a second at a time, as the viewer sees it, from a third of the written time to double; past that the motion blurs or stalls.
 // It replays the beat at its new length and holds there, so every press changes the same beat.
 const nudge = (k, d) => { dur[k] = Math.min(base[k] * 2, Math.max(base[k] / 3, dur[k] + d * 500 * speed)); retime(); retimed(); hold = k; go(k); };
@@ -518,6 +556,7 @@ const state = () => ({
   privacy: CHANGED.privacy() ? { on: privacy.on, map: { ...privacy.map }, custom: privacy.custom.map(r => [...r]), keep: [...privacy.keep] } : undefined,
   credit: CHANGED.credit() ? { on: credit.on, showLink: credit.showLink, pos: credit.pos, when: credit.when } : undefined,
   colors: Object.keys(colors.light).length || Object.keys(colors.dark).length ? colors : undefined,
+  exportOpts: JSON.stringify(xo) !== JSON.stringify(XDEF) ? xo : undefined,
   slots: { ...slots }, words: Object.fromEntries(['headline', 'line', 'cta', 'tags'].map(k => [k, $(`#fc-slot-${k}`).textContent.trim()])),
 });
 // Export: when the page comes from the studio on localhost, the buttons post to it and the file is made by the toolchain and revealed
@@ -527,7 +566,7 @@ $('.fc-tools').addEventListener('change', saveState); $('.fc-tools').addEventLis
 // the studio opens on a splash: brand colour, the logo centred, then it fades to the studio
 if (STUDIO && mode === 'preview') {
   const sp = document.createElement('div'); sp.id = 'fc-splash';
-  sp.innerHTML = motionImg('fc-splash-mark');
+  sp.innerHTML = motionImg('fc-splash-mark', 'bare');
   document.body.append(sp);
   // long enough for the mark to fold and press once
   const leave = () => { setTimeout(() => sp.classList.add('fc-out'), 1800); setTimeout(() => sp.remove(), 2200); };
@@ -536,12 +575,12 @@ if (STUDIO && mode === 'preview') {
 if (STUDIO) {
   // the studio tab carries the Flowcast mark
   const icon = document.createElement('link'); icon.rel = 'icon'; icon.type = 'image/svg+xml';
-  icon.href = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg>');
+  icon.href = 'data:image/svg+xml,' + encodeURIComponent(MARK.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" '));
   document.querySelectorAll('link[rel~="icon"]').forEach(l => l.remove()); document.head.append(icon);
   // where you are: Flowcast, which is home and lists every intro, then the project, then this intro's name
   if (mode === 'preview') {
     const crumbs = document.createElement('nav'); crumbs.className = 'fc-crumbs'; crumbs.ariaLabel = 'Breadcrumb';
-    crumbs.innerHTML = '<a href="/" title="All intros"><svg viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#FF6B4A"/><rect x="14" y="12" width="28" height="36" rx="6" fill="#fff" opacity=".45"/><rect x="19" y="16" width="28" height="36" rx="6" fill="#fff" opacity=".7"/><rect x="24" y="20" width="28" height="34" rx="6" fill="#fff"/><path d="M33 30v14l11-7z" fill="#FF6B4A"/></svg><b>Flowcast</b></a><span class="fc-sep" aria-hidden="true">/</span><a class="fc-proj" href="/"></a><span class="fc-sep" aria-hidden="true">/</span><span class="fc-here" aria-current="page"></span>';
+    crumbs.innerHTML = '<a href="/" title="All intros">' + TILE + '<b>Flowcast</b></a><span class="fc-sep" aria-hidden="true">/</span><a class="fc-proj" href="/"></a><span class="fc-sep" aria-hidden="true">/</span><span class="fc-here" aria-current="page"></span>';
     // the project this intro belongs to links to that project's own page
     const projectSlug = location.pathname.split('/').filter(Boolean)[0], projLink = crumbs.querySelector('.fc-proj');
     if (pre.project && projectSlug) { projLink.textContent = pre.project; projLink.href = `/${projectSlug}/`; } else { projLink.nextElementSibling.remove(); projLink.remove(); }
@@ -558,9 +597,9 @@ if (STUDIO) {
   $('#fc-go').onclick = async () => {
     const format = pick.value, name = { mp4: 'MP4', gif: 'GIF', frames: 'PNG frames', slides: 'PDF slides' }[format] || format;
     const q = { format, project: document.title, ...state(), theme: isDark() ? 'dark' : 'light' };
-    const go = $('#fc-go'), status = $('#fc-status'), tiles = document.querySelectorAll('#fc-fmts button'); let done = false;
+    const go = $('#fc-go'), status = $('#fc-status'), tiles = document.querySelectorAll('#fc-fmts button, #fc-xopts button'); let done = false;
     pick.disabled = go.disabled = true; tiles.forEach(t => { t.disabled = true; }); status.hidden = true;
-    go.classList.add('fc-exporting'); go.innerHTML = motionImg('fc-busy', true) + `<span>Exporting ${name}\u2026</span>`;
+    go.classList.add('fc-exporting'); go.innerHTML = motionImg('fc-busy', 'bare') + `<span>Exporting ${name}\u2026</span>`;
     try { const r = await fetch('export', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(q) }).then(r => r.json());
       if (r.ok) { $('#fc-folder').hidden = false; done = true; }
       else { status.hidden = false; status.textContent = `Export failed: ${r.error}`; } }

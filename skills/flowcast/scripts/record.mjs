@@ -1,7 +1,10 @@
-// Records a flowcast intro to WebM. Usage: node record.mjs intro.html out.webm [--width 1080] [--height 1920] [--theme dark|light] [--captions off]
+// Records a flowcast intro to MP4 (or WebM). Usage: node record.mjs intro.html out.mp4 [--quality standard|high|max] [--width 1080] [--height 1920] [--theme dark|light] [--captions off]
 import { chromium } from 'playwright';
-import { resolve, dirname } from 'node:path';
-import { rename, writeFile } from 'node:fs/promises';
+import { resolve, join } from "node:path";
+import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { spawnSync } from "node:child_process";
+import ffmpeg from "ffmpeg-static";
 
 const [,, input, output, ...rest] = process.argv;
 if (!input || !output) { console.error('usage: node record.mjs intro.html out.webm [--width W] [--height H] [--canvas square|portrait|story|landscape] [--phone center|left|right] [--theme dark|light] [--captions off|inside|below]'); process.exit(1); }
@@ -30,10 +33,14 @@ if (!width || !height) {
   await b.close();
 }
 
+// Chrome's own frames, near lossless, encoded once. A browser recorder squeezes video to about 1 Mbit/s, which blurs text and fine lines.
+// standard and high record at the export size; max at up to twice that, about 4K on the long side
+const QUALITY = { standard: { jpeg: 88, crf: 20, fps: 30 }, high: { jpeg: 95, crf: 16, fps: 30 }, max: { jpeg: 95, crf: 14, fps: 60 } };
+const q = QUALITY[opt.quality] || QUALITY.high;
+const scale = opt.quality === 'max' ? Math.max(1, Math.min(2, 3840 / Math.max(width, height))) : 1;
+
 const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, colorScheme: theme, recordVideo: { dir: dirname(resolve(output)), size: { width, height } } });
-// the video starts when the page opens; what plays before the intro is ready is cut off afterwards
-const opened = Date.now();
+const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: scale, colorScheme: theme });
 const page = await ctx.newPage();
 // record mode: no controls, plays once, ends on the end card. Set before the page's scripts run.
 await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', theme, canvas: opt.canvas, phone: opt.phone, captions: opt.captions === 'off' ? 'off' : undefined, captionsAt: opt.captions === 'below' ? 'below' : undefined, ...extra });
@@ -49,14 +56,37 @@ await page.evaluate(async () => {
   await document.fonts.ready;
   await Promise.all([...document.images].map(i => i.decode().catch(() => {})));
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-  flowcast.go(0);
 });
-const started = (Date.now() - opened) / 1000;
-await page.waitForFunction(() => window.flowcastDone, null, { timeout: 120000 });
+
+// Chrome sends a frame whenever the picture changes; each one keeps its time, so still moments last as long as they really did
+const dir = await mkdtemp(join(tmpdir(), 'flowcast-rec-')), shots = [];
+const cdp = await ctx.newCDPSession(page);
+cdp.on('Page.screencastFrame', ({ data, metadata, sessionId }) => {
+  const f = join(dir, `${String(shots.length).padStart(6, '0')}.jpg`); shots.push([f, metadata.timestamp]);
+  writeFile(f, Buffer.from(data, 'base64')).catch(() => {}); cdp.send('Page.screencastFrameAck', { sessionId }).catch(() => {});
+});
+await cdp.send('Page.startScreencast', { format: 'jpeg', quality: q.jpeg, maxWidth: Math.round(width * scale), maxHeight: Math.round(height * scale), everyNthFrame: 1 });
+await page.waitForTimeout(200);
+// the video starts here: the last frame before the first beat, then the intro
+const started = Date.now() / 1000;
+await page.evaluate(() => flowcast.go(0));
+await page.waitForFunction(() => window.flowcastDone, null, { timeout: 180000 });
 await page.waitForTimeout(300);
-const video = page.video();
+const ended = Date.now() / 1000;
+await cdp.send('Page.stopScreencast').catch(() => {});
+await page.waitForTimeout(200);
 await ctx.close(); await browser.close();
-await rename(await video.path(), resolve(output));
-// where the intro really starts in the recording, for convert.mjs to cut the loading in front of it
-await writeFile(resolve(output) + '.json', JSON.stringify({ start: started }));
+
+const kept = shots.filter(([, t]) => t >= started); const lead = shots.filter(([, t]) => t < started).pop();
+if (lead) kept.unshift([lead[0], started]);
+if (!kept.length) { console.error('nothing was recorded'); process.exit(1); }
+// ffmpeg's concat list: each frame held until the next one, the last until the end
+const list = kept.map(([f, t], k) => `file '${f}'\nduration ${Math.max(0.001, (kept[k + 1]?.[1] ?? ended) - t).toFixed(4)}`).join('\n') + `\nfile '${kept[kept.length - 1][0]}'\n`;
+await writeFile(join(dir, 'list.txt'), list);
+// even sizes, which the encoders need
+const vf = `fps=${q.fps},scale=trunc(iw/2)*2:trunc(ih/2)*2:flags=lanczos`;
+const enc = /\.webm$/i.test(output) ? ['-c:v', 'libvpx-vp9', '-crf', String(q.crf + 12), '-b:v', '0', '-row-mt', '1'] : ['-c:v', 'libx264', '-preset', 'slow', '-crf', String(q.crf), '-pix_fmt', 'yuv420p', '-movflags', '+faststart'];
+const r = spawnSync(ffmpeg, ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', join(dir, 'list.txt'), '-vf', vf, ...enc, resolve(output)], { stdio: 'inherit' });
+await rm(dir, { recursive: true, force: true });
+if (r.status) process.exit(r.status);
 console.log(resolve(output));
