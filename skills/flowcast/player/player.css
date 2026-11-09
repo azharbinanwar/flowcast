@@ -317,6 +317,9 @@ html.fc-full #flowcast{gap:0}
 /* breadcrumb: the mark and Flowcast lead home, then the intro you are in */
 .fc-crumbs a{display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;padding:4px 8px 4px 4px;margin-left:-4px;border-radius:9px;transition:background .15s}
 .fc-crumbs a:hover{background:var(--ui-hover,rgba(0,0,0,.05))}
+.fc-crumbs a.fc-gh{margin-left:auto;gap:6px;height:34px;padding:0 12px;border:1px solid var(--ui-line,rgba(0,0,0,.12));background:var(--ui-panel,#fff);color:var(--ui-text,inherit);font-size:13px;font-weight:600}
+.fc-crumbs a.fc-gh:hover{border-color:var(--ui-muted,#888);background:var(--ui-panel,#fff)}
+.fc-crumbs .fc-gh svg{width:16px;height:16px}
 .fc-crumbs .fc-sep{color:var(--ui-muted,#888);font-weight:400;opacity:.6}
 .fc-crumbs a.fc-proj{font-size:14px;font-weight:600;color:var(--ui-muted,#888);padding:4px 6px;margin:0 -2px}
 .fc-crumbs a.fc-proj:hover{color:var(--ui-text,inherit)}
@@ -447,7 +450,7 @@ html.fc-full #flowcast[data-mode=preview] .fc-bar{left:50%}
 .fc-screen>.fc-made svg{width:18px;height:18px}
 .fc-screen>.fc-outro{border-radius:inherit}
 /* in a phone the tag stacks: the mark beside two lines, so the link never runs past the screen */
-.fc-with-credit.fc-screen>.fc-made{display:grid;grid-template-columns:auto auto;column-gap:7px;row-gap:1px;align-items:center;max-width:calc(100% - 36px);padding:5px 10px 5px 5px}
-.fc-screen>.fc-made svg{grid-row:1 / span 2}
+.fc-with-credit.fc-screen:not([data-credit-when=outro])>.fc-made{display:grid;grid-template-columns:auto auto;column-gap:7px;row-gap:1px;align-items:center;max-width:calc(100% - 36px);padding:5px 10px 5px 5px}
+.fc-screen>.fc-made:has(.fc-made-link:not([hidden])) svg{grid-row:1 / span 2}
 .fc-screen>.fc-made .fc-made-link{grid-column:2;border-left:0;padding-left:0;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fc-screen>.fc-made .fc-made-link[hidden]{display:none}

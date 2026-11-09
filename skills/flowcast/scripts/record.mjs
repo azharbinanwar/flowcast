@@ -17,7 +17,6 @@ import { existsSync, readFileSync } from 'node:fs';
 const stateFile = opt.state || resolve(input).replace(/\.html$/, '.state.json');
 const saved = existsSync(stateFile) ? JSON.parse(readFileSync(stateFile, 'utf8')) : {};
 for (const k of ['canvas', 'phone', 'theme', 'captions']) if (opt[k] === undefined && saved[k] !== undefined) opt[k] = saved[k];
-if (opt.canvas === 'none') delete opt.canvas;
 const extra = { slots: saved.slots, words: saved.words, speed: saved.speed, durations: saved.durations, colors: saved.colors, credit: saved.credit, privacy: saved.privacy };
 const PRESET = { square: [1080, 1080], portrait: [1080, 1350], story: [1080, 1920], landscape: [1920, 1080] };
 const [pw, ph] = PRESET[opt.canvas] || [];
