@@ -450,7 +450,7 @@ html.fc-full #flowcast[data-mode=preview] .fc-bar{left:50%}
 .fc-screen>.fc-made svg{width:18px;height:18px}
 .fc-screen>.fc-outro{border-radius:inherit}
 /* in a phone the tag stacks: the mark beside two lines, so the link never runs past the screen */
-.fc-with-credit.fc-screen>.fc-made{display:grid;grid-template-columns:auto auto;column-gap:7px;row-gap:1px;align-items:center;max-width:calc(100% - 36px);padding:5px 10px 5px 5px}
-.fc-screen>.fc-made svg{grid-row:1 / span 2}
+.fc-with-credit.fc-screen:not([data-credit-when=outro])>.fc-made{display:grid;grid-template-columns:auto auto;column-gap:7px;row-gap:1px;align-items:center;max-width:calc(100% - 36px);padding:5px 10px 5px 5px}
+.fc-screen>.fc-made:has(.fc-made-link:not([hidden])) svg{grid-row:1 / span 2}
 .fc-screen>.fc-made .fc-made-link{grid-column:2;border-left:0;padding-left:0;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fc-screen>.fc-made .fc-made-link[hidden]{display:none}

@@ -479,9 +479,9 @@ function layout() {
   if (!c) {
     $('#fc-length').hidden = true; cvEl.style.width = cvEl.style.height = ''; cvEl.style.transform = ''; wrap.style.width = wrap.style.height = '';
     const tall = innerHeight - chrome() - (captionsAt === 'below' ? 120 : 0);
-    // a free-size composition fills its recording exactly; a device keeps a margin
-    const fill = frame === 'none' && mode === 'record';
-    setFrame(fill ? (innerWidth === w && innerHeight === h ? 1 : Math.min(innerWidth / w, innerHeight / h)) : mode === 'record' ? Math.min(roomW() / w, tall / h) * 0.92 : Math.min(full() ? Infinity : 1, roomW() / w, tall / h));
+    // no canvas: the scene or the device itself is the picture, edge to edge
+    const fill = mode === 'record';
+    setFrame(fill ? (innerWidth === w && innerHeight === h ? 1 : Math.min(innerWidth / w, innerHeight / h)) : Math.min(full() ? Infinity : 1, roomW() / w, tall / h));
     return;
   }
   const [cw, ch] = c; cvEl.style.width = cw + 'px'; cvEl.style.height = ch + 'px';
