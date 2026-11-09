@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.1 · 2026-11-09
+
+Fixes for the credit outro and for exports with No canvas, plus a GitHub link in the studio.
+
+- A GitHub link to the Flowcast repo at the top right of History and the studio.
+- Fixed: with Credit set to Outro slide, intros in a browser or phone frame still showed the watermark chip on every slide.
+- Fixed: the credit chip's logo and text line up when the repo link is off.
+- Fixed: exports with No canvas picked used the intro's own default canvas instead, so the size changed.
+- With No canvas, exports are the browser or phone itself, edge to edge, with no band of background around it.
+
 ## 2.0.0 · 2026-11-07
 
 A new studio for every project, History, the drawer, Privacy, Credit and a plan before every build. Intros made with 1.0.0 still open; studio addresses now include the project (`/<project>/<intro>/`).
