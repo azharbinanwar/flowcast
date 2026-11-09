@@ -4,6 +4,7 @@ import { readdirSync, readFileSync, rmSync, writeFileSync, existsSync, mkdirSync
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { inflateSync } from 'node:zlib';
+import ffmpegPath from 'ffmpeg-static';
 
 const here = dirname(fileURLToPath(import.meta.url)), root = resolve(here, '..');
 const sample = join(root, 'examples/sample.html'), out = join(root, 'examples/.test-out'), state = join(root, 'examples/sample.state.json');
@@ -44,7 +45,14 @@ if (pngs.length) {
 }
 // 3. slides: a PDF with one page per frame
 const pdf = join(out, 'slides.pdf');
-ok('slides pdf has a page per frame', existsSync(pdf) && (readFileSync(pdf).toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length === 3);
+ok('picture pdf has a page per frame and no text', !/\/Font\b/.test(existsSync(pdf) ? readFileSync(pdf).toString('latin1') : '') && existsSync(pdf) && (readFileSync(pdf).toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length === 3);
+// 3b. sharper pictures, and a PDF whose text is real text: fonts inside it, a page per slide, no print files left behind
+r = node([join(here, 'frames.mjs'), sample, join(out, 'sharp'), '--scale', '2', '--pdf', join(out, 'real.pdf'), '--pdf-text', 'real']);
+const sharp = existsSync(join(out, 'sharp', 'flowcast-1.png')) ? png(join(out, 'sharp', 'flowcast-1.png')) : { w: 0, h: 0 };
+ok('scale 2 makes 2160×2160 pictures', r.status === 0 && sharp.w === 2160 && sharp.h === 2160, `${sharp.w}×${sharp.h} ${r.stderr.trim().split('\n').pop() || ''}`);
+const real = existsSync(join(out, 'real.pdf')) ? readFileSync(join(out, 'real.pdf')).toString('latin1') : '';
+ok('real-text pdf has fonts, one page per slide', /\/Font\b/.test(real) && (real.match(/\/Type\s*\/Page[^s]/g) || []).length === 3);
+ok('print files cleaned up', !readdirSync(dirname(sample)).some(f => f.startsWith('.fc-print')));
 
 // 4. what the user set on the page is honoured: a saved dark theme exports dark
 writeFileSync(state, JSON.stringify({ canvas: 'none', theme: 'dark', captions: 'off' }));
@@ -93,10 +101,11 @@ r = node([join(here, 'check.mjs'), sample]); ok('check passes the sample', r.sta
 
 // 6. optional: record and convert
 if (process.argv.includes('--video')) {
-  r = node([join(here, 'record.mjs'), sample, join(out, 'v.webm'), '--canvas', 'square']); ok('records webm', r.status === 0);
-  ok('notes where the intro starts, so the loading is cut', existsSync(join(out, 'v.webm.json')) && JSON.parse(readFileSync(join(out, 'v.webm.json'), 'utf8')).start > 0);
-  r = node([join(here, 'convert.mjs'), join(out, 'v.webm'), join(out, 'v.mp4')]); ok('converts to mp4', r.status === 0 && existsSync(join(out, 'v.mp4')));
-  r = node([join(here, 'convert.mjs'), join(out, 'v.webm'), join(out, 'v.gif')]); ok('converts to gif', r.status === 0 && existsSync(join(out, 'v.gif')), r.stderr.trim().split('\n').pop());
+  mkdirSync(out, { recursive: true });
+  r = node([join(here, 'record.mjs'), sample, join(out, 'v.mp4'), '--canvas', 'square']); ok('records mp4', r.status === 0 && existsSync(join(out, 'v.mp4')), r.stderr.trim().split('\n').pop());
+  const probe = spawnSync(ffmpegPath, ['-i', join(out, 'v.mp4')], { encoding: 'utf8' }).stderr;
+  ok('mp4 is 1080x1080 at 30 fps, the loading cut', /1080x1080/.test(probe) && /30 fps/.test(probe) && +(probe.match(/Duration: 00:00:(\d+\.\d+)/)?.[1] || 99) < 20, probe.match(/Duration[^,]*|\d+x\d+[^,]*/g)?.join(' '));
+  r = node([join(here, 'convert.mjs'), join(out, 'v.mp4'), join(out, 'v.gif')]); ok('converts to gif', r.status === 0 && existsSync(join(out, 'v.gif')), r.stderr.trim().split('\n').pop());
 }
 
 rmSync(out, { recursive: true, force: true });

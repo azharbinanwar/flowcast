@@ -31,13 +31,14 @@ The studio saves what the user set on the page to `<intro>.state.json`, and ever
 - **Captions:** off (default for video), or on with the user's words. `below` the frame for a floating-phone post.
 
 ```bash
-node <skill>/scripts/record.mjs intro.html out.webm --canvas square --phone right --theme dark --captions off
-node <skill>/scripts/convert.mjs out.webm out.mp4            # MP4 for LinkedIn, Instagram, App Store
-node <skill>/scripts/convert.mjs out.webm out.gif --width 720  # GIF, 15 fps, clean palette
+node <skill>/scripts/record.mjs intro.html out.mp4 --canvas square --phone right --theme dark --captions off --quality high
+# --quality standard (smaller), high (default, for social), max (60 fps, up to 4K on the long side)
+node <skill>/scripts/convert.mjs out.mp4 out.gif --width 800 --fps 15   # GIF with a clean palette
 # a bare frame at any size: --width 1080 --height 1920
 
-# one PNG per beat plus the end card, and the same as a PDF of slides
-node <skill>/scripts/frames.mjs intro.html out/ --canvas square --phone right --captions off --pdf out/slides.pdf
+# one PNG per beat plus the end card, at 2x sharpness, and the same as a PDF of slides
+node <skill>/scripts/frames.mjs intro.html out/ --canvas square --phone right --captions off --scale 2 --pdf out/slides.pdf
+# --pdf-text real prints each slide with selectable text; soft shadows become a thin outline
 ```
 
 Frames are stills at the end of each beat, after the cause and the effect; `--at 0.5` takes them mid-beat. Slides are those frames as pages, one per beat and the end card last, the shape LinkedIn document posts and carousels want.

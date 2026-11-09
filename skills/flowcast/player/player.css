@@ -331,7 +331,7 @@ html:has(#flowcast[data-mode=preview]) .fc-crumbs>a:first-child{padding:0;margin
 
 /* the credit, when turned on: a small dark tag in the corner of the exported picture, readable on any scene */
 .fc-made{display:none;position:absolute;right:2.2%;bottom:2.2%;z-index:6;align-items:center;gap:8px;padding:5px 11px 5px 5px;border-radius:10px;font:600 13px/1 -apple-system,system-ui,sans-serif;letter-spacing:.01em;white-space:nowrap;color:#fff;background:rgba(18,16,22,.6);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);pointer-events:none}
-.fc-made svg{width:22px;height:22px;flex:none;border-radius:5px}
+.fc-made svg{width:22px;height:22px;flex:none}
 .fc-with-credit>.fc-made{display:flex}
 #flowcast[data-mode=preview] .fc-switches{display:grid;gap:6px}
 #flowcast[data-mode=preview] #fc-credit,#flowcast[data-mode=preview] #fc-credit-link{display:flex;align-items:center;gap:10px;width:100%;height:44px;background:var(--ui-field)!important;color:var(--ui-text)!important;border-color:var(--ui-line)!important;font-weight:600}
@@ -386,7 +386,8 @@ html:has(#flowcast[data-mode=preview]) .fc-crumbs>a:first-child{padding:0;margin
 html.fc-full #flowcast[data-mode=preview] .fc-bar{left:50%}
 
 /* the animated mark: in the outro while it plays (a still one for PNG and PDF), and beside the export status */
-.fc-outro .fc-motion{width:8.25em;height:8.25em;margin:-1.375em;display:block}
+.fc-outro .fc-motion{width:11em;height:11em;margin:-2.6em;display:block}
+.fc-outro .fc-outro-still{width:5.3em;height:5.3em}
 .fc-outro .fc-outro-still{display:none}
 #flowcast.fc-stills .fc-outro .fc-motion{display:none}#flowcast.fc-stills .fc-outro .fc-outro-still{display:block}
 .fc-busy{width:40px;height:40px;margin:-10px -4px;flex:none}
@@ -454,3 +455,11 @@ html.fc-full #flowcast[data-mode=preview] .fc-bar{left:50%}
 .fc-screen>.fc-made:has(.fc-made-link:not([hidden])) svg{grid-row:1 / span 2}
 .fc-screen>.fc-made .fc-made-link{grid-column:2;border-left:0;padding-left:0;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fc-screen>.fc-made .fc-made-link[hidden]{display:none}
+
+/* Export: the picked format's own settings, under its tile */
+#flowcast[data-mode=preview] .fc-xopts{display:grid;width:100%;box-sizing:border-box;padding:12px;border-radius:12px;background:var(--ui-field);border:1px solid var(--ui-line)}
+#flowcast[data-mode=preview] .fc-xgroup,#flowcast[data-mode=preview] .fc-xrow{gap:8px}
+#flowcast[data-mode=preview] .fc-xopts .fc-seg button{transition:background-color .2s,color .2s,box-shadow .2s}
+#flowcast[data-mode=preview] .fc-xopts .fc-label{margin:2px 0 0}
+#flowcast[data-mode=preview] .fc-xhint{margin:-2px 0 2px;font:500 11.5px/1.4 -apple-system,system-ui,sans-serif;color:var(--ui-muted)}
+#flowcast[data-mode=preview] .fc-xfacts{font:600 11.5px/1.3 -apple-system,system-ui,sans-serif;color:var(--ui-muted);font-variant-numeric:tabular-nums;padding-top:8px;border-top:1px solid var(--ui-line)}

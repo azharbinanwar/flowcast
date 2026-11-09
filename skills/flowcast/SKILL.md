@@ -41,7 +41,7 @@ If sub-agents are not available, do the same steps yourself: plan with `plan.md`
 | Text post | The steps as a caption for the platform: hook first, hashtags, first comment. |
 | Frames, still | One PNG per beat plus the end card, from the studio or `scripts/frames.mjs`. |
 | Carousel, slides | The same as a PDF, `scripts/frames.mjs --pdf`. |
-| Video, GIF, reel | From the studio's Export, or `scripts/record.mjs` then `scripts/convert.mjs`. See `record.md`. |
+| Video, GIF, reel | From the studio's Export, or `scripts/record.mjs` (MP4) and `scripts/convert.mjs` (GIF). See `record.md`. |
 | Web embed | The intro and the player files, mode `embed`, and an iframe line. |
 | In-app | The approved intro rewritten in the app's own stack and components. Only when asked. |
 
