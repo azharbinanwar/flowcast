@@ -1,12 +1,12 @@
 // One PNG per beat, plus the end card, at the exact canvas size; optionally the same frames as a PDF, one per page.
-// Usage: node frames.mjs intro.html outdir [--canvas square] [--phone right] [--theme dark] [--captions off|inside|below] [--at 0.9] [--scale 2] [--pdf slides.pdf] [--pdf-text picture|real]
+// Usage: node frames.mjs intro.html outdir [--canvas square] [--phone right] [--theme dark] [--captions off|inside|below] [--at 0.9] [--scale 2] [--only 3] [--pdf slides.pdf] [--pdf-text picture|real]
 import { chromium } from 'playwright';
 import { resolve, join } from 'node:path';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 const [,, input, outdir, ...rest] = process.argv;
-if (!input || !outdir) { console.error('usage: node frames.mjs intro.html outdir [--canvas square|portrait|story|landscape] [--phone center|left|right] [--theme dark|light] [--captions off|inside|below] [--at 0.9] [--scale 1|2|3] [--pdf slides.pdf] [--pdf-text real|picture]'); process.exit(1); }
+if (!input || !outdir) { console.error('usage: node frames.mjs intro.html outdir [--canvas square|portrait|story|landscape] [--phone center|left|right] [--theme dark|light] [--captions off|inside|below] [--at 0.9] [--scale 1|2|3] [--only N] [--pdf slides.pdf] [--pdf-text real|picture]'); process.exit(1); }
 // the intro loads player.css and player.js from its own folder: link them from the skill when they are not there
 import { existsSync as _ex, symlinkSync as _ln, copyFileSync as _cp, readFileSync as _rf } from 'node:fs';
 import { dirname as _dn, join as _jn } from 'node:path';
@@ -41,8 +41,13 @@ await page.evaluate(() => { const host = document.getElementById('flowcast'); co
 // each slide is a beat's finished picture, then the end card, then the outro: the same pictures the studio shows when PNG or PDF is picked
 const count = await page.evaluate(() => flowcast.slides());
 const files = [], snaps = [];
+// --only 3: just that slide (counted from 1), the one picture a small edit needs
+const only = +opt.only || 0;
 for (let k = 0; k < count; k++) {
-  await page.evaluate((n) => flowcast.still(n), k);
+  if (only && k !== only - 1) continue;
+  // --at with a beat: the beat played and caught at that point of it (0 to 1), for what shows only mid-beat; otherwise its resting picture
+  if (opt.at !== undefined && k < count - 1) { const ms = await page.evaluate((n) => { flowcast.go(n); return flowcast.beats[n]?.ms || 0; }, k); await page.waitForTimeout(ms * at); }
+  else await page.evaluate((n) => flowcast.still(n), k);
   const f = join(resolve(outdir), `flowcast-${k + 1}.png`); await page.screenshot({ path: f }); files.push(f);
   // for a PDF with real text: the slide as it stands, without its scripts, printed later as its own page
   // Chrome prints soft shadows as grey boxes, so each one becomes a hairline outline on the printed copy only

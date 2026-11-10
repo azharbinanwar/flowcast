@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.2.0 · 2026-11-10
+
+Cheaper changes after the first build, app intros as a feature tour, and spacing in the export settings.
+
+- Skill: an intro of a whole app can be a tour, one beat per main feature taken from the app's own navigation. "Full app", "all features" or "overview" makes a tour; an app intro asked without saying how shows a tour and one story side by side to pick from. The earlier intro lends its look, never its story.
+- Skill: every change after the first build goes to a new, small editor sub-agent with its own guide, `edit.md`, instead of back to the builder, whose memory grew with every change. Several changes in one message are one editor run.
+- `map.mjs`: where everything in an intro is, by line (style, scene markup and its ids, canvas words, timings, each beat and its steps), so a change reads only the lines it needs.
+- `frames.mjs --only <slide>`: one picture of the beat that changed, instead of a contact sheet. With `--at 0.3` it plays the beat and catches it at that point, for what shows only mid-beat; `--at` had been ignored since slides became each beat's resting picture.
+- Fixed: the export settings had no space between them, so a label sat on the row above it. Each setting now keeps 14px from the next, and the label, choices and hint 6px from each other.
+- Skill: sub-agents run in the foreground by default; "in the background" or "here" in the request changes that.
+
 ## 2.1.0 · 2026-11-09
 
 Export settings for every format, sharper video and pictures, PDFs with real text, and the Flowcast mark without its box.
