@@ -457,9 +457,12 @@ html.fc-full #flowcast[data-mode=preview] .fc-bar{left:50%}
 .fc-screen>.fc-made .fc-made-link[hidden]{display:none}
 
 /* Export: the picked format's own settings, under its tile */
-#flowcast[data-mode=preview] .fc-xopts{display:grid;width:100%;box-sizing:border-box;padding:12px;border-radius:12px;background:var(--ui-field);border:1px solid var(--ui-line)}
-#flowcast[data-mode=preview] .fc-xgroup,#flowcast[data-mode=preview] .fc-xrow{gap:8px}
+#flowcast[data-mode=preview] .fc-xopts{display:grid;width:100%;box-sizing:border-box;padding:14px;border-radius:12px;background:var(--ui-field);border:1px solid var(--ui-line)}
+#flowcast[data-mode=preview] .fc-xgroup{display:grid}
+/* the space between settings is a margin, so a row that hides takes its space with it */
+#flowcast[data-mode=preview] .fc-xgroup>*+*{margin-top:14px}
+#flowcast[data-mode=preview] .fc-xrow{display:grid;gap:6px}
 #flowcast[data-mode=preview] .fc-xopts .fc-seg button{transition:background-color .2s,color .2s,box-shadow .2s}
-#flowcast[data-mode=preview] .fc-xopts .fc-label{margin:2px 0 0}
-#flowcast[data-mode=preview] .fc-xhint{margin:-2px 0 2px;font:500 11.5px/1.4 -apple-system,system-ui,sans-serif;color:var(--ui-muted)}
-#flowcast[data-mode=preview] .fc-xfacts{font:600 11.5px/1.3 -apple-system,system-ui,sans-serif;color:var(--ui-muted);font-variant-numeric:tabular-nums;padding-top:8px;border-top:1px solid var(--ui-line)}
+#flowcast[data-mode=preview] .fc-xopts .fc-label{margin:0}
+#flowcast[data-mode=preview] .fc-xhint{margin:0;font:500 11.5px/1.4 -apple-system,system-ui,sans-serif;color:var(--ui-muted)}
+#flowcast[data-mode=preview] .fc-xfacts{font:600 11.5px/1.3 -apple-system,system-ui,sans-serif;color:var(--ui-muted);font-variant-numeric:tabular-nums;padding-top:12px;border-top:1px solid var(--ui-line)}

@@ -12,7 +12,7 @@ You are Flowcast's builder. You get an approved plan and a brief. You build the 
 
 Follow `stage.md` (read it once; it has the rules, the skeleton and the helpers). Read only the files and the exact line ranges the brief names, with `sed -n 140,176p`; never a whole source file, and never broad greps across the project. The brief already holds the labels, colours and icons.
 
-Never print an intro file, the new one or an existing one. To change part of it, `grep -n` for the spot and read only those lines, then edit just that part with Edit. This holds when the request is to change an existing intro too.
+Never print an intro file, the new one or an existing one. To change part of it, `node <skill>/scripts/map.mjs flowcast/<feature>/intro.html` shows where each part is by line; read only those lines with `sed -n`, then edit just that part with Edit.
 
 - **Real parts:** the app's components, tokens, labels and icons. Plausible values, never lorem ipsum.
 - **Real products keep their identity:** WhatsApp green with quick replies under the message, Slack's four-colour mark, Gmail's M, Stripe's wordmark. Draw the real mark.
@@ -26,7 +26,7 @@ Never print an intro file, the new one or an existing one. To change part of it,
 ## 3. Check
 
 1. `node <skill>/scripts/check.mjs flowcast/<feature>/intro.html` until it says All clear. It costs no image.
-2. One contact sheet: `node <skill>/scripts/sheet.mjs flowcast/<feature>/intro.html <scratch>/sheet.jpg --theme <the app's theme>`. Read it once, for what words cannot judge. That is the only image in the whole build: no screenshots of your own, no second sheet. After a fix, `check.mjs` again.
+2. One contact sheet: `node <skill>/scripts/sheet.mjs flowcast/<feature>/intro.html <scratch>/sheet.jpg --theme <the app's theme>`. Read it once, for what words cannot judge. That is the only sheet in the whole build: no screenshots of your own, no second sheet. After a fix, `check.mjs` again, and if the fix needs looking at, one picture of that beat: `frames.mjs flowcast/<feature>/intro.html <scratch>/fix --only <beat>`.
 
 ## 4. Open it
 

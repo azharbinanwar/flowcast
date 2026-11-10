@@ -99,6 +99,15 @@ r = node([join(here, 'check.mjs'), sample]); ok('check passes the sample', r.sta
   const made = existsSync(join(proj, 'second', 'intro.html')) ? readFileSync(join(proj, 'second', 'intro.html'), 'utf8') : '';
   ok('starter copies the look and empties the scene', r.status === 0 && r.stdout.includes('from first') && /:root\{/.test(made) && made.includes('<div id="flowcast"') && /<template id="scene">\s*<\/template>/.test(made) && made.includes('const beats = [];'), r.stderr.trim() || r.stdout.trim()); }
 
+// 5b. the map finds every part by line, and --only makes the one picture a small edit needs
+r = node([join(here, 'map.mjs'), sample]);
+ok('map lists the parts by line', r.status === 0 && ['style', 'scene markup', 'canvas words', 'beats', 'apply(i)', 'scene steps'].every(w => r.stdout.includes(w)) && r.stdout.includes('#r1'), r.stdout.trim().split('\n').slice(0, 3).join(' / '));
+r = node([join(here, 'frames.mjs'), sample, join(out, 'one'), '--only', '2']);
+ok('--only makes just that picture', r.status === 0 && existsSync(join(out, 'one')) && readdirSync(join(out, 'one')).join(',') === 'flowcast-2.png', existsSync(join(out, 'one')) ? readdirSync(join(out, 'one')).join(',') : r.stderr.trim());
+
+r = node([join(here, 'frames.mjs'), sample, join(out, 'mid'), '--only', '1', '--at', '0.3']);
+ok('--at catches the beat mid-way', r.status === 0 && existsSync(join(out, 'mid', 'flowcast-1.png')), r.stderr.trim().split('\n').pop());
+
 // 6. optional: record and convert
 if (process.argv.includes('--video')) {
   mkdirSync(out, { recursive: true });
