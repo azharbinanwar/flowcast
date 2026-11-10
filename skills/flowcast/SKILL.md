@@ -21,16 +21,25 @@ With nothing after `/flowcast`, open History instead: do exactly what the `flowc
    - **Build it**: builds the intro and opens it in the studio.
    - **Make it shorter**: fewer steps, then the plan again.
    - **Change something**: the user types what, then the plan again.
+   When the plan holds a tour (A) and a story (B), the first two options are **Build the tour** and **Build the story** instead of Build it, and the builder gets the plan's shared lines with only the picked steps and brief part.
    For shorter or a change, send the request to the same planner (SendMessage) and show the new plan. Nothing is built until the user picks Build it.
 3. **Build.** Start a second sub-agent with:
    > You are Flowcast's builder. Read `<skill>/build.md` and do what it says. The project is `<folder>`. The approved plan and brief: `<everything the planner returned>`.
 4. **Report** its summary in a few lines: where it is open, the running time, and that timing, colours, captions and exports are all switches in the studio.
 
-If sub-agents are not available, do the same steps yourself: plan with `plan.md`, show the plan and ask, then build with `build.md`.
+If sub-agents are not available, do the same steps yourself: plan with `plan.md`, show the plan and ask, then build with `build.md`, and change with `edit.md`.
 
 ## After the first build
 
-"Change beat 2", "slower", "add a tap", "no captions": small edits to `flowcast/<feature>/intro.html`, confirmed with `check.mjs`, then tell the user to refresh. A bigger change goes back through a builder with the edit as its brief. Never change the app's own code, or post anywhere, unless that exact thing was asked.
+"Change beat 2", "slower", "add a tap", "no captions": every change gets a **new editor sub-agent**, never the planner or builder from before. A sub-agent keeps everything it has read, so sending changes back to the builder makes each one cost more than the last. Start it with:
+
+> You are Flowcast's editor. Read `<skill>/edit.md` and do what it says. The intro is `<folder>/flowcast/<feature>/intro.html`. The change: `<the user's words, all of them>`.
+
+Pass on its two lines and tell the user to refresh. Several changes in one message go to one editor. A new scene or a different story goes back to step 1, the planner. Never change the app's own code, or post anywhere, unless that exact thing was asked.
+
+## Where it runs
+
+Sub-agents run in the foreground by default, so the user sees each step as it happens. "In the background" in the request runs them in the background, and the user keeps chatting. "Here" or "in this chat" does the work in this chat instead, reading and building here; say once that this costs more, since everything read stays in the chat.
 
 ## Outputs
 

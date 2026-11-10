@@ -407,7 +407,7 @@ const exportFacts = (f) => {
   return `${n} pages \u00b7 ${x(pic)}${o.text === 'real' ? ' \u00b7 real text' : ''}`;
 };
 // every format's settings are built once; picking a format or a choice only shows, hides and marks, so the panel glides instead of jumping
-$('#fc-xopts').innerHTML = Object.entries(XOPTS).map(([f, rows]) => `<div class="fc-xgroup fc-anim" style="--fc-d:grid;--fc-gap:0px" data-f="${f}" hidden>${rows.map(([k, label, choices, hint, when]) => `<div class="fc-xrow${when ? ' fc-anim' : ''}" style="--fc-d:grid;--fc-gap:8px" data-k="${k}"${when ? ' data-when' : ''}><div class="fc-label">${label}</div><div class="fc-seg" style="grid-template-columns:repeat(${choices.length},minmax(0,1fr))">${choices.map(([v, t]) => `<button data-v="${v}">${t}</button>`).join('')}</div>${hint ? `<p class="fc-xhint">${hint}</p>` : ''}</div>`).join('')}<div class="fc-xfacts"></div></div>`).join('');
+$('#fc-xopts').innerHTML = Object.entries(XOPTS).map(([f, rows]) => `<div class="fc-xgroup fc-anim" style="--fc-d:grid;--fc-gap:0px" data-f="${f}" hidden>${rows.map(([k, label, choices, hint, when]) => `<div class="fc-xrow${when ? ' fc-anim' : ''}" style="--fc-d:grid;--fc-gap:0px" data-k="${k}"${when ? ' data-when' : ''}><div class="fc-label">${label}</div><div class="fc-seg" style="grid-template-columns:repeat(${choices.length},minmax(0,1fr))">${choices.map(([v, t]) => `<button data-v="${v}">${t}</button>`).join('')}</div>${hint ? `<p class="fc-xhint">${hint}</p>` : ''}</div>`).join('')}<div class="fc-xfacts"></div></div>`).join('');
 function paintXopts() {
   const now = $('#fc-export').value;
   document.querySelectorAll('#fc-xopts .fc-xgroup').forEach(g => { const f = g.dataset.f, o = xo[f]; g.hidden = f !== now;
