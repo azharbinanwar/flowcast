@@ -7,7 +7,7 @@ import { spawnSync } from "node:child_process";
 import ffmpeg from "ffmpeg-static";
 
 const [,, input, output, ...rest] = process.argv;
-if (!input || !output) { console.error('usage: node record.mjs intro.html out.webm [--width W] [--height H] [--canvas square|portrait|story|landscape] [--phone center|left|right] [--theme dark|light] [--captions off|inside|below]'); process.exit(1); }
+if (!input || !output) { console.error('usage: node record.mjs intro.html out.webm [--width W] [--height H] [--canvas square|portrait|story|landscape] [--phone center|left|right] [--theme dark|light] [--captions off|inside|below|over]'); process.exit(1); }
 // the intro loads player.css and player.js from its own folder: link them from the skill when they are not there
 import { existsSync as _ex, symlinkSync as _ln, copyFileSync as _cp, readFileSync as _rf } from 'node:fs';
 import { dirname as _dn, join as _jn } from 'node:path';
@@ -20,7 +20,7 @@ import { existsSync, readFileSync } from 'node:fs';
 const stateFile = opt.state || resolve(input).replace(/\.html$/, '.state.json');
 const saved = existsSync(stateFile) ? JSON.parse(readFileSync(stateFile, 'utf8')) : {};
 for (const k of ['canvas', 'phone', 'theme', 'captions']) if (opt[k] === undefined && saved[k] !== undefined) opt[k] = saved[k];
-const extra = { slots: saved.slots, words: saved.words, speed: saved.speed, durations: saved.durations, colors: saved.colors, credit: saved.credit, privacy: saved.privacy };
+const extra = { slots: saved.slots, words: saved.words, speed: saved.speed, durations: saved.durations, colors: saved.colors, credit: saved.credit, privacy: saved.privacy, edits: saved.edits };
 const PRESET = { square: [1080, 1080], portrait: [1080, 1350], story: [1080, 1920], landscape: [1920, 1080] };
 const [pw, ph] = PRESET[opt.canvas] || [];
 const theme = opt.theme || 'light';
@@ -43,7 +43,7 @@ const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: scale, colorScheme: theme });
 const page = await ctx.newPage();
 // record mode: no controls, plays once, ends on the end card. Set before the page's scripts run.
-await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', theme, canvas: opt.canvas, phone: opt.phone, captions: opt.captions === 'off' ? 'off' : undefined, captionsAt: opt.captions === 'below' ? 'below' : undefined, ...extra });
+await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', theme, canvas: opt.canvas, phone: opt.phone, captions: opt.captions === 'off' ? 'off' : opt.captions ? 'on' : undefined, captionsAt: ['below', 'over'].includes(opt.captions) ? opt.captions : undefined, ...extra });
 await page.goto('file://' + resolve(input));
 await page.waitForFunction(() => window.flowcast && window.flowcast.beats);
 await page.evaluate(() => {

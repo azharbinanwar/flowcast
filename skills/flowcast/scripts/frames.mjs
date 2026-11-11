@@ -1,12 +1,12 @@
 // One PNG per beat, plus the end card, at the exact canvas size; optionally the same frames as a PDF, one per page.
-// Usage: node frames.mjs intro.html outdir [--canvas square] [--phone right] [--theme dark] [--captions off|inside|below] [--at 0.9] [--scale 2] [--only 3] [--pdf slides.pdf] [--pdf-text picture|real]
+// Usage: node frames.mjs intro.html outdir [--canvas square] [--phone right] [--theme dark] [--captions off|inside|below|over] [--at 0.9] [--scale 2] [--only 3] [--pdf slides.pdf] [--pdf-text picture|real]
 import { chromium } from 'playwright';
 import { resolve, join } from 'node:path';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 const [,, input, outdir, ...rest] = process.argv;
-if (!input || !outdir) { console.error('usage: node frames.mjs intro.html outdir [--canvas square|portrait|story|landscape] [--phone center|left|right] [--theme dark|light] [--captions off|inside|below] [--at 0.9] [--scale 1|2|3] [--only N] [--pdf slides.pdf] [--pdf-text real|picture]'); process.exit(1); }
+if (!input || !outdir) { console.error('usage: node frames.mjs intro.html outdir [--canvas square|portrait|story|landscape] [--phone center|left|right] [--theme dark|light] [--captions off|inside|below|over] [--at 0.9] [--scale 1|2|3] [--only N] [--pdf slides.pdf] [--pdf-text real|picture]'); process.exit(1); }
 // the intro loads player.css and player.js from its own folder: link them from the skill when they are not there
 import { existsSync as _ex, symlinkSync as _ln, copyFileSync as _cp, readFileSync as _rf } from 'node:fs';
 import { dirname as _dn, join as _jn } from 'node:path';
@@ -19,7 +19,7 @@ import { existsSync, readFileSync } from 'node:fs';
 const stateFile = opt.state || resolve(input).replace(/\.html$/, '.state.json');
 const saved = existsSync(stateFile) ? JSON.parse(readFileSync(stateFile, 'utf8')) : {};
 for (const k of ['canvas', 'phone', 'theme', 'captions']) if (opt[k] === undefined && saved[k] !== undefined) opt[k] = saved[k];
-const extra = { slots: saved.slots, words: saved.words, speed: saved.speed, durations: saved.durations, colors: saved.colors, credit: saved.credit, privacy: saved.privacy };
+const extra = { slots: saved.slots, words: saved.words, speed: saved.speed, durations: saved.durations, colors: saved.colors, credit: saved.credit, privacy: saved.privacy, edits: saved.edits };
 const PRESET = { square: [1080, 1080], portrait: [1080, 1350], story: [1080, 1920], landscape: [1920, 1080] };
 const at = +(opt.at || 0.9), theme = opt.theme || 'light';
 mkdirSync(resolve(outdir), { recursive: true });
@@ -27,7 +27,7 @@ mkdirSync(resolve(outdir), { recursive: true });
 const browser = await chromium.launch();
 // a first pass at a neutral size tells us the frame's own size when no canvas is asked for
 const probe = await browser.newPage({ viewport: { width: 1280, height: 1280 } });
-await probe.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', stills: true, theme, canvas: opt.canvas, phone: opt.phone, captions: opt.captions === 'off' ? 'off' : undefined, captionsAt: opt.captions === 'below' ? 'below' : undefined, ...extra });
+await probe.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', stills: true, theme, canvas: opt.canvas, phone: opt.phone, captions: opt.captions === 'off' ? 'off' : opt.captions ? 'on' : undefined, captionsAt: ['below', 'over'].includes(opt.captions) ? opt.captions : undefined, ...extra });
 await probe.goto('file://' + resolve(input)); await probe.waitForFunction(() => window.flowcast && window.flowcast.beats);
 const [w, h] = PRESET[opt.canvas] || await probe.evaluate(() => flowcast.frame === 'none' && flowcast.size[1] ? flowcast.size : (() => { const r = document.getElementById('fc-canvas').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; })());
 await probe.close();
@@ -35,7 +35,7 @@ await probe.close();
 // sharpness: the same picture with 2 or 3 pixels for every one, so it survives a site shrinking it
 const scale = Math.min(3, Math.max(1, +opt.scale || 1)), realText = opt.pdf && opt['pdf-text'] === 'real';
 const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: scale, colorScheme: theme });
-await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', stills: true, theme, canvas: opt.canvas, phone: opt.phone, captions: opt.captions === 'off' ? 'off' : undefined, captionsAt: opt.captions === 'below' ? 'below' : undefined, ...extra });
+await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', stills: true, theme, canvas: opt.canvas, phone: opt.phone, captions: opt.captions === 'off' ? 'off' : opt.captions ? 'on' : undefined, captionsAt: ['below', 'over'].includes(opt.captions) ? opt.captions : undefined, ...extra });
 await page.goto('file://' + resolve(input)); await page.waitForFunction(() => window.flowcast && window.flowcast.beats); await page.evaluate(() => document.fonts.ready);
 await page.evaluate(() => { const host = document.getElementById('flowcast'); const r = document.getElementById('fc-canvas').getBoundingClientRect(); if (r.width < innerWidth - 1 || r.height < innerHeight - 1) { host.style.display = 'grid'; host.style.placeItems = 'center'; host.style.minHeight = innerHeight + 'px'; } });
 // each slide is a beat's finished picture, then the end card, then the outro: the same pictures the studio shows when PNG or PDF is picked

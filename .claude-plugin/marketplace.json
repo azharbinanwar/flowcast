@@ -8,7 +8,7 @@
       "name": "flowcast",
       "source": "./",
       "description": "Turn a feature or a story into an intro, a post, a GIF, a video, frames or slides.",
-      "version": "2.2.0"
+      "version": "2.3.0"
     }
   ],
   "description": "Flowcast: turn a feature or a story into an intro, a post, a GIF, a video, frames or slides."

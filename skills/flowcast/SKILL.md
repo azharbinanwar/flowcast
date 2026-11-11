@@ -15,7 +15,7 @@ If this conversation already holds other work, say once, in one line, that `/flo
 
 With nothing after `/flowcast`, open History instead: do exactly what the `flowcast-history` skill says.
 
-1. **Plan.** Always start the planner, even for a small change to an existing intro. Start a sub-agent (the Agent tool, general-purpose) with this prompt, filled in:
+1. **Plan.** Always start the planner for a new intro. A change to an intro that exists goes to an editor instead (After the first build). Start a sub-agent (the Agent tool, general-purpose) with this prompt, filled in:
    > You are Flowcast's planner. Read `<skill>/plan.md` and do what it says. The project is `<the folder Claude Code is working in>`. The request: `<the user's words, all of them, plus anything said earlier in this chat that the intro depends on>`.
 2. **Show the plan.** Print the part above `---brief---` exactly as returned, then ask with the option picker:
    - **Build it**: builds the intro and opens it in the studio.
@@ -35,7 +35,7 @@ If sub-agents are not available, do the same steps yourself: plan with `plan.md`
 
 > You are Flowcast's editor. Read `<skill>/edit.md` and do what it says. The intro is `<folder>/flowcast/<feature>/intro.html`. The change: `<the user's words, all of them>`.
 
-Pass on its two lines and tell the user to refresh. Several changes in one message go to one editor. A new scene or a different story goes back to step 1, the planner. Never change the app's own code, or post anywhere, unless that exact thing was asked.
+This holds in a new chat too: a request that names an intro and what to change, like the line the studio's Select copies (`/flowcast change flowcast/<name>/intro.html, beat 3 ("…"), the element #sendBtn (…): make it green`), goes straight to an editor with no plan. Pass on its two lines and tell the user to refresh. Several changes in one message go to one editor. A new scene or a different story goes back to step 1, the planner. Never change the app's own code, or post anywhere, unless that exact thing was asked.
 
 ## Where it runs
 

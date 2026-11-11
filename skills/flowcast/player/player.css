@@ -89,6 +89,13 @@ html:not([data-mode=record]) .fc-canvas:not([data-preset=none]),html:not([data-m
 :root[data-captions=off] .fc-caption{display:none}
 .fc-caption.fc-below{background:transparent;max-width:390px;padding:4px 16px 0}
 .fc-caption.fc-below h2{font-size:20px}.fc-caption.fc-below p{font-size:15px}
+/* over: a pill floating near the foot of the scene, taking no room from it */
+.fc-caption.fc-over{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 40px);box-sizing:border-box;min-height:0;padding:11px 18px 12px;border-radius:18px;background:color-mix(in srgb,var(--on) 88%,transparent);color:var(--screen);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,.2);z-index:5;pointer-events:none}
+.fc-caption.fc-over h2{margin:0;font-size:16px;color:inherit}
+.fc-caption.fc-over p{margin-top:3px;color:color-mix(in srgb,var(--screen) 72%,transparent)}
+.fc-caption.fc-over p:empty{display:none}
+.fc-caption.fc-over.fc-pop{animation:fc-cap-pop .45s cubic-bezier(.2,.9,.3,1.15)}
+@keyframes fc-cap-pop{from{opacity:0;transform:translate(-50%,14px) scale(.96)}}
 
 /* reveal: an element that is not on screen yet takes no space, so a chat pins to the bottom and a list grows the way it really does */
 .fc-in{interpolate-size:allow-keywords;overflow:hidden;transition:height .35s ease,opacity .3s ease .1s,padding .35s ease,margin .35s ease,transform .3s ease .1s}
@@ -466,3 +473,119 @@ html.fc-full #flowcast[data-mode=preview] .fc-bar{left:50%}
 #flowcast[data-mode=preview] .fc-xopts .fc-label{margin:0}
 #flowcast[data-mode=preview] .fc-xhint{margin:0;font:500 11.5px/1.4 -apple-system,system-ui,sans-serif;color:var(--ui-muted)}
 #flowcast[data-mode=preview] .fc-xfacts{font:600 11.5px/1.3 -apple-system,system-ui,sans-serif;color:var(--ui-muted);font-variant-numeric:tabular-nums;padding-top:12px;border-top:1px solid var(--ui-line)}
+
+/* the timeline: each beat as wide as its time, its number and seconds on it, its right edge dragged to retime it */
+#flowcast[data-mode=preview] .fc-dots{width:min(640px,calc(100% - 32px));margin-left:auto;margin-right:auto;gap:4px}
+#flowcast[data-mode=preview] .fc-dot{flex:1 1 0;width:auto;min-width:0;height:28px;border-radius:8px;position:relative;background:var(--ui-field);border:1px solid var(--ui-line);box-sizing:border-box;transition:flex-grow .3s cubic-bezier(.3,.7,.2,1),border-color .2s}
+#flowcast[data-mode=preview] .fc-dot.fc-on{width:auto;border-color:var(--ui-accent)}
+#flowcast[data-mode=preview] .fc-dot i{position:absolute;inset:0 auto 0 0;height:auto;background:color-mix(in srgb,var(--ui-accent) 22%,transparent)}
+#flowcast[data-mode=preview] .fc-dot span{position:relative;display:block;padding:0 8px;font:600 11px/26px -apple-system,system-ui,sans-serif;color:var(--ui-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums;pointer-events:none}
+#flowcast[data-mode=preview] .fc-dot.fc-on span{color:var(--ui-text)}
+#flowcast[data-mode=preview] .fc-grip{position:absolute;top:0;bottom:0;right:-4px;width:10px;cursor:ew-resize;z-index:1;touch-action:none}
+#flowcast[data-mode=preview] .fc-grip::after{content:'';position:absolute;left:3px;top:7px;bottom:7px;width:4px;border-radius:2px;background:var(--ui-accent);opacity:0;transition:opacity .15s}
+#flowcast[data-mode=preview] .fc-dot:hover .fc-grip::after,#flowcast[data-mode=preview] .fc-dots.fc-dragging .fc-grip::after{opacity:1}
+#flowcast[data-mode=preview] .fc-dots.fc-dragging .fc-dot{transition:none}
+#flowcast.fc-stills .fc-dot{flex-grow:1!important}#flowcast.fc-stills .fc-grip{display:none}
+@media (min-width:901px){#flowcast[data-mode=preview] .fc-dots{width:min(640px,calc(100vw - 340px - 64px))}}
+/* Select: the part under the pointer framed, and a note in the studio's own look to change it */
+#flowcast[data-mode=preview] #fc-pick.on{background:var(--ui-accent);color:var(--ui-ink);border-color:var(--ui-accent)}
+#flowcast.fc-picking .fc-canvas,#flowcast.fc-picking .fc-canvas *{cursor:crosshair!important}
+.fc-pickbox{position:fixed;z-index:60;border:2px solid var(--ui-accent);border-radius:8px;background:color-mix(in srgb,var(--ui-accent) 8%,transparent);box-shadow:0 0 0 4px color-mix(in srgb,var(--ui-accent) 16%,transparent);pointer-events:none;transition:left .12s,top .12s,width .12s,height .12s}
+.fc-pickpop{position:fixed;z-index:61;width:332px;box-sizing:border-box;display:grid;gap:14px;padding:16px;border-radius:16px;background:var(--ui-panel);color:var(--ui-text);border:1px solid var(--ui-line);box-shadow:0 24px 60px rgba(10,8,20,.22),0 2px 8px rgba(10,8,20,.08);font:500 13px/1.4 var(--ui-font)}
+.fc-pickpop.fc-pp-show{animation:fc-pp-in .22s cubic-bezier(.2,.8,.2,1)}
+@keyframes fc-pp-in{from{opacity:0;transform:translateY(6px) scale(.98)}}
+.fc-pp-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 8px;min-width:0}
+.fc-pp-id{display:flex;align-items:center;gap:8px;min-width:0}.fc-pp-id .fc-pp-sel{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fc-pp-beat{flex:none}
+.fc-pp-acts{display:flex;align-items:center;gap:6px}
+.fc-pp-sel{font:600 12.5px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ui-text);overflow-wrap:anywhere;min-width:0}
+.fc-pp-beat{padding:3px 8px;border-radius:999px;background:var(--ui-field);color:var(--ui-muted);font-size:11px;font-weight:600}
+.fc-pp-head small{grid-column:1 / -1;color:var(--ui-muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fc-pickpop button{font:600 12.5px/1 var(--ui-font);cursor:pointer;transition:background-color .15s,color .15s,box-shadow .15s}
+.fc-pp-tabs{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;border-radius:11px;background:var(--ui-field);border:1px solid var(--ui-line)}
+.fc-pickpop .fc-pp-tabs button{height:30px;border:0;border-radius:8px;background:none;color:var(--ui-muted)}
+.fc-pickpop .fc-pp-tabs button.on{background:var(--ui-panel);color:var(--ui-text);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.fc-pp-edit,.fc-pp-ask{display:grid;gap:12px;animation:fc-pp-tab .2s ease}
+@keyframes fc-pp-tab{from{opacity:0}}
+.fc-pp-edit[hidden],.fc-pp-ask[hidden]{display:none}
+.fc-pp-field{display:grid;gap:6px;min-width:0}
+.fc-pp-field>span,.fc-pp-crow>span:first-child{font-size:11.5px;font-weight:600;color:var(--ui-muted)}
+.fc-pp-sec{display:grid;gap:8px;padding-top:12px;border-top:1px solid var(--ui-line)}
+.fc-pp-edit>.fc-pp-sec:first-child,.fc-pp-field+.fc-pp-sec{border-top:0;padding-top:0}
+.fc-pp-sh{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:22px}
+.fc-pp-sh>span{font-size:11.5px;font-weight:700;color:var(--ui-text)}
+.fc-pp-sec .fc-pp-field>span{font-weight:500}
+.fc-pp-sec>.fc-pp-one .fc-pp-field>span{display:none}
+.fc-pp-one,.fc-pp-two,.fc-pp-four{display:grid;gap:8px}.fc-pp-two{grid-template-columns:1fr 1fr}.fc-pp-four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.fc-pp-one[hidden],.fc-pp-four[hidden]{display:none}
+.fc-pp-four .fc-pp-in{padding:0 20px 0 8px}.fc-pp-four .fc-pp-num i{right:7px}
+.fc-pp-mini{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:2px;border-radius:8px;background:var(--ui-field);border:1px solid var(--ui-line)}
+.fc-pickpop .fc-pp-mini button{height:20px;padding:0 9px;border:0;border-radius:6px;background:none;color:var(--ui-muted);font-size:11px}
+.fc-pickpop .fc-pp-mini button.on{background:var(--ui-panel);color:var(--ui-text);box-shadow:0 1px 2px rgba(0,0,0,.16)}
+.fc-pickpop .fc-pp-in,.fc-pickpop textarea{width:100%;box-sizing:border-box;border-radius:10px;border:1px solid var(--ui-line);background:var(--ui-field);color:var(--ui-text);font:500 13px/1.3 var(--ui-font);transition:border-color .15s,background-color .15s}
+.fc-pickpop .fc-pp-in{height:36px;padding:0 10px;font-variant-numeric:tabular-nums}
+.fc-pickpop textarea{padding:10px;resize:vertical;min-height:84px}
+.fc-pickpop .fc-pp-in:hover,.fc-pickpop textarea:hover{background:var(--ui-panel)}
+.fc-pickpop .fc-pp-in:focus,.fc-pickpop textarea:focus{outline:none;border-color:var(--ui-accent);background:var(--ui-panel);box-shadow:0 0 0 3px color-mix(in srgb,var(--ui-accent) 18%,transparent)}
+.fc-pp-num{position:relative}.fc-pp-num .fc-pp-in{padding-right:26px;-moz-appearance:textfield}
+.fc-pp-num .fc-pp-in::-webkit-inner-spin-button,.fc-pp-num .fc-pp-in::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.fc-pp-num i{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-style:normal;font-size:11px;color:var(--ui-muted);pointer-events:none}
+.fc-pp-colors{display:grid;border-radius:12px;border:1px solid var(--ui-line);overflow:hidden}
+.fc-pp-crow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 8px 7px 12px;cursor:pointer}
+.fc-pp-crow+.fc-pp-crow{border-top:1px solid var(--ui-line)}
+.fc-pp-crow:hover{background:var(--ui-hover)}
+#flowcast[data-mode=preview] .fc-pp-crow .fc-sw.fc-none input::-webkit-color-swatch{background:linear-gradient(to top right,transparent calc(50% - 1px),var(--ui-muted) calc(50% - 1px) calc(50% + 1px),transparent calc(50% + 1px)),var(--ui-panel)!important}
+.fc-pp-many{color:var(--ui-muted);font-size:11.5px;margin-top:-4px}
+.fc-pp-row{display:flex;align-items:center;gap:8px}.fc-pp-row .fc-pp-note,.fc-pp-gap{flex:1;min-width:0}
+.fc-pp-ask .fc-pp-note{margin:-4px 0 0;color:var(--ui-muted);font-size:11.5px;line-height:1.4}
+.fc-pickpop .fc-pp-copy{display:inline-flex;align-items:center;justify-content:center;gap:6px}.fc-pickpop .fc-pp-copy .fc-i{width:14px;height:14px}
+.fc-pickpop .fc-pp-copy.fc-pp-ok,.fc-pickpop .fc-pp-copy.fc-pp-ok:hover{background:#16a34a;color:#fff}
+.fc-pickpop .fc-pp-cancel,.fc-pickpop .fc-pp-save,.fc-pickpop .fc-pp-copy{height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--ui-line);background:var(--ui-field);color:var(--ui-text)}
+.fc-pickpop .fc-pp-cancel:hover{background:var(--ui-hover)}
+.fc-pickpop .fc-pp-save,.fc-pickpop .fc-pp-copy{border-color:transparent;background:var(--ui-accent);color:var(--ui-ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.fc-pickpop .fc-pp-save:hover,.fc-pickpop .fc-pp-copy:hover{background:color-mix(in srgb,var(--ui-accent) 88%,#000)}
+.fc-pickpop .fc-pp-clear{height:36px;padding:0 6px;border:0;background:none;color:var(--ui-muted)}
+.fc-pickpop .fc-pp-clear:hover{color:var(--ui-text)}
+/* Your edits in the drawer, listed like Privacy's rows */
+#fc-edits{display:grid;gap:6px;width:100%;min-width:0}
+.fc-erow{display:flex;align-items:center;gap:8px;padding:9px 8px 9px 12px;border-radius:10px;background:var(--ui-field);border:1px solid var(--ui-line);font-size:12.5px;color:var(--ui-text);min-width:0;animation:fc-pp-tab .2s ease}
+.fc-erow span{flex:1;min-width:0;overflow-wrap:anywhere}.fc-erow b{font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace}
+#flowcast[data-mode=preview] .fc-erow button{flex:none;width:26px;height:26px;padding:0;border:0;border-radius:7px;background:none;color:var(--ui-muted);display:grid;place-items:center;cursor:pointer}
+#flowcast[data-mode=preview] .fc-erow button:hover{background:var(--ui-hover);color:var(--ui-text)}
+.fc-erow button .fc-i{width:14px;height:14px}
+
+/* the studio's colour picker: the intro's colours, a colour area, hue and hex */
+.fc-cpop{position:fixed;z-index:70;width:232px;box-sizing:border-box;display:grid;gap:12px;padding:12px;border-radius:14px;background:var(--ui-panel);color:var(--ui-text);border:1px solid var(--ui-line);box-shadow:0 20px 50px rgba(10,8,20,.24),0 2px 8px rgba(10,8,20,.08);font:500 12.5px/1 var(--ui-font)}
+.fc-cpop.fc-pp-show{animation:fc-pp-in .18s cubic-bezier(.2,.8,.2,1)}
+.fc-cp-sw{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.fc-cp-sw[hidden]{display:none}
+.fc-cp-sw button{aspect-ratio:1;width:100%;padding:0;border-radius:7px;border:1px solid var(--ui-line);cursor:pointer;transition:transform .12s,box-shadow .12s}
+.fc-cp-sw button:hover{transform:scale(1.08)}
+.fc-cp-sw button.on{box-shadow:0 0 0 2px var(--ui-panel),0 0 0 4px var(--ui-accent)}
+.fc-cp-sv{position:relative;height:132px;border-radius:10px;cursor:crosshair;touch-action:none;box-shadow:inset 0 0 0 1px var(--ui-line)}
+.fc-cp-sv i{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.3),0 2px 6px rgba(0,0,0,.3);pointer-events:none}
+.fc-cp-hue{-webkit-appearance:none;appearance:none;width:100%;height:12px;margin:0;border-radius:999px;background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);cursor:pointer}
+.fc-cp-hue::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 1px rgba(0,0,0,.25),0 2px 5px rgba(0,0,0,.3)}
+.fc-cp-hue::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 1px rgba(0,0,0,.25),0 2px 5px rgba(0,0,0,.3)}
+.fc-cp-row{display:flex;align-items:center;gap:8px}
+.fc-cp-now{flex:none;width:32px;height:32px;border-radius:9px;box-shadow:inset 0 0 0 1px var(--ui-line)}
+.fc-cpop .fc-cp-hex{flex:1;min-width:0;height:32px;box-sizing:border-box;padding:0 10px;border-radius:9px;border:1px solid var(--ui-line);background:var(--ui-field);color:var(--ui-text);font:600 12.5px ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:lowercase}
+.fc-cpop .fc-cp-hex:focus{outline:none;border-color:var(--ui-accent);background:var(--ui-panel);box-shadow:0 0 0 3px color-mix(in srgb,var(--ui-accent) 18%,transparent)}
+#flowcast[data-mode=preview] .fc-sw.fc-sw-open input{box-shadow:inset 0 0 0 2px var(--ui-panel),0 0 0 2px var(--ui-accent)}
+
+/* the note moves by its grip bar or its head, and says so once it is pinned */
+.fc-pickpop{padding-top:8px}
+.fc-pp-grip{display:grid;place-items:center;height:22px;margin:-8px -16px -6px;border-radius:16px 16px 0 0;cursor:grab;touch-action:none}
+.fc-pp-grip i{width:36px;height:4px;border-radius:2px;background:var(--ui-line);box-shadow:0 0 0 .5px var(--ui-line);transition:background-color .15s,width .15s}
+.fc-pickpop:hover .fc-pp-grip i,.fc-pickpop.fc-pp-drag .fc-pp-grip i{width:44px;background:var(--ui-muted)}
+.fc-pickpop .fc-pp-head{cursor:grab;user-select:none}
+.fc-pickpop.fc-pp-drag,.fc-pickpop.fc-pp-drag *{cursor:grabbing!important}
+.fc-pickpop.fc-pp-drag{box-shadow:0 30px 70px rgba(10,8,20,.3),0 2px 8px rgba(10,8,20,.1);transform:scale(1.01)}
+.fc-pickpop .fc-pp-acts>button{display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 8px;border-radius:999px;border:1px solid var(--ui-line);background:none;color:var(--ui-muted);font-size:11.5px}
+.fc-pickpop .fc-pp-acts>button:hover{background:var(--ui-hover);color:var(--ui-text)}
+.fc-pickpop .fc-pp-acts>button .fc-i{width:12px;height:12px}
+.fc-pickpop .fc-pp-acts>button[hidden]{display:none}
+.fc-pickpop .fc-pp-tabs button{display:inline-flex;align-items:center;justify-content:center;gap:6px}.fc-pickpop .fc-pp-tabs .fc-i{width:14px;height:14px}
+.fc-pp-sh>span{display:inline-flex;align-items:center;gap:6px}.fc-pp-sh>span .fc-i{width:14px;height:14px;color:var(--ui-muted)}
+.fc-pp-four .fc-pp-field>span{display:flex;align-items:center}.fc-pp-four .fc-pp-field>span .fc-i{width:14px;height:14px;color:var(--ui-muted)}
+
+.fc-pickpop .fc-pp-circle{margin-left:auto;height:24px;padding:0 9px;border-radius:999px;border:1px solid var(--ui-line);background:none;color:var(--ui-muted);font-size:11px}
+.fc-pickpop .fc-pp-circle:hover{background:var(--ui-hover);color:var(--ui-text)}

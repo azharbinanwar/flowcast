@@ -139,6 +139,7 @@ New in 2.0.0:
 
 Planned:
 
+- **Ask Claude from the studio.** A Run button next to Copy for Claude starts the editor on your machine, shows its progress, and reloads the preview when the change is in. Claude Code's own session is kept for a few changes to the same intro, then started fresh with a note of what changed, so it remembers without the cost piling up. Only the studio page can start it, with read, edit and check tools only.
 - **Edit text by beat.** Every line of text in the intro, grouped by beat, to pick and change, names included.
 - **Export everything in one click.** MP4, GIF, PDF and PNG, in square, reel and wide, all at once into the exports folder.
 - **A post to go with it.** The LinkedIn, X and Instagram caption written from the beats, with a copy button.
@@ -156,4 +157,4 @@ MIT. See [LICENSE](LICENSE).
 
 ## Version
 
-2.2.0. See [CHANGELOG.md](CHANGELOG.md).
+2.3.0. See [CHANGELOG.md](CHANGELOG.md).

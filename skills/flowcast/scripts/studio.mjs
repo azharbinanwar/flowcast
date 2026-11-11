@@ -91,7 +91,7 @@ const run = (script, args) => new Promise((res, rej) => {
   p.stdout.on('data', d => out += d); p.stderr.on('data', d => err += d);
   p.on('close', c => c ? rej(new Error(err.trim().split('\n').pop() || `exit ${c}`)) : res(out.trim()));
 });
-const flags = (root, name, q) => ['--theme', q.theme || 'light', ...(q.canvas && q.canvas !== 'none' ? ['--canvas', q.canvas, '--phone', q.phone || 'center'] : []), ...(q.captions === 'off' ? ['--captions', 'off'] : q.captions === 'below' ? ['--captions', 'below'] : []), '--state', stateOf(root, name)];
+const flags = (root, name, q) => ['--theme', q.theme || 'light', ...(q.canvas && q.canvas !== 'none' ? ['--canvas', q.canvas, '--phone', q.phone || 'center'] : []), ...(q.captions === 'off' ? ['--captions', 'off'] : ['below', 'over'].includes(q.captions) ? ['--captions', q.captions] : []), '--state', stateOf(root, name)];
 // show the file in the system's file manager
 const reveal = (file) => { const isDir = !extname(file); if (process.platform === 'darwin') spawn('open', isDir ? [file] : ['-R', file]); else if (process.platform === 'win32') spawn('explorer', isDir ? [file] : ['/select,', file]); else spawn('xdg-open', [isDir ? file : dirname(file)]); };
 
@@ -377,7 +377,7 @@ createServer(async (req, res) => {
       // the intro opens with what the user last set on it
       let st = {}; try { st = JSON.parse(await readFile(stateOf(root, name), 'utf8')); } catch {}
       // ?mode=record plays it bare, for the History cover and the hover preview
-      const pre = { ...(url.searchParams.get('mode') === 'record' ? { mode: 'record' } : {}), project: proj.name, exported: await readdir(join(root, name, 'exports')).then(fs => fs.some(f => !f.startsWith('.') && !f.endsWith('.webm') && !f.endsWith('.json')), () => false), canvas: st.canvas, phone: st.phone, theme: st.theme, slots: st.slots, words: st.words, speed: st.speed, durations: st.durations, colors: st.colors, credit: st.credit, privacy: st.privacy, exportOpts: st.exportOpts, ...(st.captions === 'off' ? { captions: 'off' } : st.captions ? { captionsAt: st.captions } : {}) };
+      const pre = { ...(url.searchParams.get('mode') === 'record' ? { mode: 'record' } : {}), project: proj.name, exported: await readdir(join(root, name, 'exports')).then(fs => fs.some(f => !f.startsWith('.') && !f.endsWith('.webm') && !f.endsWith('.json')), () => false), canvas: st.canvas, phone: st.phone, theme: st.theme, captions: st.captions, slots: st.slots, words: st.words, speed: st.speed, durations: st.durations, colors: st.colors, credit: st.credit, privacy: st.privacy, edits: st.edits, exportOpts: st.exportOpts, ...(st.captions === 'off' ? { captions: 'off' } : st.captions ? { captionsAt: st.captions } : {}) };
       const html = String(await readFile(intro(root, name))).replace('<script', `<script>window.__flowcast=${JSON.stringify(pre)}</script><script`);
       return send(200, TYPES['.html'], html);
     }
