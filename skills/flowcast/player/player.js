@@ -1,6 +1,6 @@
 // flowcast player. The intro defines: beats, apply(i), scene{i}, T, optional canvas{}, and <template id="scene">, <template id="endcard">.
 // <html data-mode>: preview | intro | embed | record.  #flowcast data-frame: phone | browser | none.
-// Canvas: data-canvas none | story | square | landscape, data-phone center | left | right, data-captions-at inside | below.
+// Canvas: data-canvas none | story | square | landscape, data-phone center | left | right, data-captions-at inside | below | over.
 const $ = (q) => document.querySelector(q);
 // the animated Flowcast mark: one file beside the player, used by the splash, exports and the credit outro
 const MOTION = new URL('motion.svg', document.currentScript?.src || location.href).href;
@@ -15,11 +15,14 @@ for (const k of ['mode', 'theme', 'captions']) if (pre[k]) document.documentElem
 if (!pre.captions && $('#flowcast').dataset.captions === 'off') document.documentElement.dataset.captions = 'off';
 const host = $('#flowcast');
 // what the intro itself sets, so each section's reset knows where to go back to
-const DEF = { canvas: host.dataset.canvas, phone: host.dataset.phone, captions: host.dataset.captions === 'off' ? 'off' : 'on' };
+const PLACES = ['inside', 'below', 'over'];
+const DEF = { canvas: host.dataset.canvas, phone: host.dataset.phone, captions: host.dataset.captions === 'off' ? 'off' : 'on', captionsAt: host.dataset.captionsAt || 'inside' };
+// a saved choice of where captions sit comes back as captions: 'below' or 'over'
+if (PLACES.includes(pre.captions) && !pre.captionsAt) pre.captionsAt = pre.captions;
 for (const k of ['frame', 'canvas', 'phone', 'captionsAt']) if (pre[k]) host.dataset[k] = pre[k];
 const mode = document.documentElement.dataset.mode || 'preview';
 const frame = host.dataset.frame || 'phone';
-const captionsAt = host.dataset.captionsAt || 'inside';
+let captionsAt = PLACES.includes(host.dataset.captionsAt) ? host.dataset.captionsAt : 'inside';
 const SIZE = { phone: [390, 844], browser: [1280, 800], none: [+host.dataset.width || 420, +host.dataset.height || 0] }[frame];   // none: a free-size composition the intro draws itself
 // one list: a size, the places it is posted, the longest clip they take, and the bands their own UI covers on the tall one
 const PRESETS = {
@@ -92,6 +95,17 @@ const ICON = {
   check: '<path d="M20 6 9 17l-5-5"/>',
   shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
   close: '<path d="M18 6 6 18M6 6l12 12"/>',
+  copy: '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  up: '<path d="M14 9 9 4 4 9"/><path d="M20 20h-7a4 4 0 0 1-4-4V4"/>',
+  pencil: '<path d="M21.17 6.81a1 1 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z"/><path d="m15 5 4 4"/>',
+  chat: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  type: '<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>',
+  size: '<path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="m21 3-7 7"/><path d="m3 21 7-7"/>',
+  corner: '<path d="M21 11a8 8 0 0 0-8-8"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>',
+  pad: '<path d="M5 3a2 2 0 0 0-2 2"/><path d="M19 3a2 2 0 0 1 2 2"/><path d="M21 19a2 2 0 0 1-2 2"/><path d="M5 21a2 2 0 0 1-2-2"/><path d="M9 3h1M14 3h1M9 21h1M14 21h1M3 9v1M3 14v1M21 9v1M21 14v1"/>',
+  ul: '<path d="M7 17V7h10"/><path d="M17 17 7 7"/>', ur: '<path d="M7 7h10v10"/><path d="M7 17 17 7"/>', dr: '<path d="m7 7 10 10"/><path d="M17 7v10H7"/>', dl: '<path d="M17 7 7 17"/><path d="M17 17H7V7"/>',
+  at: '<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>', ar: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>', ab: '<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>', al: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+  pointer: '<path d="M4.04 4.95a.75.75 0 0 1 .91-.91l14.1 5.3a.75.75 0 0 1 .03 1.4l-5.57 2.36a1 1 0 0 0-.53.53l-2.36 5.57a.75.75 0 0 1-1.4-.03z"/>',
   mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
   phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
   card: '<rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/>', user: '<circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/>', type: '<path d="M4 7V4h16v3M9 20h6M12 4v16"/>',
@@ -118,7 +132,8 @@ const STATUS = '<div class="fc-status" id="fc-status-bar"><span class="fc-time">
 const captionHTML = '<div class="fc-caption"><h2 id="fc-title"></h2><p id="fc-body"></p></div>';
 host.innerHTML = `
 <div class="fc-tools">
-  ${head('look', 'Look', { icon: 'look', open: true })}<div class="fc-row"><button id="fc-theme">${I('moon')}<span>Dark mode</span></button><button id="fc-captions" class="on">${I('captions')}<span>Captions</span></button></div></details>
+  ${head('look', 'Look', { icon: 'look', open: true })}<div class="fc-row"><button id="fc-theme">${I('moon')}<span>Dark mode</span></button></div><div class="fc-label">Captions</div><div class="fc-row"><div class="fc-seg" id="fc-cap"><button data-at="off">Off</button><button data-at="inside" title="Under the scene, inside the device">Inside</button><button data-at="below" title="Outside the device, under it">Below</button><button data-at="over" title="Floating over the scene, taking no room">Over</button></div></div></details>
+  ${head('edits', 'Your edits', { icon: 'pointer' })}<div class="fc-row"><div id="fc-edits"></div></div></details>
   ${head('privacy', 'Privacy', { icon: 'shield' })}<div class="fc-row fc-switches"><button id="fc-private">${I('shield')}<span>Hide personal details</span></button><p class="fc-hint">Emails, phone numbers and card numbers become samples in the preview and every export. Switch any of them off to show it as it is, or change what shows instead.</p><div id="fc-found" class="fc-anim" style="--fc-d:grid" hidden><div class="fc-label">Found in this intro</div><div class="fc-flist"></div></div></div></details>
   ${head('credit', 'Credit', { icon: 'credit' })}<div class="fc-row fc-switches"><button id="fc-credit" title="A small tag in the corner of the video">${I('credit')}<span>Made with Flowcast</span></button><button id="fc-credit-link" title="Adds github.com/azharbinanwar/flowcast to the tag">${I('link')}<span>Show repo link</span></button><div class="fc-label fc-anim" id="fc-credit-when-label">When it shows</div><div class="fc-seg fc-when fc-anim" style="--fc-d:grid" id="fc-credit-when">${[['outro', 'Outro slide'], ['always', 'Watermark']].map(([v, n]) => `<button data-when="${v}">${n}</button>`).join('')}</div><div class="fc-label fc-anim" id="fc-credit-where">Position</div><div class="fc-pos fc-anim" style="--fc-d:grid" id="fc-credit-pos">${['top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right'].map(v => `<button data-pos="${v}" title="${v.replace('-', ' ').replace('center', 'centre')}" aria-label="${v.replace('-', ' ').replace('center', 'centre')}"><i></i></button>`).join('')}</div></div></details>
   ${head('canvas', 'Canvas', { icon: 'canvas' })}<div class="fc-row">
@@ -145,13 +160,12 @@ host.innerHTML = `
     <div class="fc-fit" id="fc-fit"><div class="fc-frame fc-${frame}" id="fc-frame">${frame === 'browser' ? `<div class="fc-url">${host.dataset.url || ''}</div>` : ''}
       <div class="fc-screen">${frame === 'phone' ? STATUS : ''}
         <div class="fc-stage" id="fc-stage"><div class="fc-finger" id="fc-finger"></div></div>
-        ${captionsAt === 'inside' ? captionHTML : ''}
+        ${captionHTML}
         <div class="fc-end" id="fc-end"></div></div></div></div>
-    ${captionsAt === 'below' ? captionHTML.replace('class="fc-caption"', 'class="fc-caption fc-below"') : ''}
   </div>
 </div></div>
 <div class="fc-dots" id="fc-dots"></div>
-<div class="fc-bar"><button id="fc-replay" class="fc-round" aria-label="Replay" title="Replay">${I('reset')}</button><span class="fc-pill"><button id="fc-prev" aria-label="Previous" title="Previous">${I('prev')}</button><button id="fc-pause" aria-label="Pause" title="Pause">${I('pause')}</button><button id="fc-next" aria-label="Next" title="Next">${I('next')}</button></span><button id="fc-skip" class="fc-round">Skip</button><button id="fc-full" class="fc-round" aria-label="Full screen" title="Full screen">${I('full')}</button></div>`;
+<div class="fc-bar"><button id="fc-replay" class="fc-round" aria-label="Replay" title="Replay">${I('reset')}</button><span class="fc-pill"><button id="fc-prev" aria-label="Previous" title="Previous">${I('prev')}</button><button id="fc-pause" aria-label="Pause" title="Pause">${I('pause')}</button><button id="fc-next" aria-label="Next" title="Next">${I('next')}</button></span><button id="fc-skip" class="fc-round">Skip</button><button id="fc-pick" class="fc-round" hidden aria-label="Select" title="Select: point at part of the scene to change it">${I('pointer')}</button><button id="fc-full" class="fc-round" aria-label="Full screen" title="Full screen">${I('full')}</button></div>`;
 host.dataset.mode = mode;
 $('#fc-stage').append(sceneTpl.content);
 if (aroundTpl) $('#fc-around').append(aroundTpl.content);
@@ -175,7 +189,7 @@ const s = {
   finger: (show, press = false) => { const f = $('#fc-finger'); f.classList.toggle('fc-show', show); f.classList.toggle('fc-press', press); },
   moveTo: (q) => { const r = $(q).getBoundingClientRect(), st = $('#fc-stage').getBoundingClientRect(), k = st.width / $('#fc-stage').offsetWidth; const f = $('#fc-finger'); f.style.left = (r.left - st.left + r.width / 2) / k + 'px'; f.style.top = (r.top - st.top + r.height / 2) / k + 'px'; },
   tap: async (q) => { s.moveTo(q); s.finger(true); await s.wait(T.press ?? 550); s.finger(true, true); await s.wait(T.lift ?? 150); s.finger(false); },
-  type: async (q, text) => { for (let k = 1; k <= text.length; k++) { $(q).textContent = text.slice(0, k); await s.wait(T.type ?? 30); } },
+  type: async (q, text) => { text = swapText(text); for (let k = 1; k <= text.length; k++) { $(q).textContent = text.slice(0, k); await s.wait(T.type ?? 30); } },
 };
 
 const STALE = Symbol('stale beat');
@@ -193,13 +207,17 @@ function render() {
   // rows and dots are only rebuilt when they change, so moving to the next beat animates instead of redrawing
   if (rows !== $('#fc-beats').dataset.html) { $('#fc-beats').innerHTML = rows; $('#fc-beats').dataset.html = rows; }
   document.querySelectorAll('.fc-brow').forEach((r, k) => r.classList.toggle('on', k === i));
-  if ($('#fc-dots').children.length !== beats.length) $('#fc-dots').innerHTML = beats.map((_, k) => `<div class="fc-dot" data-k="${k}"><i></i></div>`).join('');
+  // in the studio the dots are a timeline: each beat as wide as its time, with its edge to drag
+  const TL = mode === 'preview';
+  if ($('#fc-dots').children.length !== beats.length) $('#fc-dots').innerHTML = beats.map((_, k) => `<div class="fc-dot" data-k="${k}"><i></i>${TL ? '<span></span><b class="fc-grip" title="Drag to make this beat longer or shorter"></b>' : ''}</div>`).join('');
+  if (TL) document.querySelectorAll('.fc-dot').forEach((d, k) => { d.style.flexGrow = beats[k].ms; d.title = beats[k].outro ? 'Outro' : (beats[k].title || '').replace(/<br\s*\/?>/g, ' ').replace(/<[^>]+>/g, ''); d.querySelector('span').textContent = stills ? `${k + 1}` : `${beats[k].outro ? 'Outro' : k + 1} · ${sec(beats[k].ms)}`; });
   document.querySelectorAll('.fc-dot').forEach((d, k) => { d.classList.toggle('fc-on', k === i); d.classList.toggle('fc-done', k < i); d.querySelector('i').style.width = k < i ? '100%' : '0'; });
 }
 function go(n) {
   window.flowcastDone = false; i = Math.max(0, Math.min(beats.length - 1, n)); run++; elapsed = 0; paused = false; paintPause();
   const isOutro = !!beats[i].outro;
   s.cls('#fc-end', 'fc-show', false); s.finger(false); render();
+  if (captionsAt === 'over' && !pre.stills) { const cap = $('.fc-caption'); cap.classList.remove('fc-pop'); void cap.offsetWidth; cap.classList.add('fc-pop'); }
   // the outro beat lays its slide over the whole canvas in the intro's own colours; the scene underneath keeps its last state
   // the outro restarts the animated mark, so it always plays from the storyboard to the press
   if (isOutro) { const o = $('#fc-outro'); o.style.fontSize = creditHost().offsetWidth * 0.034 + 'px'; o.querySelector('.fc-motion').src = MOTION + '?' + Date.now() + '#mark'; o.classList.remove('fc-show'); void o.offsetWidth; o.classList.add('fc-show'); } else { s.cls('#fc-outro', 'fc-show', false); apply(i); }
@@ -215,6 +233,25 @@ function go(n) {
 // on, the replacement chosen for each detail found, and the user's own find-and-replace rows (for names and anything not detected)
 // keep: details found but left as they are. Only emails, phone numbers and card numbers: a name looks like a heading or a brand, so names are not guessed
 const privacy = { on: false, map: {}, custom: [], keep: [], ...(pre.privacy === true ? { on: true } : pre.privacy || {}) };
+// the user's own changes from the studio's Select: words swapped wherever they show, and a part's size, corners and colours
+const edits = { texts: [], styles: {}, ...(pre.edits || {}) };
+const swapText = (s) => { for (const [from, to] of edits.texts) if (from) s = s.split(from).join(to); return s; };
+// your own words win over Privacy's samples: set aside while it scrubs, then put back, and left alone while a step types them in
+const shownText = (real) => { if (!privacy.on) return swapText(real);
+  const t0 = real.trim(); if (t0 && edits.texts.some(([, to]) => to.startsWith(t0))) return real;
+  const keep = []; let t = real;
+  for (const [from, to] of edits.texts) for (const w of [from, to]) if (w && t.includes(w)) t = t.split(w).join(`\u0001${keep.push(to) - 1}\u0002`);
+  return scrub(t).replace(/\u0001(\d+)\u0002/g, (_, k) => keep[k]); };
+const paintEdits = () => { let st = document.getElementById('fc-edits-css'); if (!st) { st = document.createElement('style'); st.id = 'fc-edits-css'; document.head.append(st); }
+  const at = (sel) => `:is(#fc-stage, #fc-around, #fc-end, .fc-slots) :is(${sel})`, pic = ':is(img, svg, picture, video):only-child';
+  st.textContent = Object.entries(edits.styles).map(([sel, p]) => { const ks = Object.keys(p);
+    // a frame around one picture passes its corners and its size on to the picture, so a rounded logo looks rounded
+    // an SVG's colour reaches the shapes that set their own fill or line, as well as those drawn in its text colour
+    const tint = p['svg-color'] ? `${at(sel)}{color:${p['svg-color']}!important}${at(sel)} :is([fill]:not([fill=none]):not([fill^=url]),[style*=fill]){fill:${p['svg-color']}!important}${at(sel)} :is([stroke]:not([stroke=none]),[style*=stroke]){stroke:${p['svg-color']}!important}` : '';
+    return tint + `${at(sel)}{${Object.entries(p).filter(([k]) => k !== 'svg-color').map(([k, v]) => `${k}:${v}!important`).join(';')}}`
+      + (ks.some(k => k.includes('radius')) ? `${at(sel)}>${pic}{border-radius:inherit!important}${at(sel)}:is(svg),${at(sel)}>svg:only-child{overflow:hidden!important}` : '')
+      + (ks.includes('width') || ks.includes('height') ? `${at(sel)}>${pic}{width:100%!important;height:100%!important;object-fit:contain}` : ''); }).join('\n'); };
+paintEdits();
 const KINDS = [
   ['Email', /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, () => 'alex@example.com'],
   ['Card', /\b(?:\d[ -]?){12,18}\d\b/g, (m) => m.replace(/\d(?=(?:[ -]?\d){4})/g, '•')],
@@ -232,9 +269,9 @@ const scrub = (s) => {
 const kept = new WeakMap();   // text node -> { real, shown }
 const scrubNode = (n) => { if (n.parentElement?.closest('.fc-made, .fc-outro')) return;
   const k = kept.get(n), real = k && n.nodeValue === k.shown ? k.real : n.nodeValue;
-  const shown = privacy.on ? scrub(real) : real; kept.set(n, { real, shown }); if (n.nodeValue !== shown) n.nodeValue = shown; };
+  const shown = shownText(real); kept.set(n, { real, shown }); if (n.nodeValue !== shown) n.nodeValue = shown; };
 const scrubAll = (root) => { const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); for (let n; (n = w.nextNode());) scrubNode(n);
-  root.querySelectorAll?.('input, textarea').forEach(el => { for (const a of ['value', 'placeholder']) { if (!el.hasAttribute(a)) continue; el.dataset['fcReal' + a] ??= el.getAttribute(a); el.setAttribute(a, privacy.on ? scrub(el.dataset['fcReal' + a]) : el.dataset['fcReal' + a]); } }); };
+  root.querySelectorAll?.('input, textarea').forEach(el => { for (const a of ['value', 'placeholder']) { if (!el.hasAttribute(a)) continue; el.dataset['fcReal' + a] ??= el.getAttribute(a); el.setAttribute(a, shownText(el.dataset['fcReal' + a])); } }); };
 let scrubbing = false;
 new MutationObserver((list) => { if (scrubbing) return; scrubbing = true;
   for (const m of list) { if (m.type === 'characterData') scrubNode(m.target); else m.addedNodes.forEach(n => n.nodeType === 3 ? scrubNode(n) : n.nodeType === 1 && scrubAll(n)); }
@@ -368,7 +405,7 @@ addEventListener('keydown', (e) => { if (!full()) return; if (e.key === 'ArrowRi
 // Esc, or leaving full screen any other way, brings the studio back
 document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && full()) leaveFull(); });
 addEventListener('keydown', (e) => { if (e.key === 'Escape' && full()) leaveFull(); });
-$('#fc-dots').onclick = (e) => { const d = e.target.closest('.fc-dot'); if (!d) return; hold = -1; const k = +d.dataset.k; stills ? still(beats[k].outro ? slideCount() - 1 : k) : go(k); };
+$('#fc-dots').onclick = (e) => { const d = e.target.closest('.fc-dot'); if (!d || e.target.closest('.fc-grip')) return; hold = -1; const k = +d.dataset.k; stills ? still(beats[k].outro ? slideCount() - 1 : k) : go(k); };
 
 // toolbar
 const isDark = () => document.documentElement.dataset.theme === 'dark' || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
@@ -381,8 +418,21 @@ $('#fc-credit-link').onclick = () => { credit.showLink = !credit.showLink; paint
 $('#fc-credit-when').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; credit.when = b.dataset.when; creditChanged(); };
 $('#fc-credit-pos').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; credit.pos = b.dataset.pos; paintCredit(); };
 $('#fc-theme').onclick = () => { document.documentElement.dataset.theme = isDark() ? 'light' : 'dark'; paintTheme(); };
-$('#fc-captions').classList.toggle('on', document.documentElement.dataset.captions !== 'off');
-$('#fc-captions').onclick = () => { const off = document.documentElement.dataset.captions !== 'off'; document.documentElement.dataset.captions = off ? 'off' : 'on'; $('#fc-captions').classList.toggle('on', !off); layout(); };
+// one caption, moved to where it sits: inside the screen under the scene, under the device, or floating over the scene
+function placeCaption() {
+  const cap = $('.fc-caption'); if (!cap) return;
+  if (captionsAt === 'below') { if (cap.parentElement !== $('.fc-phone')) $('.fc-phone').append(cap); }
+  else if (cap.parentElement !== $('.fc-screen')) $('#fc-end').before(cap);
+  cap.classList.toggle('fc-below', captionsAt === 'below'); cap.classList.toggle('fc-over', captionsAt === 'over');
+  if (captionsAt !== 'below') cap.style.maxWidth = cap.style.zoom = '';
+  host.dataset.captionsAt = captionsAt;
+  const at = document.documentElement.dataset.captions === 'off' ? 'off' : captionsAt;
+  document.querySelectorAll('#fc-cap button').forEach(b => b.classList.toggle('on', b.dataset.at === at));
+}
+placeCaption();
+$('#fc-cap').onclick = (e) => { const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.at === 'off') document.documentElement.dataset.captions = 'off'; else { document.documentElement.dataset.captions = 'on'; captionsAt = b.dataset.at; }
+  placeCaption(); layout(); };
 $('#canvas-pick').value = canvasName; $('#canvas-pick').onchange = (e) => { canvasName = e.target.value; layout(); paintXopts(); };
 $('#phone-pick').value = phonePos; $('#phone-pick').onchange = (e) => { phonePos = e.target.value; layout(); };
 $('.fc-slot-toggles').onclick = (e) => { const b = e.target.closest('[data-slot]'); if (!b) return; slots[b.dataset.slot] = !slots[b.dataset.slot]; b.classList.toggle('on', slots[b.dataset.slot]); layout(); };
@@ -424,8 +474,8 @@ const nudge = (k, d) => { dur[k] = Math.min(base[k] * 2, Math.max(base[k] / 3, d
 // each section's reset: what counts as changed, and how to go back to what the intro set
 const CHANGED = {}, RESETS = {};
 const slotsDefault = { logo: !!endTpl, headline: !!cv.headline, line: !!cv.line, cta: !!cv.cta, tags: !!cv.tags, ...(cv.show || {}) };
-CHANGED.look = () => !!document.documentElement.dataset.theme || (document.documentElement.dataset.captions === 'off' ? 'off' : 'on') !== DEF.captions;
-RESETS.look = () => { delete document.documentElement.dataset.theme; document.documentElement.dataset.captions = DEF.captions; $('#fc-captions').classList.toggle('on', DEF.captions !== 'off'); paintTheme(); layout(); };
+CHANGED.look = () => !!document.documentElement.dataset.theme || (document.documentElement.dataset.captions === 'off' ? 'off' : 'on') !== DEF.captions || captionsAt !== DEF.captionsAt;
+RESETS.look = () => { delete document.documentElement.dataset.theme; document.documentElement.dataset.captions = DEF.captions; captionsAt = DEF.captionsAt; placeCaption(); paintTheme(); layout(); };
 const canvasDefault = PRESET[DEF.canvas] !== undefined ? DEF.canvas : 'none', phoneDefault = DEF.phone || (aroundTpl ? 'left' : 'center');
 CHANGED.privacy = () => privacy.on || Object.keys(privacy.map).length > 0 || privacy.custom.length > 0 || privacy.keep.length > 0;
 RESETS.privacy = () => { privacy.map = {}; privacy.custom = []; privacy.keep = []; setPrivacy(false); };
@@ -554,6 +604,7 @@ const state = () => ({
   canvas: canvasName, phone: phonePos, theme: document.documentElement.dataset.theme || undefined, captions: document.documentElement.dataset.captions === 'off' ? 'off' : captionsAt,
   speed, durations: dur.some((m, k) => m !== base[k]) ? [...dur] : undefined,
   privacy: CHANGED.privacy() ? { on: privacy.on, map: { ...privacy.map }, custom: privacy.custom.map(r => [...r]), keep: [...privacy.keep] } : undefined,
+  edits: CHANGED.edits() ? JSON.parse(JSON.stringify(edits)) : undefined,
   credit: CHANGED.credit() ? { on: credit.on, showLink: credit.showLink, pos: credit.pos, when: credit.when } : undefined,
   colors: Object.keys(colors.light).length || Object.keys(colors.dark).length ? colors : undefined,
   exportOpts: JSON.stringify(xo) !== JSON.stringify(XDEF) ? xo : undefined,
@@ -611,5 +662,184 @@ if (STUDIO) {
   };
 }
 paintResets();
+// Your edits in the drawer: each one listed, each undone on its own
+const NAMES = { 'font-size': 'size', 'border-radius': 'corners', 'background-color': 'fill', color: 'text colour', 'svg-color': 'colour' };
+const paintEditsList = () => { const box = $('#fc-edits'); if (!box) return;
+  const rows = [...edits.texts.map(([f, t], k) => `<div class="fc-erow"><span>“${esc(f)}” → “${esc(t)}”</span><button data-et="${k}" title="Undo">${I('close')}</button></div>`),
+    ...Object.entries(edits.styles).map(([sel, p]) => `<div class="fc-erow"><span><b>${esc(sel)}</b> ${Object.entries(p).map(([k, v]) => `${NAMES[k] || k} ${esc(v)}`).join(' · ')}</span><button data-es="${esc(sel)}" title="Undo">${I('close')}</button></div>`)];
+  box.innerHTML = rows.join('') || '<p class="fc-hint">Press the pointer under the preview and click any part of the scene to change its words, size, corners or colours here, without Claude.</p>'; };
+paintEditsList();
+$('#fc-edits').onclick = (e) => { const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.et !== undefined) edits.texts.splice(+b.dataset.et, 1); else delete edits.styles[b.dataset.es];
+  paintEdits(); rescrub(); paintEditsList(); };
+CHANGED.edits = () => edits.texts.length > 0 || Object.keys(edits.styles).length > 0;
+RESETS.edits = () => { edits.texts = []; edits.styles = {}; paintEdits(); rescrub(); paintEditsList(); };
+paintResets();
+// the studio's own colour picker, in place of the system one that no page can style: the intro's colours first, then any colour
+if (mode === 'preview') {
+  const cp = document.createElement('div'); cp.className = 'fc-cpop'; cp.hidden = true; host.append(cp);
+  cp.innerHTML = '<div class="fc-cp-sw"></div><div class="fc-cp-sv"><i></i></div><input class="fc-cp-hue" type="range" min="0" max="360" step="1" aria-label="Hue"><div class="fc-cp-row"><span class="fc-cp-now"></span><input class="fc-cp-hex" spellcheck="false" maxlength="7" aria-label="Hex"></div>';
+  const sv = cp.querySelector('.fc-cp-sv'), knob = sv.querySelector('i'), hue = cp.querySelector('.fc-cp-hue'), hexIn = cp.querySelector('.fc-cp-hex'), now = cp.querySelector('.fc-cp-now');
+  const toRgb = (h) => [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16));
+  const toHex = (r, g, b) => '#' + [r, g, b].map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+  const toHsv = ([r, g, b]) => { r /= 255; g /= 255; b /= 255; const mx = Math.max(r, g, b), d = mx - Math.min(r, g, b);
+    const h = d === 0 ? 0 : mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return [(h * 60 + 360) % 360, mx ? d / mx : 0, mx]; };
+  const fromHsv = (h, sat, v) => { const f = (n) => { const k = (n + h / 60) % 6; return v - v * sat * Math.max(0, Math.min(k, 4 - k, 1)); }; return toHex(f(5) * 255, f(3) * 255, f(1) * 255); };
+  let target = null, hsv = [0, 0, 0];
+  const paint = (from) => { const h = fromHsv(...hsv); sv.style.background = `linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,hsl(${hsv[0]} 100% 50%))`;
+    knob.style.left = hsv[1] * 100 + '%'; knob.style.top = (1 - hsv[2]) * 100 + '%'; knob.style.background = h; now.style.background = h;
+    if (from !== 'hue') hue.value = Math.round(hsv[0]); if (from !== 'hex') hexIn.value = h;
+    cp.querySelectorAll('.fc-cp-sw button').forEach(b => b.classList.toggle('on', b.dataset.c === h));
+    if (target && target.value !== h) { target.value = h; target.dispatchEvent(new Event('input', { bubbles: true })); } };
+  const set = (h, from) => { if (!/^#[0-9a-f]{6}$/i.test(h)) return; hsv = toHsv(toRgb(h.toLowerCase())); paint(from); };
+  const close = () => { if (!target) return; target.dispatchEvent(new Event('change', { bubbles: true })); target.closest('.fc-sw')?.classList.remove('fc-sw-open'); target = null; cp.hidden = true; };
+  const open = (inp) => { target = inp; inp.closest('.fc-sw')?.classList.add('fc-sw-open');
+    // the intro's own colours, as the current theme shows them
+    const t = isDark() ? 'dark' : 'light', seen = new Set();
+    const mine = [...host.querySelectorAll(`[data-sec=colors] input[data-t="${t}"]`)].map(x => x.value.toLowerCase()).filter(c => !seen.has(c) && seen.add(c)).slice(0, 14);
+    cp.querySelector('.fc-cp-sw').innerHTML = mine.map(c => `<button data-c="${c}" style="background:${c}" title="${c}"></button>`).join('');
+    cp.querySelector('.fc-cp-sw').hidden = !mine.length;
+    cp.hidden = false; cp.classList.remove('fc-pp-show'); void cp.offsetWidth; cp.classList.add('fc-pp-show');
+    const r = inp.getBoundingClientRect(), w = cp.offsetWidth, h = cp.offsetHeight;
+    cp.style.left = Math.max(12, Math.min(innerWidth - w - 12, r.right - w)) + 'px'; cp.style.top = (r.bottom + h + 16 < innerHeight ? r.bottom + 8 : Math.max(12, r.top - h - 8)) + 'px';
+    hsv = toHsv(toRgb(inp.value.toLowerCase())); paint(); };
+  // every colour well in the studio opens this one instead of the system picker
+  host.addEventListener('click', (e) => { const inp = e.target.closest('.fc-sw')?.querySelector('input[type=color]'); if (!inp) return; e.preventDefault(); e.stopPropagation(); target === inp ? close() : (close(), open(inp)); }, true);
+  addEventListener('pointerdown', (e) => { if (target && !cp.contains(e.target) && !e.target.closest('.fc-sw')) close(); }, true);
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && target) { e.stopImmediatePropagation(); close(); } }, true);
+  cp.querySelector('.fc-cp-sw').onclick = (e) => { const b = e.target.closest('button'); if (b) set(b.dataset.c); };
+  hue.oninput = () => { hsv[0] = +hue.value; paint('hue'); };
+  hexIn.oninput = () => { let v = hexIn.value.trim(); if (!v.startsWith('#')) v = '#' + v; set(v, 'hex'); };
+  sv.onpointerdown = (e) => { sv.setPointerCapture(e.pointerId); const move = (ev) => { const r = sv.getBoundingClientRect(); hsv[1] = Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)); hsv[2] = 1 - Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height)); paint(); };
+    move(e); sv.onpointermove = move; sv.onpointerup = () => { sv.onpointermove = null; }; };
+}
+// the timeline: drag a beat's right edge to make it longer or shorter, in tenths of a second as the viewer sees it
+$('#fc-dots').addEventListener('pointerdown', (e) => {
+  const g = e.target.closest('.fc-grip'); if (!g || stills) return; e.preventDefault();
+  const k = +g.parentElement.dataset.k, row = $('#fc-dots'), perMs = row.getBoundingClientRect().width / beats.reduce((a, b) => a + b.ms, 0), x0 = e.clientX, ms0 = beats[k].ms;
+  row.classList.add('fc-dragging'); g.setPointerCapture(e.pointerId);
+  const move = (ev) => { const v = Math.round((ms0 + (ev.clientX - x0) / perMs) / 100) * 100; dur[k] = Math.min(base[k] * 2, Math.max(base[k] / 3, v * speed)); retime(); render(); };
+  g.addEventListener('pointermove', move);
+  g.addEventListener('pointerup', () => { g.removeEventListener('pointermove', move); row.classList.remove('fc-dragging'); retimed(); hold = k; go(k); }, { once: true });
+});
+// Select: point at any part of the scene, say what should change, and copy it for Claude with the intro, beat and element named exactly
+if (STUDIO && mode === 'preview') {
+  const btn = $('#fc-pick'); btn.hidden = false;
+  const box = document.createElement('div'), pop = document.createElement('div'); box.className = 'fc-pickbox'; pop.className = 'fc-pickpop'; box.hidden = pop.hidden = true; host.append(box, pop);
+  let picking = false, picked = null, cancel = null;
+  const intro = location.pathname.split('/').filter(Boolean).pop();
+  // the top part the viewer can see: screens a beat has faded out still sit on top, so they are passed over
+  const seen = (el) => { for (let x = el; x && x !== host; x = x.parentElement) { const cs = getComputedStyle(x); if (+cs.opacity < .05 || cs.visibility === 'hidden') return false; } return true; };
+  // by shape, not by hit test, since scenes often turn the pointer off on their screens: the smallest visible part under the point
+  const target = (x, y) => { let best = null, least = Infinity;
+    // the scene, the end card, and the canvas words around the device
+    for (const el of host.querySelectorAll('#fc-stage *, #fc-around *, #fc-end *, .fc-slot, .fc-slot *')) {
+      if (el.closest('.fc-finger,.fc-caption,.fc-made,.fc-outro') || (el.ownerSVGElement && el.tagName !== 'svg')) continue;
+      const r = el.getBoundingClientRect(), a = r.width * r.height;
+      if (a && a < least && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom && seen(el)) { best = el; least = a; } }
+    // the words on a button are the button
+    return best?.closest('button, a, [role=button]') || best; };
+  const named = (el) => { if (el.matches('.fc-slot')) return { tag: el.tagName.toLowerCase(), sel: `#${el.id}`, text: (el.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 50), slot: el.dataset.slot };
+    const tag = el.tagName.toLowerCase(), own = [...el.classList].find(c => !c.startsWith('fc-')), up = el.parentElement.closest('[id]:not([id^=fc-]):not(#flowcast)');
+    return { tag, sel: el.id && !el.id.startsWith('fc-') ? `#${el.id}` : `${up ? `#${up.id} ` : ''}${tag}${own ? '.' + own : ''}`, text: (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 50) }; };
+  const outline = (el) => { const r = el.getBoundingClientRect(); Object.assign(box.style, { left: r.left - 3 + 'px', top: r.top - 3 + 'px', width: r.width + 6 + 'px', height: r.height + 6 + 'px' }); box.hidden = false; return r; };
+  const stop = () => { cancel?.(); picking = false; host.classList.remove('fc-picking'); btn.classList.remove('on'); box.hidden = pop.hidden = true; };
+  btn.onclick = () => { if (picking) return stop(); picking = true; host.classList.add('fc-picking'); btn.classList.add('on'); if (!stills && !paused) $('#fc-pause').click(); };
+  addEventListener('pointermove', (e) => { if (!picking || !pop.hidden) return; const el = target(e.clientX, e.clientY); el ? outline(el) : box.hidden = true; });
+  addEventListener('click', (e) => { if (!picking || !e.isTrusted || pop.contains(e.target) || e.target.closest('#fc-pick, .fc-cpop')) return; const el = target(e.clientX, e.clientY); if (!el) return pop.hidden ? stop() : undefined; e.preventDefault(); e.stopPropagation(); if (!pop.hidden) keep(); open(el); }, true);
+  // changes show as they are made and stay unless Cancel or Esc takes them back; moving to another part keeps them
+  const keep = () => { if (!cancel) return; cancel = null; paintEditsList(); saveState(); };
+  // one part's note: Edit changes its words, size, corners and colours right here; Ask Claude copies a line for anything else.
+  // ↑ widens it to the part that holds it, for words inside a card or a button drawn as a box
+  // the note can be dragged by its grip or head and opens where it was dropped for every part picked after
+  const placed = () => { try { return JSON.parse(localStorage.getItem('fc-pop-at') || 'null'); } catch { return null; } };
+  const place = (x, y) => { pop.style.left = Math.max(12, Math.min(innerWidth - pop.offsetWidth - 12, x)) + 'px'; pop.style.top = Math.max(12, Math.min(innerHeight - pop.offsetHeight - 12, y)) + 'px'; };
+  pop.addEventListener('pointerdown', (e) => { const h = e.target.closest('.fc-pp-head, .fc-pp-grip'); if (!h || e.target.closest('button')) return; e.preventDefault();
+    const r = pop.getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top; h.setPointerCapture(e.pointerId); pop.classList.add('fc-pp-drag');
+    const move = (ev) => place(ev.clientX - dx, ev.clientY - dy);
+    h.addEventListener('pointermove', move);
+    h.addEventListener('pointerup', () => { h.removeEventListener('pointermove', move); pop.classList.remove('fc-pp-drag'); const q = pop.getBoundingClientRect();
+      try { localStorage.setItem('fc-pop-at', JSON.stringify({ x: Math.round(q.left), y: Math.round(q.top) })); } catch {}}, { once: true }); });
+  // corners and padding as one value, or each corner and side on its own
+  const SIDES = { 'border-radius': ['border-top-left-radius', 'border-top-right-radius', 'border-bottom-right-radius', 'border-bottom-left-radius'], padding: ['padding-top', 'padding-right', 'padding-bottom', 'padding-left'] };
+  const EACH = { 'border-radius': [['ul', 'Top left'], ['ur', 'Top right'], ['dr', 'Bottom right'], ['dl', 'Bottom left']], padding: [['at', 'Top'], ['ar', 'Right'], ['ab', 'Bottom'], ['al', 'Left']] };
+  const hex = (c) => { const m = c.match(/[\d.]+/g); if (!m || (m[3] !== undefined && +m[3] === 0)) return ''; return '#' + m.slice(0, 3).map(v => Math.round(+v).toString(16).padStart(2, '0')).join(''); };
+  const open = (el) => {
+    cancel?.();
+    const up = el.parentElement?.matches('#fc-stage *, #fc-around *, #fc-end *, .fc-slot') ? el.parentElement : null;
+    const r = outline(el), n = named(el), k = stills ? slide : i, b = beats[k] || {}, title = b.outro ? 'Outro' : (b.title || '').replace(/<br\s*\/?>/g, ' ').replace(/<[^>]+>/g, '');
+    // words can be changed when the part holds one run of text of its own
+    const tn = el.closest('.fc-slot') ? [] : [...el.childNodes].filter(x => x.nodeType === 3 && x.nodeValue.trim()), node = tn.length === 1 ? tn[0] : null;
+    const real = node ? (kept.get(node)?.real ?? node.nodeValue).trim() : '', shownNow = node ? node.nodeValue.trim() : '';
+    const cs = getComputedStyle(el), count = host.querySelectorAll(`:is(#fc-stage, #fc-around, #fc-end, .fc-slots) :is(${n.sel})`).length;
+    const val = (p) => Math.round(parseFloat(cs.getPropertyValue(SIDES[p] ? SIDES[p][0] : p)) || 0);
+    // only what fits what was picked: a picture takes size and corners, an icon its colour, words their text and size, a box all of it
+    const icon = el.matches('svg'), pic = el.matches('img, picture, video, canvas') || (!icon && !(el.innerText || '').trim() && el.children.length === 1 && el.firstElementChild.matches('img, svg, picture'));
+    const words = !pic && !icon && !!(el.innerText || '').trim();
+    // words with nothing drawn around them, even inside a flex row where the browser counts them as blocks
+    const plain = words && cs.display === 'inline' || (words && el.children.length === 0 && !hex(cs.backgroundColor) && !parseFloat(cs.borderTopWidth) && !parseFloat(cs.paddingTop) && !parseFloat(cs.paddingLeft));
+    const box = !pic && !icon && !plain;
+    const svgEl = icon ? el : pic && el.firstElementChild?.matches('svg') ? el.firstElementChild : null;
+    const has = { text: words, size: !plain, corners: pic || box, padding: box, fill: box, color: words, svg: !!svgEl };
+    const before = JSON.stringify(edits), mine = { ...(edits.styles[n.sel] || {}) };
+    cancel = () => { Object.assign(edits, JSON.parse(before)); paintEdits(); rescrub(); cancel = null; };
+    pop.innerHTML = `<div class="fc-pp-grip" title="Drag to move"><i></i></div><div class="fc-pp-head" title="Drag to move"><span class="fc-pp-id"><span class="fc-pp-sel" title="${esc(n.sel)}">${esc(n.sel)}</span></span><span class="fc-pp-acts">${up ? `<button class="fc-pp-up" title="Select what holds it: ${esc(named(up).sel)}">${I('up')}Parent</button>` : ''}</span><small>${n.slot ? 'Canvas' : `Beat ${k + 1}`}${n.text ? ` · “${esc(n.text)}”` : ''}</small></div>
+      <div class="fc-pp-tabs"><button data-tab="edit" class="on">${I('pencil')}Edit</button><button data-tab="ask">${I('chat')}Ask Claude</button></div>
+      <div class="fc-pp-edit">${el.closest('.fc-slot') ? '<p class="fc-pp-many">Type on the canvas itself to change these words.</p>' : ''}${node ? `<label class="fc-pp-field"><span>Text</span><input class="fc-pp-in" data-text value="${esc(shownNow)}"></label>` : ''}
+        ${(() => { const num = (p, l, v, tip) => `<label class="fc-pp-field"${tip ? ` title="${tip}"` : ''}><span>${l}</span><div class="fc-pp-num"><input class="fc-pp-in" type="number" min="0" data-p="${p}" value="${v}"><i>px</i></div></label>`;
+          const cur = (p) => parseFloat(mine[p]) || val(p);
+          const block = (sp, title, icon) => { const circle = sp === 'border-radius' && pic ? `<button class="fc-pp-circle" title="Make it a circle">Circle</button>` : ''; const four = SIDES[sp].map(q => parseFloat(mine[q]) || Math.round(parseFloat(cs.getPropertyValue(q)) || 0)), each = SIDES[sp].some(q => q in mine) || new Set(four).size > 1;
+            return `<div class="fc-pp-sec" data-sp="${sp}"><div class="fc-pp-sh"><span>${I(icon)}${title}</span>${circle}<div class="fc-pp-mini"><button data-split="all" class="${each ? '' : 'on'}">All</button><button data-split="each" class="${each ? 'on' : ''}">Each</button></div></div>
+              <div class="fc-pp-one" ${each ? 'hidden' : ''}>${num(sp, title, parseFloat(mine[sp]) || four[0])}</div>
+              <div class="fc-pp-four" ${each ? '' : 'hidden'}>${SIDES[sp].map((q, j) => num(q, I(EACH[sp][j][0]), four[j], EACH[sp][j][1])).join('')}</div></div>`; };
+          return (has.text ? `<div class="fc-pp-sec"><div class="fc-pp-sh"><span>${I('type')}Text size</span></div><div class="fc-pp-one">${num('font-size', 'Size', cur('font-size'))}</div></div>` : '')
+            + (has.size ? `<div class="fc-pp-sec"><div class="fc-pp-sh"><span>${I('size')}Size</span></div><div class="fc-pp-two">${num('width', 'Width', cur('width'))}${num('height', 'Height', cur('height'))}</div></div>` : '')
+            + (has.corners ? block('border-radius', 'Corners', 'corner') : '') + (has.padding ? block('padding', 'Padding', 'pad') : ''); })()}
+        ${has.fill || has.color || has.svg ? `<div class="fc-pp-colors">${[has.fill && ['background-color', 'Fill', cs.backgroundColor, '#ffffff'], has.color && ['color', 'Text colour', cs.color, '#000000'], has.svg && ['svg-color', 'Colour', (() => { const sh = svgEl.querySelector('[fill]:not([fill=none]),[stroke]:not([stroke=none])'); return sh ? getComputedStyle(sh)[sh.matches('[fill]:not([fill=none])') ? 'fill' : 'stroke'] : getComputedStyle(svgEl).color; })(), '#000000']].filter(Boolean).map(([p, l, now, dflt]) => { const h = hex(mine[p] || now); return `<label class="fc-pp-crow"><span>${l}</span><span class="fc-sw${h ? '' : ' fc-none'}" title="${h ? h : 'None'}"><input type="color" data-p="${p}" value="${h || dflt}"></span></label>`; }).join('')}</div>` : ''}
+        ${count > 1 ? `<small class="fc-pp-many">Changes all ${count} parts like it</small>` : ''}
+        <div class="fc-pp-row">${edits.styles[n.sel] || edits.texts.some(t => t[0] === real) ? '<button class="fc-pp-clear" title="Back to how the intro has it">Reset</button>' : ''}<span class="fc-pp-note"></span><button class="fc-pp-cancel">Cancel</button><button class="fc-pp-save">Save</button></div></div>
+      <div class="fc-pp-ask" hidden><textarea rows="3" placeholder="What should change? Or leave it empty and say it in Claude Code."></textarea><p class="fc-pp-note">Copies a line to paste into Claude Code.</p><div class="fc-pp-row"><span class="fc-pp-gap"></span><button class="fc-pp-cancel">Cancel</button><button class="fc-pp-copy">${I('copy')}<span>Copy for Claude</span></button></div></div>`;
+    pop.hidden = false; pop.classList.remove('fc-pp-show'); void pop.offsetWidth; pop.classList.add('fc-pp-show'); const pw = pop.offsetWidth, ph = pop.offsetHeight;
+    const at = placed(); if (at) place(at.x, at.y);
+    else place(r.left + r.width / 2 - pw / 2, r.bottom + ph + 20 < innerHeight ? r.bottom + 12 : r.top - ph - 12);
+    // a part still settling from its last step keeps its frame on it
+    const follow = () => { if (pop.hidden || picked !== el) return; outline(el); requestAnimationFrame(follow); }; picked = el; requestAnimationFrame(follow);
+    const ta = pop.querySelector('textarea');
+    pop.querySelector('.fc-pp-tabs').onclick = (e) => { const t = e.target.closest('button'); if (!t) return; pop.querySelectorAll('.fc-pp-tabs button').forEach(x => x.classList.toggle('on', x === t));
+      pop.querySelector('.fc-pp-edit').hidden = t.dataset.tab !== 'edit'; pop.querySelector('.fc-pp-ask').hidden = t.dataset.tab !== 'ask'; if (t.dataset.tab === 'ask') ta.focus(); };
+    // every change shows at once; Save keeps it, Cancel puts it back
+    pop.querySelector('.fc-pp-edit').oninput = (e) => { const f = e.target;
+      if (f.dataset.text !== undefined) { edits.texts = edits.texts.filter(t => t[0] !== real); if (f.value.trim() && f.value.trim() !== real) edits.texts.push([real, f.value.trim()]); rescrub(); return; }
+      if (f.type === 'color') f.parentElement.classList.remove('fc-none');
+      if (f.value === '') delete mine[f.dataset.p]; else mine[f.dataset.p] = f.type === 'color' ? f.value : f.value + 'px';
+      // one corner or side set on its own drops the value for all of them, and the other way round
+      const sp = Object.keys(SIDES).find(x => x === f.dataset.p || SIDES[x].includes(f.dataset.p)); if (sp) (f.dataset.p === sp ? SIDES[sp] : [sp]).forEach(q => { delete mine[q]; });
+      if (Object.keys(mine).length) edits.styles[n.sel] = { ...mine }; else delete edits.styles[n.sel]; paintEdits(); };
+    pop.querySelectorAll('.fc-pp-cancel').forEach(x => { x.onclick = stop; });
+    pop.querySelector('.fc-pp-circle')?.addEventListener('click', () => { SIDES['border-radius'].forEach(q => delete mine[q]); mine['border-radius'] = '50%';
+      const sec = pop.querySelector('.fc-pp-sec[data-sp="border-radius"]'); sec.querySelector('.fc-pp-one').hidden = false; sec.querySelector('.fc-pp-four').hidden = true;
+      sec.querySelectorAll('.fc-pp-mini button').forEach(x => x.classList.toggle('on', x.dataset.split === 'all')); sec.querySelector('[data-p="border-radius"]').value = Math.round(Math.min(el.offsetWidth, el.offsetHeight) / 2);
+      edits.styles[n.sel] = { ...mine }; paintEdits(); });
+    // All or Each: the values carry over, so switching never jumps
+    pop.querySelectorAll('.fc-pp-sec[data-sp] .fc-pp-mini').forEach(m => { m.onclick = (e) => { const b = e.target.closest('button'); if (!b || b.classList.contains('on')) return;
+      const sec = m.closest('.fc-pp-sec'), sp = sec.dataset.sp, each = b.dataset.split === 'each'; m.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+      sec.querySelector('.fc-pp-one').hidden = each; sec.querySelector('.fc-pp-four').hidden = !each;
+      const one = sec.querySelector(`[data-p="${sp}"]`), four = SIDES[sp].map(q => sec.querySelector(`[data-p="${q}"]`));
+      if (each) { four.forEach(x => { x.value = one.value; }); delete mine[sp]; SIDES[sp].forEach((q, j) => { mine[q] = four[j].value + 'px'; }); }
+      else { one.value = four[0].value; SIDES[sp].forEach(q => delete mine[q]); mine[sp] = one.value + 'px'; }
+      edits.styles[n.sel] = { ...mine }; paintEdits(); }; });
+    pop.querySelector('.fc-pp-save').onclick = () => { cancel = null; paintEditsList(); saveState(); stop(); };
+    pop.querySelector('.fc-pp-clear')?.addEventListener('click', () => { delete edits.styles[n.sel]; edits.texts = edits.texts.filter(t => t[0] !== real); paintEdits(); rescrub(); cancel = null; paintEditsList(); saveState(); stop(); });
+    if (up) pop.querySelector('.fc-pp-up').onclick = () => open(up);
+    // with nothing typed it still copies the line, ending where the change goes, to finish in Claude Code
+    pop.querySelector('.fc-pp-copy').onclick = () => { const want = ta.value.trim();
+      const line = n.slot ? `/flowcast change flowcast/${intro}/intro.html, the canvas ${n.slot} (${n.sel}${n.text ? ` "${n.text}"` : ''}): ${want}`.trimEnd() + (want ? '' : ' ') : `/flowcast change flowcast/${intro}/intro.html, beat ${k + 1}${title ? ` ("${title}")` : ''}, the element ${n.sel}${n.text ? ` (${n.tag} "${n.text}")` : ''}: ${want}`;
+      // the button itself says it worked, at the same width, so nothing moves
+      const btn = pop.querySelector('.fc-pp-copy'), note = pop.querySelector('.fc-pp-ask .fc-pp-note');
+      const done = () => { keep(); btn.style.minWidth = btn.offsetWidth + 'px'; btn.classList.add('fc-pp-ok'); btn.innerHTML = `${I('check')}<span>Copied</span>`; setTimeout(stop, 1400); };
+      navigator.clipboard?.writeText(line).then(done, () => { ta.value = line; ta.select(); note.textContent = 'Press ⌘C to copy it, then paste it into Claude Code.'; }) ?? (ta.value = line, ta.select()); };
+  };
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && picking) stop(); });
+}
 window.flowcast = { get total() { return totalMs(); }, go, still, slides: slideCount, beats, layout, frame, size: SIZE, canvas: () => PRESET[canvasName] };
 host.classList.toggle('fc-stills', stills); stills ? still(0) : go(0);
