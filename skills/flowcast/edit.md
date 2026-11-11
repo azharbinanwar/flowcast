@@ -16,6 +16,10 @@ Which part to read:
 | A look, a colour, a size | the style block, found by the class with `grep -n` |
 | Headline, line, call to action, tags | the canvas words |
 
+When the change names an element, as the studio's Select does (`#sendBtn`, or `#card button.primary` with its text), `grep -n` that id, class or text and read around it; no map needed.
+
+The user's own studio edits (words swapped, a part's size, corners or colours) live in `intro.state.json` under `edits` and win over the intro. If the change is about something listed there, change it in the intro and say in the report that their studio edit still applies until they undo it under Your edits.
+
 If the change needs the app's own code, read only the file and lines the user or the plan points to.
 
 ## 2. Change it

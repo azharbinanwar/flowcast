@@ -28,7 +28,7 @@ The studio saves what the user set on the page to `<intro>.state.json`, and ever
   | landscape | 1920×1080 | YouTube, website | any |
   The preview shows the same list and warns when the total runs past the limit. Where the phone sits: centre, left, right. Which slots show.
 - **Theme:** light, dark, or both (two files).
-- **Captions:** off (default for video), or on with the user's words. `below` the frame for a floating-phone post.
+- **Captions:** off (default for video), or on with the user's words. `below` the frame for a floating-phone post, `over` as a pill floating on the scene (`--captions over`).
 
 ```bash
 node <skill>/scripts/record.mjs intro.html out.mp4 --canvas square --phone right --theme dark --captions off --quality high

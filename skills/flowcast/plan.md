@@ -64,7 +64,7 @@ First the plan the user will read, word for word in this shape, with no seconds 
 1. **<Title>:** <what happens, cause then effect>
 2. ...
 
-**Look:** <Phone or Browser or Desktop> · <no canvas or the size> · <light or dark> · <captions inside, below or off>
+**Look:** <Phone or Browser or Desktop> · <no canvas or the size> · <light or dark> · <captions inside, below, over or off>
 **Logo:** <the saved flowcast/logo file, or the project file to copy>
 **Starts from:** <the earlier intro's name, with "(same colours, fonts and frame)", or "a fresh look from the app's theme">
 **Will read:** <what the builder still needs, in a few words, and how many files>

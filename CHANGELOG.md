@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.3.0 · 2026-11-11
+
+Edit an intro yourself in the studio, a timeline for timing, floating captions, and Select to hand Claude the exact part to change.
+
+- Timeline: the beat dots under the studio's preview are now a timeline, each beat as wide as its time with its number and seconds on it. Drag a beat's right edge to make it longer or shorter, in tenths of a second; it replays the beat at its new length and saves, the same as the seconds in Timing.
+- Edit without Claude: Select now opens on an Edit tab. Change a part's words, size, width, height, corners, padding, fill or text colour, and it changes as you type; Save keeps it, Cancel puts it back. Words change wherever they show, even when a step types them in later. Every edit is saved with the intro, used by every export, and listed under Your edits in the drawer, each with its own undo. The intro file itself is never touched, so no tokens are spent.
+- Select's Edit tab in sections: Text size, Size (width and height), Corners and Padding, each corner and side on its own with All or Each. The note has a grip bar on top and drags by it or its head; dropped, it opens there for every pick after; a click outside never closes it, and picking another part keeps what was changed.
+- Pictures: corners set on a logo's frame round the picture inside it, a Circle button makes it round, and a picture follows its frame's size. An SVG, or a frame holding one, gets a Colour that reaches every shape, whether it is filled, outlined or drawn in its text colour. A PNG or JPG cannot be recoloured, so it shows no colour.
+- Edit shows only what fits what was picked: a picture or logo takes size and corners, an icon its size and colour, plain words their text, size and colour, and a box or button all of it.
+- Select reaches the canvas words too: the headline, line, call to action, tags and logo around the device take the same size, corners, padding and colours. Their words are still typed on the canvas itself.
+- The studio's own colour picker, in Select and the Colours panel, in place of the system one: the intro's own colours first, then a colour area, hue and hex.
+- Edited words win over Privacy, so an email you retype shows as you wrote it with Hide personal details on, and a step that types the old words types yours instead. Select's note is drawn in the studio's own look: the same tabs, fields with px, colour swatches like the Colours panel, and a soft open.
+- Select: a pointer button beside the transport. Point at any part of the scene; for anything Edit cannot do, the Ask Claude tab takes what should change and Copy for Claude copies one line naming the intro, the beat and the exact element, with what you typed or, left empty, ending where you type it in Claude Code; the button turns to Copied in place. ↑ widens the pick to what holds it, for words inside a card or a button drawn as a box. Pasted into Claude Code, it goes straight to an editor, which finds the element by its id or class without reading the map.
+- Captions can float: a fourth place, Over, puts each beat's caption in a pill near the foot of the scene, popping in with the beat and taking no room from it. Look now picks Off, Inside, Below or Over, the choice comes back after a refresh, and every export uses it.
+- Fixed: exports with captions asked for (`--captions inside`, `below` or `over`) left them hidden when the intro itself had them off.
+
 ## 2.2.0 · 2026-11-10
 
 Cheaper changes after the first build, app intros as a feature tour, and spacing in the export settings.
