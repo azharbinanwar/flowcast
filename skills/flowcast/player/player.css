@@ -83,16 +83,17 @@ html:not([data-mode=record]) .fc-canvas:not([data-preset=none]),html:not([data-m
 .fc-status{height:44px;display:flex;align-items:center;justify-content:space-between;padding:4px 26px 0 32px;box-sizing:border-box;font:600 15px/1 -apple-system,'SF Pro Text',system-ui,sans-serif;letter-spacing:-.01em;background:var(--screen);color:var(--on);flex:none;transition:background .3s,color .3s}
 .fc-sys{display:flex;align-items:center;gap:5px}.fc-sys svg{fill:currentColor;display:block}
 .fc-stage{flex:1;position:relative;min-height:0;display:flex;flex-direction:column}
-.fc-caption{padding:14px 22px 22px;text-align:center;min-height:68px;background:var(--screen);flex:none}
+.fc-caption{padding:14px 22px 22px;text-align:center;min-height:68px;background:color-mix(in srgb,var(--fc-cap-bg,var(--screen)) var(--fc-cap-a,100%),transparent);color:var(--fc-cap-fg,inherit);flex:none}
 .fc-caption h2{margin:0 0 6px;font-size:16px;font-weight:700;text-wrap:balance}
-.fc-caption p{margin:0;color:var(--muted);font-size:13px}
+.fc-caption p{margin:0;color:var(--fc-cap-p,var(--muted));font-size:13px}
 :root[data-captions=off] .fc-caption{display:none}
-.fc-caption.fc-below{background:transparent;max-width:390px;padding:4px 16px 0}
+.fc-caption.fc-below{background:color-mix(in srgb,var(--fc-cap-bg,transparent) var(--fc-cap-a,100%),transparent);max-width:390px;padding:4px 16px 0}
+#flowcast[style*='--fc-cap-bg'] .fc-caption.fc-below{padding:10px 18px 12px;border-radius:16px}
 .fc-caption.fc-below h2{font-size:20px}.fc-caption.fc-below p{font-size:15px}
 /* over: a pill floating near the foot of the scene, taking no room from it */
-.fc-caption.fc-over{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 40px);box-sizing:border-box;min-height:0;padding:11px 18px 12px;border-radius:18px;background:color-mix(in srgb,var(--on) 88%,transparent);color:var(--screen);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,.2);z-index:5;pointer-events:none}
+.fc-caption.fc-over{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 40px);box-sizing:border-box;min-height:0;padding:11px 18px 12px;border-radius:18px;background:color-mix(in srgb,var(--fc-cap-bg,var(--on)) var(--fc-cap-a,88%),transparent);color:var(--fc-cap-fg,var(--screen));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,.2);z-index:5;pointer-events:none}
 .fc-caption.fc-over h2{margin:0;font-size:16px;color:inherit}
-.fc-caption.fc-over p{margin-top:3px;color:color-mix(in srgb,var(--screen) 72%,transparent)}
+.fc-caption.fc-over p{margin-top:3px;color:var(--fc-cap-p,color-mix(in srgb,var(--screen) 72%,transparent))}
 .fc-caption.fc-over p:empty{display:none}
 .fc-caption.fc-over.fc-pop{animation:fc-cap-pop .45s cubic-bezier(.2,.9,.3,1.15)}
 @keyframes fc-cap-pop{from{opacity:0;transform:translate(-50%,14px) scale(.96)}}
@@ -475,8 +476,9 @@ html.fc-full #flowcast[data-mode=preview] .fc-bar{left:50%}
 #flowcast[data-mode=preview] .fc-xfacts{font:600 11.5px/1.3 -apple-system,system-ui,sans-serif;color:var(--ui-muted);font-variant-numeric:tabular-nums;padding-top:12px;border-top:1px solid var(--ui-line)}
 
 /* the timeline: each beat as wide as its time, its number and seconds on it, its right edge dragged to retime it */
-#flowcast[data-mode=preview] .fc-dots{width:min(640px,calc(100% - 32px));margin-left:auto;margin-right:auto;gap:4px}
-#flowcast[data-mode=preview] .fc-dot{flex:1 1 0;width:auto;min-width:0;height:28px;border-radius:8px;position:relative;background:var(--ui-field);border:1px solid var(--ui-line);box-sizing:border-box;transition:flex-grow .3s cubic-bezier(.3,.7,.2,1),border-color .2s}
+/* about 78px a beat, at least 640, up to the room there is */
+#flowcast[data-mode=preview] .fc-dots{width:min(calc(100% - 32px),max(640px,calc(var(--fc-n,6) * 78px)));margin-left:auto;margin-right:auto;gap:4px}
+#flowcast[data-mode=preview] .fc-dot{flex:1 1 0;width:auto;min-width:24px;container-type:inline-size;height:28px;border-radius:8px;position:relative;background:var(--ui-field);border:1px solid var(--ui-line);box-sizing:border-box;transition:flex-grow .3s cubic-bezier(.3,.7,.2,1),border-color .2s}
 #flowcast[data-mode=preview] .fc-dot.fc-on{width:auto;border-color:var(--ui-accent)}
 #flowcast[data-mode=preview] .fc-dot i{position:absolute;inset:0 auto 0 0;height:auto;background:color-mix(in srgb,var(--ui-accent) 22%,transparent)}
 #flowcast[data-mode=preview] .fc-dot span{position:relative;display:block;padding:0 8px;font:600 11px/26px -apple-system,system-ui,sans-serif;color:var(--ui-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums;pointer-events:none}
@@ -486,7 +488,7 @@ html.fc-full #flowcast[data-mode=preview] .fc-bar{left:50%}
 #flowcast[data-mode=preview] .fc-dot:hover .fc-grip::after,#flowcast[data-mode=preview] .fc-dots.fc-dragging .fc-grip::after{opacity:1}
 #flowcast[data-mode=preview] .fc-dots.fc-dragging .fc-dot{transition:none}
 #flowcast.fc-stills .fc-dot{flex-grow:1!important}#flowcast.fc-stills .fc-grip{display:none}
-@media (min-width:901px){#flowcast[data-mode=preview] .fc-dots{width:min(640px,calc(100vw - 340px - 64px))}}
+@media (min-width:901px){#flowcast[data-mode=preview] .fc-dots{width:min(calc(100vw - 340px - 64px),max(640px,calc(var(--fc-n,6) * 78px)))}}
 /* Select: the part under the pointer framed, and a note in the studio's own look to change it */
 #flowcast[data-mode=preview] #fc-pick.on{background:var(--ui-accent);color:var(--ui-ink);border-color:var(--ui-accent)}
 #flowcast.fc-picking .fc-canvas,#flowcast.fc-picking .fc-canvas *{cursor:crosshair!important}
@@ -554,10 +556,10 @@ html.fc-full #flowcast[data-mode=preview] .fc-bar{left:50%}
 .fc-erow button .fc-i{width:14px;height:14px}
 
 /* the studio's colour picker: the intro's colours, a colour area, hue and hex */
-.fc-cpop{position:fixed;z-index:70;width:232px;box-sizing:border-box;display:grid;gap:12px;padding:12px;border-radius:14px;background:var(--ui-panel);color:var(--ui-text);border:1px solid var(--ui-line);box-shadow:0 20px 50px rgba(10,8,20,.24),0 2px 8px rgba(10,8,20,.08);font:500 12.5px/1 var(--ui-font)}
+.fc-cpop{position:fixed;z-index:70;width:232px;box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding:12px;border-radius:14px;background:var(--ui-panel);color:var(--ui-text);border:1px solid var(--ui-line);box-shadow:0 20px 50px rgba(10,8,20,.24),0 2px 8px rgba(10,8,20,.08);font:500 12.5px/1 var(--ui-font)}
 .fc-cpop.fc-pp-show{animation:fc-pp-in .18s cubic-bezier(.2,.8,.2,1)}
-.fc-cp-sw{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.fc-cp-sw[hidden]{display:none}
-.fc-cp-sw button{aspect-ratio:1;width:100%;padding:0;border-radius:7px;border:1px solid var(--ui-line);cursor:pointer;transition:transform .12s,box-shadow .12s}
+.fc-cp-sw{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}.fc-cp-sw[hidden]{display:none}
+.fc-cp-sw button{aspect-ratio:1;width:100%;min-width:0;padding:0;border-radius:7px;border:1px solid var(--ui-line);cursor:pointer;transition:transform .12s,box-shadow .12s}
 .fc-cp-sw button:hover{transform:scale(1.08)}
 .fc-cp-sw button.on{box-shadow:0 0 0 2px var(--ui-panel),0 0 0 4px var(--ui-accent)}
 .fc-cp-sv{position:relative;height:132px;border-radius:10px;cursor:crosshair;touch-action:none;box-shadow:inset 0 0 0 1px var(--ui-line)}
@@ -589,3 +591,29 @@ html.fc-full #flowcast[data-mode=preview] .fc-bar{left:50%}
 
 .fc-pickpop .fc-pp-circle{margin-left:auto;height:24px;padding:0 9px;border-radius:999px;border:1px solid var(--ui-line);background:none;color:var(--ui-muted);font-size:11px}
 .fc-pickpop .fc-pp-circle:hover{background:var(--ui-hover);color:var(--ui-text)}
+
+/* Look: how captions look, under where they sit */
+#flowcast[data-mode=preview] .fc-capstyle{display:grid;margin-top:-8px;margin-bottom:16px;border-radius:12px;border:1px solid var(--ui-line);overflow:hidden}
+#flowcast[data-mode=preview] .fc-capstyle[hidden]{display:none}
+#flowcast[data-mode=preview] .fc-caprow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:0 8px 0 12px;font-size:13px;font-weight:600;color:var(--ui-text)}
+#flowcast[data-mode=preview] .fc-caprow+.fc-caprow{border-top:1px solid var(--ui-line)}
+#flowcast[data-mode=preview] .fc-capa{display:flex;align-items:center;gap:10px;flex:1;max-width:190px}
+#flowcast[data-mode=preview] .fc-capa input{flex:1;min-width:0;accent-color:var(--ui-accent)}
+#flowcast[data-mode=preview] .fc-capa b{width:38px;text-align:right;font:600 12px var(--ui-font);color:var(--ui-muted);font-variant-numeric:tabular-nums}
+
+/* over in a dark theme: a dark glass with light words whatever the intro's own tokens, since many keep a light screen colour in dark */
+@media (prefers-color-scheme:dark){html:not([data-theme=light]) .fc-caption.fc-over{background:color-mix(in srgb,var(--fc-cap-bg,#1d1d22) var(--fc-cap-a,88%),transparent);color:var(--fc-cap-fg,#f3f3f5);box-shadow:0 10px 30px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.09)}
+  html:not([data-theme=light]) .fc-caption.fc-over p{color:var(--fc-cap-p,rgba(243,243,245,.72))}}
+html[data-theme=dark] .fc-caption.fc-over{background:color-mix(in srgb,var(--fc-cap-bg,#1d1d22) var(--fc-cap-a,88%),transparent);color:var(--fc-cap-fg,#f3f3f5);box-shadow:0 10px 30px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.09)}
+html[data-theme=dark] .fc-caption.fc-over p{color:var(--fc-cap-p,rgba(243,243,245,.72))}
+
+/* a bar too narrow for its seconds shows its number alone; the seconds are in its tooltip */
+#flowcast[data-mode=preview] .fc-dot span b{font-weight:inherit}#flowcast[data-mode=preview] .fc-dot span em{font-style:normal}
+@container (max-width:64px){#flowcast[data-mode=preview] .fc-dot span em{display:none}#flowcast[data-mode=preview] .fc-dot span{padding:0;text-align:center}}
+#flowcast[data-mode=preview] .fc-dot.fc-dot-outro{min-width:56px}
+/* the credit tag in a dark theme: a light glass, so it stands off a dark screen instead of sinking into it */
+@media (prefers-color-scheme:dark){html:not([data-theme=light]) .fc-made{background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),0 4px 14px rgba(0,0,0,.35)}}
+html[data-theme=dark] .fc-made{background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),0 4px 14px rgba(0,0,0,.35)}
+/* the credit outro in a dark theme: a dark slide with light words, whatever the intro's own screen colour, since many keep it light in dark */
+@media (prefers-color-scheme:dark){html:not([data-theme=light]) .fc-outro{background:color-mix(in srgb,var(--accent,#FF6B4A) 6%,#111113);color:#f3f3f5}}
+html[data-theme=dark] .fc-outro{background:color-mix(in srgb,var(--accent,#FF6B4A) 6%,#111113);color:#f3f3f5}

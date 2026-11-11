@@ -1,5 +1,5 @@
-// Layout check in words, so most checks cost no image. Usage: node check.mjs intro.html [--theme dark]
-// Plays every beat to its end with captions on and off, and reports what a viewer would notice:
+// Layout check in words, so most checks cost no image. Usage: node check.mjs intro.html [--theme dark] [--only 3,4]
+// Takes every beat's finished picture with captions on and off, the way PNG export does, so it takes seconds however long the intro is, and reports what a viewer would notice:
 // parts cut off by the screen edge, text that does not fit, and bottom bars or sheets pinned from the top that float off the bottom.
 import { chromium } from 'playwright';
 import { resolve, dirname, join } from 'node:path';
@@ -19,14 +19,17 @@ for (const f of ['player.css', 'player.js', 'motion.svg']) {
 
 const browser = await chromium.launch();
 const runs = {};
-for (const captions of ['on', 'off']) {
+// --only 3 or 3,4: just the beats a change touched, counted from 1
+const only = opt.only ? new Set(String(opt.only).split(',').map(n => +n - 1)) : null;
+await Promise.all(['on', 'off'].map(async (captions) => {
   const page = await browser.newPage({ viewport: { width: 1280, height: 1280 }, colorScheme: opt.theme || 'light' });
-  await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', theme: opt.theme, captions: captions === 'off' ? 'off' : undefined });
+  await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', stills: true, theme: opt.theme, captions: captions === 'off' ? 'off' : undefined });
   await page.goto('file://' + html); await page.waitForFunction(() => window.flowcast && window.flowcast.beats); await page.evaluate(() => document.fonts.ready);
   const beats = await page.evaluate(() => flowcast.beats.map(b => b.ms));
   runs[captions] = [];
   for (let i = 0; i < beats.length; i++) {
-    await page.evaluate((n) => flowcast.go(n), i); await page.waitForTimeout(beats[i] * 0.95);
+    if (only && !only.has(i)) { runs[captions].push(null); continue; }
+    await page.evaluate((n) => flowcast.still(n), i); await page.waitForTimeout(80);
     runs[captions].push(await page.evaluate(() => {
       const stage = document.getElementById('fc-stage'), sr = stage.getBoundingClientRect(), k = sr.width / stage.offsetWidth;
       const seen = (e) => { for (let n = e; n && n !== stage; n = n.parentElement) { const cs = getComputedStyle(n); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity < 0.05) return false; } return true; };
@@ -50,11 +53,11 @@ for (const captions of ['on', 'off']) {
     }));
   }
   await page.close();
-}
+}));
 await browser.close();
 
 const notes = [];
-runs.on.forEach((beat, i) => {
+runs.on.forEach((beat, i) => { if (!beat) return;
   for (const c of new Set([...beat.cut, ...runs.off[i].cut])) notes.push(`beat ${i + 1}: ${c}`);
   for (const t of new Set([...beat.text, ...runs.off[i].text])) notes.push(`beat ${i + 1}: ${t}`);
   // the stage grows when captions go off; anything placed from the top then drifts away from the bottom edge
@@ -63,4 +66,4 @@ runs.on.forEach((beat, i) => {
     if (Math.abs(b - a) > 8) notes.push(`beat ${i + 1}: ${el} is placed from the top, so it sits ${a}px above the bottom with captions on and ${b}px with them off. Anchor it with bottom: instead of top:`);
   }
 });
-console.log(notes.length ? [...new Set(notes)].join('\n') : `All clear: ${runs.on.length} beats, captions on and off, nothing cut off, overflowing or floating.`);
+console.log(notes.length ? [...new Set(notes)].join('\n') : `All clear: ${runs.on.filter(Boolean).length} beat${runs.on.filter(Boolean).length === 1 ? '' : 's'}, captions on and off, nothing cut off, overflowing or floating.`);

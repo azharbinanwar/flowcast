@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- The MP4 size under Export shows as ~, measured on real exports: a 1:45 desktop intro shows 4, 5 and 12 MB for Standard, High and Max, against 3.8, 4.8 and 11.7 MB made. It had said about 2, 3 and 9.
+- Fixed: MP4 at Max came out at the normal size, only at 60 fps. Chrome's screencast ignores pixel density, so Max now draws the whole page at twice the size instead: 2160×2160 for a square, 2560×1600 for a 1280×800 desktop, and visibly sharper text. A test checks it.
+- `check.mjs` takes each beat's finished picture, the way PNG export does, with captions on and off side by side, instead of playing the whole intro twice: a 17-beat intro went from 3 minutes 9 seconds to under 4 seconds. `--only 3,4` checks just the beats a change touched, and the editor uses it.
+- Fixed: in a dark theme the Made with Flowcast tag sank into a dark screen, and the credit outro could show light words on a white slide. The tag is now a light glass on dark, and the outro a dark slide with light words.
+- Timeline: it grows with the number of beats, about 78px a beat up to the room there is, instead of squeezing many beats into 640px. A bar too narrow for its seconds shows its number alone, with the seconds in its tooltip.
+- Caption style: under Look → Captions, a background, a text colour and how see-through the background is, kept for light and dark on their own like the Colours, for every place captions sit, and used by every export.
+- Fixed: in a dark theme the Over caption showed as a pale slab when the intro kept a light screen colour. It is now a dark glass with light words.
+- Fixed: the colour picker's swatches, colour square, hue bar and hex field ran past its right edge. They fit inside it now.
+
 ## 2.3.0 · 2026-11-11
 
 Edit an intro yourself in the studio, a timeline for timing, floating captions, and Select to hand Claude the exact part to change.

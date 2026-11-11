@@ -114,6 +114,10 @@ if (process.argv.includes('--video')) {
   r = node([join(here, 'record.mjs'), sample, join(out, 'v.mp4'), '--canvas', 'square']); ok('records mp4', r.status === 0 && existsSync(join(out, 'v.mp4')), r.stderr.trim().split('\n').pop());
   const probe = spawnSync(ffmpegPath, ['-i', join(out, 'v.mp4')], { encoding: 'utf8' }).stderr;
   ok('mp4 is 1080x1080 at 30 fps, the loading cut', /1080x1080/.test(probe) && /30 fps/.test(probe) && +(probe.match(/Duration: 00:00:(\d+\.\d+)/)?.[1] || 99) < 20, probe.match(/Duration[^,]*|\d+x\d+[^,]*/g)?.join(' '));
+  // Max is a bigger page, not a denser one: Chrome's screencast ignores pixel density, which once left Max at the normal size
+  r = node([join(here, 'record.mjs'), sample, join(out, 'max.mp4'), '--canvas', 'square', '--quality', 'max']);
+  const maxProbe = spawnSync(ffmpegPath, ['-i', join(out, 'max.mp4')], { encoding: 'utf8' }).stderr;
+  ok('max records 2160x2160 at 60 fps', r.status === 0 && /2160x2160/.test(maxProbe) && /60 fps/.test(maxProbe), maxProbe.match(/\d+x\d+[^,]*|\d+ fps/g)?.join(' '));
   r = node([join(here, 'convert.mjs'), join(out, 'v.mp4'), join(out, 'v.gif')]); ok('converts to gif', r.status === 0 && existsSync(join(out, 'v.gif')), r.stderr.trim().split('\n').pop());
 }
 

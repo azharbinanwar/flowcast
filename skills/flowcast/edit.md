@@ -28,7 +28,7 @@ Edit just those lines with Edit. Keep the intro's own names, tokens and helpers;
 
 ## 3. Check
 
-1. `node <skill>/scripts/check.mjs flowcast/<feature>/intro.html` until it says All clear.
+1. `node <skill>/scripts/check.mjs flowcast/<feature>/intro.html --only <beat>` (the beats you changed, `3` or `3,4`) until it says All clear. It takes a second or two.
 2. One picture of the beat you changed, counted from 1: `node <skill>/scripts/frames.mjs flowcast/<feature>/intro.html <scratch>/after --only <beat> --theme <the app's theme>`, then read that one PNG. The picture is the beat near its end; when the change shows earlier in the beat, like a button before it is pressed, add `--at 0.3` (any point from 0 to 1). Skip it when the change cannot be seen, like timing. No contact sheet, no second picture unless the first shows the change did not work.
 
 ## 4. Report

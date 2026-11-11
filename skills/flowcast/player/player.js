@@ -132,7 +132,7 @@ const STATUS = '<div class="fc-status" id="fc-status-bar"><span class="fc-time">
 const captionHTML = '<div class="fc-caption"><h2 id="fc-title"></h2><p id="fc-body"></p></div>';
 host.innerHTML = `
 <div class="fc-tools">
-  ${head('look', 'Look', { icon: 'look', open: true })}<div class="fc-row"><button id="fc-theme">${I('moon')}<span>Dark mode</span></button></div><div class="fc-label">Captions</div><div class="fc-row"><div class="fc-seg" id="fc-cap"><button data-at="off">Off</button><button data-at="inside" title="Under the scene, inside the device">Inside</button><button data-at="below" title="Outside the device, under it">Below</button><button data-at="over" title="Floating over the scene, taking no room">Over</button></div></div></details>
+  ${head('look', 'Look', { icon: 'look', open: true })}<div class="fc-row"><button id="fc-theme">${I('moon')}<span>Dark mode</span></button></div><div class="fc-label">Captions</div><div class="fc-row"><div class="fc-seg" id="fc-cap"><button data-at="off">Off</button><button data-at="inside" title="Under the scene, inside the device">Inside</button><button data-at="below" title="Outside the device, under it">Below</button><button data-at="over" title="Floating over the scene, taking no room">Over</button></div></div><div class="fc-capstyle" id="fc-capstyle"><label class="fc-caprow"><span>Background</span><span class="fc-sw"><input type="color" data-cap="bg"></span></label><label class="fc-caprow"><span>Text</span><span class="fc-sw"><input type="color" data-cap="fg"></span></label><label class="fc-caprow"><span>Opacity</span><span class="fc-capa"><input type="range" min="0" max="100" step="5" data-cap="a"><b id="fc-cap-av"></b></span></label></div></details>
   ${head('edits', 'Your edits', { icon: 'pointer' })}<div class="fc-row"><div id="fc-edits"></div></div></details>
   ${head('privacy', 'Privacy', { icon: 'shield' })}<div class="fc-row fc-switches"><button id="fc-private">${I('shield')}<span>Hide personal details</span></button><p class="fc-hint">Emails, phone numbers and card numbers become samples in the preview and every export. Switch any of them off to show it as it is, or change what shows instead.</p><div id="fc-found" class="fc-anim" style="--fc-d:grid" hidden><div class="fc-label">Found in this intro</div><div class="fc-flist"></div></div></div></details>
   ${head('credit', 'Credit', { icon: 'credit' })}<div class="fc-row fc-switches"><button id="fc-credit" title="A small tag in the corner of the video">${I('credit')}<span>Made with Flowcast</span></button><button id="fc-credit-link" title="Adds github.com/azharbinanwar/flowcast to the tag">${I('link')}<span>Show repo link</span></button><div class="fc-label fc-anim" id="fc-credit-when-label">When it shows</div><div class="fc-seg fc-when fc-anim" style="--fc-d:grid" id="fc-credit-when">${[['outro', 'Outro slide'], ['always', 'Watermark']].map(([v, n]) => `<button data-when="${v}">${n}</button>`).join('')}</div><div class="fc-label fc-anim" id="fc-credit-where">Position</div><div class="fc-pos fc-anim" style="--fc-d:grid" id="fc-credit-pos">${['top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right'].map(v => `<button data-pos="${v}" title="${v.replace('-', ' ').replace('center', 'centre')}" aria-label="${v.replace('-', ' ').replace('center', 'centre')}"><i></i></button>`).join('')}</div></div></details>
@@ -210,7 +210,8 @@ function render() {
   // in the studio the dots are a timeline: each beat as wide as its time, with its edge to drag
   const TL = mode === 'preview';
   if ($('#fc-dots').children.length !== beats.length) $('#fc-dots').innerHTML = beats.map((_, k) => `<div class="fc-dot" data-k="${k}"><i></i>${TL ? '<span></span><b class="fc-grip" title="Drag to make this beat longer or shorter"></b>' : ''}</div>`).join('');
-  if (TL) document.querySelectorAll('.fc-dot').forEach((d, k) => { d.style.flexGrow = beats[k].ms; d.title = beats[k].outro ? 'Outro' : (beats[k].title || '').replace(/<br\s*\/?>/g, ' ').replace(/<[^>]+>/g, ''); d.querySelector('span').textContent = stills ? `${k + 1}` : `${beats[k].outro ? 'Outro' : k + 1} · ${sec(beats[k].ms)}`; });
+  if (TL) document.querySelectorAll('.fc-dot').forEach((d, k) => { d.style.flexGrow = beats[k].ms; d.classList.toggle('fc-dot-outro', !!beats[k].outro); d.title = beats[k].outro ? 'Outro' : (beats[k].title || '').replace(/<br\s*\/?>/g, ' ').replace(/<[^>]+>/g, ''); d.querySelector('span').innerHTML = `<b>${beats[k].outro ? 'Outro' : k + 1}</b>${stills ? '' : `<em> · ${sec(beats[k].ms)}</em>`}`; d.title += stills ? '' : ` · ${sec(beats[k].ms)}`; });
+  if (TL) $('#fc-dots').style.setProperty('--fc-n', beats.length);
   document.querySelectorAll('.fc-dot').forEach((d, k) => { d.classList.toggle('fc-on', k === i); d.classList.toggle('fc-done', k < i); d.querySelector('i').style.width = k < i ? '100%' : '0'; });
 }
 function go(n) {
@@ -409,7 +410,7 @@ $('#fc-dots').onclick = (e) => { const d = e.target.closest('.fc-dot'); if (!d |
 
 // toolbar
 const isDark = () => document.documentElement.dataset.theme === 'dark' || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
-const paintTheme = () => { $('#fc-theme').classList.toggle('on', isDark()); };
+const paintTheme = () => { $('#fc-theme').classList.toggle('on', isDark()); if ($('#fc-capstyle')) paintCapStyle(); };
 // adding or removing the outro beat changes the beats themselves, so the timeline and the running time follow
 const creditChanged = () => { const was = beats.length; paintCredit(); syncOutro(); if (beats.length !== was) { $('#fc-dots').innerHTML = ''; hold = -1; if (i >= beats.length) i = beats.length - 1; } retimed(); };
 $('#fc-credit').onclick = () => { credit.on = !credit.on; creditChanged(); };
@@ -419,6 +420,23 @@ $('#fc-credit-when').onclick = (e) => { const b = e.target.closest('button'); if
 $('#fc-credit-pos').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; credit.pos = b.dataset.pos; paintCredit(); };
 $('#fc-theme').onclick = () => { document.documentElement.dataset.theme = isDark() ? 'light' : 'dark'; paintTheme(); };
 // one caption, moved to where it sits: inside the screen under the scene, under the device, or floating over the scene
+// how captions look, for every place they sit, kept for each theme like the Colours: a background, a text colour, how see-through the background is
+const capStyle = { light: {}, dark: {}, ...(pre.captionStyle || {}) };
+// rgb() or, for mixed colours, color(srgb 0-1 values)
+const capHex = (c) => { const m = (c || '').match(/[\d.]+/g), k = /^color\(srgb/.test(c || '') ? 255 : 1; return m && !(m[3] !== undefined && +m[3] === 0) ? '#' + m.slice(0, 3).map(v => Math.min(255, Math.round(+v * k)).toString(16).padStart(2, '0')).join('') : ''; };
+const capNow = () => capStyle[isDark() ? 'dark' : 'light'];
+function paintCapStyle() {
+  const c = capNow(), set = (k, v) => v === undefined ? host.style.removeProperty(k) : host.style.setProperty(k, v);
+  set('--fc-cap-bg', c.bg); set('--fc-cap-fg', c.fg); set('--fc-cap-a', c.a === undefined ? undefined : c.a + '%');
+  set('--fc-cap-p', c.fg && `color-mix(in srgb, ${c.fg} 72%, transparent)`);
+  const box = $('#fc-capstyle'), cap = $('.fc-caption'); if (!box || !cap) return;
+  // the swatches start on what the caption shows now
+  const cs = getComputedStyle(cap), a = c.a ?? (captionsAt === 'over' ? 88 : 100);
+  box.querySelector('[data-cap=bg]').value = c.bg || capHex(cs.backgroundColor) || (isDark() ? '#1c1c1f' : '#ffffff');
+  box.querySelector('[data-cap=fg]').value = c.fg || capHex(getComputedStyle(cap.querySelector('h2')).color) || '#000000';
+  box.querySelector('[data-cap=a]').value = a; $('#fc-cap-av').textContent = a + '%';
+}
+$('#fc-capstyle').addEventListener('input', (e) => { const k = e.target.dataset.cap; if (!k) return; capNow()[k] = k === 'a' ? +e.target.value : e.target.value; paintCapStyle(); paintResets(); });
 function placeCaption() {
   const cap = $('.fc-caption'); if (!cap) return;
   if (captionsAt === 'below') { if (cap.parentElement !== $('.fc-phone')) $('.fc-phone').append(cap); }
@@ -428,6 +446,7 @@ function placeCaption() {
   host.dataset.captionsAt = captionsAt;
   const at = document.documentElement.dataset.captions === 'off' ? 'off' : captionsAt;
   document.querySelectorAll('#fc-cap button').forEach(b => b.classList.toggle('on', b.dataset.at === at));
+  $('#fc-capstyle').hidden = at === 'off'; paintCapStyle();
 }
 placeCaption();
 $('#fc-cap').onclick = (e) => { const b = e.target.closest('button'); if (!b) return;
@@ -450,8 +469,9 @@ const exportFacts = (f) => {
   const fit = Math.min(1280 / w, 1280 / (h || w)), pic = c || (frame === 'none' && h ? SIZE : [Math.round(w * fit), Math.round(h * fit)]);
   const vid = c || (frame === 'none' && h ? SIZE : [w * 2, h * 2]), x = (a, k = 1) => `${Math.round(a[0] * k)}\u00d7${Math.round(a[1] * k)}`;
   if (f === 'mp4') { const k = o.quality === 'max' ? Math.max(1, Math.min(2, 3840 / Math.max(...vid))) : 1, fps = o.quality === 'max' ? 60 : 30;
-    const mb = secs * vid[0] * vid[1] * k * k / 1e6 * { standard: 0.016, high: 0.027, max: 0.02 }[o.quality];
-    return `${x(vid, k)} \u00b7 ${fps} fps \u00b7 about ${Math.max(1, Math.round(mb))} MB`; }
+    // MB per million pixels a second, measured on real exports (a 1:45 desktop intro: 3.8, 4.8 and 11.7 MB); busy scenes run larger
+    const mb = secs * vid[0] * vid[1] * k * k / 1e6 * { standard: 0.036, high: 0.046, max: 0.028 }[o.quality];
+    return `${x(vid, k)} \u00b7 ${fps} fps \u00b7 ~${Math.max(1, Math.round(mb))} MB`; }
   if (f === 'gif') return `${o.width}\u00d7${Math.round(o.width * vid[1] / vid[0])} \u00b7 ${o.fps} fps`;
   if (f === 'frames') return `${n} images \u00b7 ${x(pic, o.scale)} each`;
   return `${n} pages \u00b7 ${x(pic)}${o.text === 'real' ? ' \u00b7 real text' : ''}`;
@@ -474,8 +494,8 @@ const nudge = (k, d) => { dur[k] = Math.min(base[k] * 2, Math.max(base[k] / 3, d
 // each section's reset: what counts as changed, and how to go back to what the intro set
 const CHANGED = {}, RESETS = {};
 const slotsDefault = { logo: !!endTpl, headline: !!cv.headline, line: !!cv.line, cta: !!cv.cta, tags: !!cv.tags, ...(cv.show || {}) };
-CHANGED.look = () => !!document.documentElement.dataset.theme || (document.documentElement.dataset.captions === 'off' ? 'off' : 'on') !== DEF.captions || captionsAt !== DEF.captionsAt;
-RESETS.look = () => { delete document.documentElement.dataset.theme; document.documentElement.dataset.captions = DEF.captions; captionsAt = DEF.captionsAt; placeCaption(); paintTheme(); layout(); };
+CHANGED.look = () => !!document.documentElement.dataset.theme || (document.documentElement.dataset.captions === 'off' ? 'off' : 'on') !== DEF.captions || captionsAt !== DEF.captionsAt || Object.keys(capStyle.light).length + Object.keys(capStyle.dark).length > 0;
+RESETS.look = () => { delete document.documentElement.dataset.theme; document.documentElement.dataset.captions = DEF.captions; captionsAt = DEF.captionsAt; capStyle.light = {}; capStyle.dark = {}; placeCaption(); paintTheme(); layout(); };
 const canvasDefault = PRESET[DEF.canvas] !== undefined ? DEF.canvas : 'none', phoneDefault = DEF.phone || (aroundTpl ? 'left' : 'center');
 CHANGED.privacy = () => privacy.on || Object.keys(privacy.map).length > 0 || privacy.custom.length > 0 || privacy.keep.length > 0;
 RESETS.privacy = () => { privacy.map = {}; privacy.custom = []; privacy.keep = []; setPrivacy(false); };
@@ -593,7 +613,8 @@ function layout() {
   setFrame(k);
   // the around part grows into the column it has, up to double size
   if (aroundTpl) { const ar = $('#fc-around'); ar.style.zoom = 1; const natural = ar.firstElementChild?.offsetWidth || ar.offsetWidth; const roomW = column ? cw - padX : cw - padX - w * k - 64; ar.style.zoom = Math.max(1, Math.min(2, roomW / natural)); }
-  const K = mode === 'record' ? 1 : Math.min(full() ? Infinity : 1, roomW() / cw, (innerHeight - chrome()) / ch);
+  // record: the canvas at its size, or bigger for a sharper video (pre.zoom), drawn at that size rather than enlarged after
+  const K = mode === 'record' ? (+pre.zoom || 1) : Math.min(full() ? Infinity : 1, roomW() / cw, (innerHeight - chrome()) / ch);
   cvEl.style.transform = `scale(${K})`; wrap.style.width = cw * K + 'px'; wrap.style.height = ch * K + 'px';
 }
 addEventListener('resize', layout); layout();
@@ -607,6 +628,7 @@ const state = () => ({
   edits: CHANGED.edits() ? JSON.parse(JSON.stringify(edits)) : undefined,
   credit: CHANGED.credit() ? { on: credit.on, showLink: credit.showLink, pos: credit.pos, when: credit.when } : undefined,
   colors: Object.keys(colors.light).length || Object.keys(colors.dark).length ? colors : undefined,
+  captionStyle: Object.keys(capStyle.light).length + Object.keys(capStyle.dark).length ? JSON.parse(JSON.stringify(capStyle)) : undefined,
   exportOpts: JSON.stringify(xo) !== JSON.stringify(XDEF) ? xo : undefined,
   slots: { ...slots }, words: Object.fromEntries(['headline', 'line', 'cta', 'tags'].map(k => [k, $(`#fc-slot-${k}`).textContent.trim()])),
 });

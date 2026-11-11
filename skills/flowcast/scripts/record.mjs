@@ -20,7 +20,7 @@ import { existsSync, readFileSync } from 'node:fs';
 const stateFile = opt.state || resolve(input).replace(/\.html$/, '.state.json');
 const saved = existsSync(stateFile) ? JSON.parse(readFileSync(stateFile, 'utf8')) : {};
 for (const k of ['canvas', 'phone', 'theme', 'captions']) if (opt[k] === undefined && saved[k] !== undefined) opt[k] = saved[k];
-const extra = { slots: saved.slots, words: saved.words, speed: saved.speed, durations: saved.durations, colors: saved.colors, credit: saved.credit, privacy: saved.privacy, edits: saved.edits };
+const extra = { slots: saved.slots, words: saved.words, speed: saved.speed, durations: saved.durations, colors: saved.colors, credit: saved.credit, privacy: saved.privacy, edits: saved.edits, captionStyle: saved.captionStyle };
 const PRESET = { square: [1080, 1080], portrait: [1080, 1350], story: [1080, 1920], landscape: [1920, 1080] };
 const [pw, ph] = PRESET[opt.canvas] || [];
 const theme = opt.theme || 'light';
@@ -40,10 +40,11 @@ const q = QUALITY[opt.quality] || QUALITY.high;
 const scale = opt.quality === 'max' ? Math.max(1, Math.min(2, 3840 / Math.max(width, height))) : 1;
 
 const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: scale, colorScheme: theme });
+// Chrome's screencast sends frames at the page's own size whatever the pixel density, so a sharper video is a bigger page: the player draws the whole picture at that size
+const ctx = await browser.newContext({ viewport: { width: Math.round(width * scale), height: Math.round(height * scale) }, deviceScaleFactor: 1, colorScheme: theme });
 const page = await ctx.newPage();
 // record mode: no controls, plays once, ends on the end card. Set before the page's scripts run.
-await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', theme, canvas: opt.canvas, phone: opt.phone, captions: opt.captions === 'off' ? 'off' : opt.captions ? 'on' : undefined, captionsAt: ['below', 'over'].includes(opt.captions) ? opt.captions : undefined, ...extra });
+await page.addInitScript((pre) => { window.__flowcast = pre; }, { mode: 'record', zoom: scale, theme, canvas: opt.canvas, phone: opt.phone, captions: opt.captions === 'off' ? 'off' : opt.captions ? 'on' : undefined, captionsAt: ['below', 'over'].includes(opt.captions) ? opt.captions : undefined, ...extra });
 await page.goto('file://' + resolve(input));
 await page.waitForFunction(() => window.flowcast && window.flowcast.beats);
 await page.evaluate(() => {
